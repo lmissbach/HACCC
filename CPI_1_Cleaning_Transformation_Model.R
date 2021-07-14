@@ -2,14 +2,19 @@
 
 # Author: L. Missbach, missbach@mcc-berlin.net
 
+carbon.price <- 40 # in USD/tCO2
+
 # 1       Packages ####
 
 library("haven")
 library("Hmisc")
 library("openxlsx")
+library("rattle")
 library("scales")
 library("tidyverse")
 options(scipen=999)
+
+# 1.1     Setup ####
 
 # for(Country.Name in c("India")) ...
 Country.Name <- "India"
@@ -18,7 +23,6 @@ Country_Year <- data.frame(Country = c("India"),
                            Year =    c("2012"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
-
 
 # 2       Load Household and Expenditure File ####
 
@@ -133,6 +137,7 @@ expenditure_information_4 <- expenditure_information %>%
          outlier_99 = wtd.quantile(expenditures_year, weights = hh_weights, probs = 0.99),
          median_exp = wtd.quantile(expenditures_year, weights = hh_weights, probs = 0.5),
          mean_exp   = wtd.mean(    expenditures_year, weights = hh_weights))%>%
+  ungroup()%>%
   mutate(flag_outlier_95 = ifelse(expenditures_year>= outlier_95,1,0),
          flag_outlier_99 = ifelse(expenditures_year>= outlier_99,1,0))%>%
   # this line replaces all expenditures which are above the 99th percentile for each item to the median
@@ -288,7 +293,7 @@ rm(carbon_intensities_0, GTAP_code)
 # ____    ####
 # 6       Transformation of Data ####
 
-# 6.0     Anonymising Household-ID ####
+# 6.1     Anonymising Household-ID ####
 
 household_ids <- select(household_information, hh_id)%>%
   distinct()%>%
@@ -302,25 +307,25 @@ expenditure_information <- left_join(expenditure_information, household_ids)%>%
   select(hh_id_new, everything(), -hh_id)%>%
   rename(hh_id = hh_id_new)
 
-# 6.1     Merging Expenditure Data and GTAP ####
+rm(household_ids)
 
-household_expenditures_0 <- left_join(household_expenditures, matching, by = "item_code")%>%
+basic_household_information <- household_information %>%
+  select(hh_id, hh_size, hh_weights)
+
+# 6.2     Merging Expenditure Data and GTAP ####
+
+expenditure_information_1 <- left_join(expenditure_information, matching, by = "item_code")%>%
   filter(GTAP != "deleted")
 
-# Print item-codes, which are not matched to GTAP sectors
-item_codes_unmatched <- filter(household_expenditures_0, is.na(GTAP))%>%
-  group_by(item_code)%>%
-  summarise()%>%
-  ungroup()
+rm(matching)
 
-if(nrow(item_codes_unmatched)>0) View(item_codes_unmatched)
+# 6.3     Assign Households to Expenditure Bins ####
 
-# 3.2        Assign Households to Expenditure Bins ####
-
-binning_0 <- household_expenditures_0 %>%
+binning_0 <- expenditure_information_1 %>%
   group_by(hh_id)%>%
   mutate(hh_expenditures = sum(expenditures))%>%
   ungroup()%>%
+  left_join(basic_household_information)%>%
   mutate(hh_expenditures_pc = hh_expenditures/hh_size)%>%
   select(hh_id, hh_expenditures, hh_expenditures_pc, hh_weights)%>%
   filter(!duplicated(hh_id))%>%
@@ -328,52 +333,44 @@ binning_0 <- household_expenditures_0 %>%
          Income_Group_10 = as.numeric(binning(hh_expenditures_pc, bins = 10, method = c("wtd.quantile"), weights = hh_weights)))%>%
   select(hh_id, hh_expenditures, hh_expenditures_pc, starts_with("Income"))
 
-household_expenditures_0 <- household_expenditures_0 %>%
-  left_join(binning_0, by = "hh_id")
+rm(basic_household_information)
 
-# 3.3        Preparing Analysis of Energy/Food/Goods/Services ####
+# 6.4     Calculating Expenditure Shares on Energy/Food/Goods/Services ####
 
-types_0 <- read.xlsx("Item_Categories_Concordance.xlsx", sprintf("Item_%s", Country.Name), startRow = 1, colNames = FALSE)%>%
-  filter(X1 == "food" | X1 == "energy" | X1 == "services" | X1 == "goods" | X1 == "other_binning" | X1 == "deleted" | X1 == "in-kind" | X1 == "self-produced")
+expenditures_categories_0 <- left_join(expenditure_information, categories)%>%
+  filter(category != "deleted" & category != "in-kind" & category != "self-produced")%>%
+  group_by(hh_id, category)%>%
+  summarise(expenditures_category = sum(expenditures))%>%
+  ungroup()%>%
+  group_by(hh_id)%>%
+  mutate(share_category = expenditures_category/sum(expenditures_category))%>%
+  ungroup()%>%
+  select(hh_id, category, share_category)%>%
+  pivot_wider(names_from = "category", values_from = "share_category", names_prefix = "share_", values_fill = 0)
 
-types_1 <- types_0 %>%
-  mutate_at(vars(-X1), list(function(x) x = as.character(x)))%>%
-  pivot_longer(-X1, names_to = "type", values_to = "item_code")%>%
-  filter(!is.na(item_code))%>%
-  select(-type)%>%
-  mutate(item_code = as.character(item_code))
+rm(categories, expenditure_information)
 
-categories_0 <- left_join(household_expenditures_0, types_1)%>%
-  filter(X1 != "deleted" & X1 != "other_binning" & X1 != "in-kind" & X1 != "self-produced")%>%
-  group_by(hh_id, X1)%>%
-  mutate(expenditures_category = sum(expenditures),
-         shares_category       = expenditures_category/hh_expenditures)%>%
-  select(hh_id, X1, shares_category)%>%
-  distinct()%>%
-  pivot_wider(names_from = "X1", values_from = "shares_category", names_prefix = "share_")
-
-# 3.4        Similarly for single fuels ####
+# 6.5     Calculating Expenditure Shares on detailed Energy Items ####
 
 # TBA
 
-# 3.5        Adding up on GTAP ####
+# 6.6     Summarising Expenditures on the GTAP Level ####
 
-household_expenditures_1 <- household_expenditures_0 %>%
-  select(hh_id, expenditures, item_code, GTAP)%>%
-  mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+expenditure_information_1 <- expenditure_information_1 %>%
   group_by(hh_id, GTAP)%>%
   summarise(expenditures = sum(expenditures))%>%
   ungroup()%>%
+  # We inflate/deflate expenditures to 2014 and convert 2014 expenditures to USD (no PPP-adjustment)
   mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
   group_by(hh_id)%>%
   mutate(hh_expenditures_USD_2014 = sum(expenditures_USD_2014))%>%
   ungroup()
 
-# Expenditures on the GTAP level
+rm(exchange.rate, inflation_factor)
 
-# 3.6        Joining Expenditures and Carbon Intensities ####
+# 6.7     Merging Expenditures and Carbon Intensities ####
 
-household_carbon_incidence <- left_join(household_expenditures_1, carbon_intensities, by = "GTAP")%>%
+household_carbon_footprint <- left_join(expenditure_information_1, carbon_intensities, by = "GTAP")%>%
   filter(GTAP != "other")%>%
   mutate(CO2_t_global      = expenditures_USD_2014*CO2_t_per_dollar_global,
          CO2_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national,
@@ -388,11 +385,13 @@ household_carbon_incidence <- left_join(household_expenditures_1, carbon_intensi
             CO2_t_transport   = sum(CO2_t_transport))%>%
   ungroup()
 
-# ____       ####
-# 4          ANALYSING DATA ####
-# 4.1        Analysis ####
+rm(carbon_intensities, expenditure_information_1)
 
-household_carbon_incidence_1 <- household_carbon_incidence %>%
+# ____    ####
+# 7       Model / Calculating Carbon Incidence ####
+# 7.1     Analysis of Carbon Pricing Incidence ####
+
+household_carbon_incidence <- household_carbon_footprint %>%
   mutate(exp_CO2_global              = CO2_t_global*carbon.price,
          exp_CO2_national            = CO2_t_national*carbon.price,
          exp_CO2_electricity         = CO2_t_electricity*carbon.price,
@@ -402,12 +401,13 @@ household_carbon_incidence_1 <- household_carbon_incidence %>%
          burden_CO2_electricity      = exp_CO2_electricity/hh_expenditures_USD_2014,
          burden_CO2_transport        = exp_CO2_transport/  hh_expenditures_USD_2014)
 
-final_information <- household_information %>%
+final_incidence_information <- household_carbon_incidence %>%
   left_join(binning_0)%>%
-  left_join(categories_0)%>%
-  left_join(household_carbon_incidence_1)
+  left_join(expenditures_categories_0)
 
-write_csv(final_information, sprintf("Carbon_Pricing_Incidence_%s.csv", Country.Name))
+write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Carbon_Pricing_Incidence_%s.csv",  Country.Name))
+write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/household_information_%s_new.csv", Country.Name))
 
+rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information)
 
-
+rm(list=ls())
