@@ -17,7 +17,7 @@ options(scipen=999)
 # 1.1     Setup ####
 
 #for(Country.Name in c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam")) {
-Country.Name <- "Israel"
+Country.Name <- "Indonesia"
 
 Country_Year <- data.frame(Country = c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam"), 
                            Year =    c("2010",       "2012",  "2018",      "2018",  "2013",     "2015",        "2013",     "2013",   "2012"))
@@ -114,7 +114,7 @@ hh_duplicates_expenditures_3 <- expenditure_information_3 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name == "India"){
+if(Country.Name == "India" | Country.Name == "Indonesia"){
 
 household_information <- household_information %>%
    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -132,7 +132,7 @@ rm(expenditure_information_1, expenditure_information_2, expenditure_information
 
 expenditure_information_4 <- expenditure_information %>%
   # pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures") %>%
-  left_join(household_information)%>%
+  left_join(select(household_information, hh_id, hh_weights))%>%
   filter(!is.na(expenditures_year) & expenditures_year > 0 )%>%
   group_by(item_code)%>%
   mutate(outlier_95 = wtd.quantile(expenditures_year, weights = hh_weights, probs = 0.95),
