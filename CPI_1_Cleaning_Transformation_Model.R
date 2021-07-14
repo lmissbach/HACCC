@@ -131,7 +131,7 @@ rm(expenditure_information_1, expenditure_information_2, expenditure_information
 expenditure_information_4 <- expenditure_information %>%
   # pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures") %>%
   left_join(household_information)%>%
-  filter(!is.na(expenditures_year) & expenditures_year != 0)%>%
+  filter(!is.na(expenditures_year) & expenditures_year > 0 )%>%
   group_by(item_code)%>%
   mutate(outlier_95 = wtd.quantile(expenditures_year, weights = hh_weights, probs = 0.95),
          outlier_99 = wtd.quantile(expenditures_year, weights = hh_weights, probs = 0.99),
@@ -409,5 +409,7 @@ write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_
 write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/household_information_%s_new.csv", Country.Name))
 
 rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information)
+
+print(Country.Name)
 
 rm(list=ls())
