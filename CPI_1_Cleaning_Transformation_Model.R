@@ -16,13 +16,15 @@ options(scipen=999)
 
 # 1.1     Setup ####
 
-# for(Country.Name in c("India")) ...
-Country.Name <- "India"
+#for(Country.Name in c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam")) {
+Country.Name <- "Israel"
 
-Country_Year <- data.frame(Country = c("India"), 
-                           Year =    c("2012"))
+Country_Year <- data.frame(Country = c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam"), 
+                           Year =    c("2010",       "2012",  "2018",      "2018",  "2013",     "2015",        "2013",     "2013",   "2012"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
+
+print(paste0(Country.Name, " Start"))
 
 # 2       Load Household and Expenditure File ####
 
@@ -245,7 +247,12 @@ rm(matching.check, item_codes)
 
 # 5.1.3   Matching Category Concordance ####
 
-categories <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", Country.Name, Country.Name), colNames = FALSE)
+categories <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", Country.Name, Country.Name), colNames = FALSE, )
+
+if(Country.Name == "Bangladesh"){
+  categories <- categories %>%
+    mutate_at(vars(-X1),~ as.numeric(.))
+}
 
 categories <- categories %>%
   pivot_longer(-X1, names_to = "drop", values_to = "item_code")%>%
@@ -405,11 +412,14 @@ final_incidence_information <- household_carbon_incidence %>%
   left_join(binning_0)%>%
   left_join(expenditures_categories_0)
 
+if(max(final_incidence_information$CO2_t_global) == "Inf") "Warning! Check Intensities."
+
+if(max(final_incidence_information$CO2_t_global) == "Inf") break
+
 write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Carbon_Pricing_Incidence_%s.csv",  Country.Name))
 write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/household_information_%s_new.csv", Country.Name))
 
 rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information)
 
-print(Country.Name)
-
-rm(list=ls())
+print(paste0("End ", Country.Name))
+#}
