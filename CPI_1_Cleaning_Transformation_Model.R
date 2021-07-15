@@ -17,7 +17,7 @@ options(scipen=999)
 # 1.1     Setup ####
 
 #for(Country.Name in c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam")) {
-Country.Name <- "Indonesia"
+Country.Name <- "Vietnam"
 
 Country_Year <- data.frame(Country = c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam"), 
                            Year =    c("2010",       "2012",  "2018",      "2018",  "2013",     "2015",        "2013",     "2013",   "2012"))
@@ -114,7 +114,7 @@ hh_duplicates_expenditures_3 <- expenditure_information_3 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name == "India" | Country.Name == "Indonesia"){
+if(Country.Name == "India" | Country.Name == "Indonesia" | Country.Name == "Philippines"){
 
 household_information <- household_information %>%
    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -220,6 +220,11 @@ rm(cpis_1, cpis_0, information.ex, cpis)
 
 matching <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_GTAP_Concordance_%s.xlsx", Country.Name, Country.Name))
 
+if(Country.Name == "Thailand"){
+  matching <- matching %>%
+    mutate_at(vars(-GTAP, -Explanation),~ as.numeric(.))
+}
+
 matching <- matching %>%
   select (-Explanation) %>%
   pivot_longer(-GTAP, names_to = "drop", values_to = "item_code")%>%
@@ -249,7 +254,7 @@ rm(matching.check, item_codes)
 
 categories <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", Country.Name, Country.Name), colNames = FALSE, )
 
-if(Country.Name == "Bangladesh"){
+if(Country.Name == "Bangladesh" | Country.Name == "Thailand"){
   categories <- categories %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
@@ -278,7 +283,25 @@ rm(matching.check, item_codes)
 
 # 5.1.4   Add Codes if necessary (TBD) ####
 
-# 5.1.5   Vector with Carbon Intensities ####
+# 5.1.5   Matching Fuel Concordance ####
+
+fuels <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_Fuel_Concordance_%s.xlsx", Country.Name, Country.Name), colNames = FALSE)
+
+fuels <- fuels %>%
+  pivot_longer(-X1, names_to = "drop", values_to = "item_code")%>%
+  filter(!is.na(item_code))%>%
+  rename(fuel = X1)%>%
+  select(fuel, item_code)
+
+energy <- filter(categories, category == "energy")%>%
+  full_join(fuels)%>%
+  filter(is.na(fuel) | is.na(category))
+
+if(nrow(energy) >0) print("Warning. Watch out for energy item codes.")
+
+rm(energy)
+
+# 5.1.6   Vector with Carbon Intensities ####
 
 carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
 GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
@@ -355,11 +378,18 @@ expenditures_categories_0 <- left_join(expenditure_information, categories)%>%
   select(hh_id, category, share_category)%>%
   pivot_wider(names_from = "category", values_from = "share_category", names_prefix = "share_", values_fill = 0)
 
-rm(categories, expenditure_information)
+rm(categories)
 
 # 6.5     Calculating Expenditure Shares on detailed Energy Items ####
 
-# TBA
+expenditures_fuels <- left_join(expenditure_information, fuels)%>%
+  filter(!is.na(fuel))%>%
+  group_by(hh_id, fuel)%>%
+  summarise(expenditures = sum(expenditures))%>%
+  ungroup()%>%
+  pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_LCU_")
+
+rm(expenditure_information)
 
 # 6.6     Summarising Expenditures on the GTAP Level ####
 
@@ -371,6 +401,11 @@ expenditure_information_1 <- expenditure_information_1 %>%
   mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
   group_by(hh_id)%>%
   mutate(hh_expenditures_USD_2014 = sum(expenditures_USD_2014))%>%
+  ungroup()
+
+expenditure_information_2 <- expenditure_information_1 %>%
+  group_by(hh_id)%>%
+  summarise(hh_expenditures_LCU = sum(expenditures))%>%
   ungroup()
 
 rm(exchange.rate, inflation_factor)
@@ -418,8 +453,10 @@ if(max(final_incidence_information$CO2_t_global) == "Inf") break
 
 write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Carbon_Pricing_Incidence_%s.csv",  Country.Name))
 write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/household_information_%s_new.csv", Country.Name))
+write_csv(left_join(expenditures_fuels, expenditure_information_2), sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/fuel_expenditures_%s.csv", Country.Name))
 
-rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information)
+
+rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information, expenditure_information_2, expenditures_fuels)
 
 print(paste0("End ", Country.Name))
 #}
