@@ -16,11 +16,11 @@ options(scipen=999)
 
 # 1.1     Setup ####
 
-#for(Country.Name in c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam")) {
-Country.Name <- "Vietnam"
+#for(Country.Name in c("Bangladesh", "Bolivia", "Ecuador", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam")) {
+Country.Name <- "Ecuador"
 
-Country_Year <- data.frame(Country = c("Bangladesh", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam"), 
-                           Year =    c("2010",       "2012",  "2018",      "2018",  "2013",     "2015",        "2013",     "2013",   "2012"))
+Country_Year <- data.frame(Country = c("Bangladesh", "Bolivia", "Ecuador", "India", "Indonesia", "Israel","Pakistan", "Peru", "Philippines", "Thailand", "Turkey", "Vietnam"), 
+                           Year =    c("2010",       "2018",    "2013",    "2012",  "2018",      "2018",  "2013",     "2016", "2015",        "2013",     "2013",   "2012"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
 
@@ -28,9 +28,11 @@ print(paste0(Country.Name, " Start"))
 
 # 2       Load Household and Expenditure File ####
 
-household_information   <- read_csv(sprintf("../0_Data/1_Household Data/1_%s/1_Data_Clean/household_information_%s.csv", Country.Name, Country.Name))
+path_0 <-list.files("../0_Data/1_Household Data/")[grep(Country.Name, list.files("../0_Data/1_Household Data/"), ignore.case = T)]
 
-expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/1_%s/1_Data_Clean/expenditures_items_%s.csv", Country.Name, Country.Name))
+household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/household_information_%s.csv", path_0, Country.Name))
+
+expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name))
 
 if(ncol(expenditure_information)>4){
 print("Warning! Expenditure-DF is in Wide-Format.")
@@ -218,7 +220,7 @@ rm(cpis_1, cpis_0, information.ex, cpis)
 
 # 5.1.2   Matching GTAP Concordance ####
 
-matching <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_GTAP_Concordance_%s.xlsx", Country.Name, Country.Name))
+matching <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_GTAP_Concordance_%s.xlsx", path_0, Country.Name))
 
 if(Country.Name == "Thailand"){
   matching <- matching %>%
@@ -252,7 +254,7 @@ rm(matching.check, item_codes)
 
 # 5.1.3   Matching Category Concordance ####
 
-categories <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", Country.Name, Country.Name), colNames = FALSE, )
+categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE, )
 
 if(Country.Name == "Bangladesh" | Country.Name == "Thailand"){
   categories <- categories %>%
@@ -285,7 +287,12 @@ rm(matching.check, item_codes)
 
 # 5.1.5   Matching Fuel Concordance ####
 
-fuels <- read.xlsx(sprintf("../0_Data/1_Household Data/1_%s/3_Matching_Tables/Item_Fuel_Concordance_%s.xlsx", Country.Name, Country.Name), colNames = FALSE)
+fuels <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Fuel_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
+
+if(Country.Name == "Thailand"){
+  fuels <- fuels %>%
+    mutate_at(vars(-X1),~ as.numeric(.))
+}
 
 fuels <- fuels %>%
   pivot_longer(-X1, names_to = "drop", values_to = "item_code")%>%
@@ -389,7 +396,7 @@ expenditures_fuels <- left_join(expenditure_information, fuels)%>%
   ungroup()%>%
   pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_LCU_")
 
-rm(expenditure_information)
+rm(expenditure_information, fuels)
 
 # 6.6     Summarising Expenditures on the GTAP Level ####
 
