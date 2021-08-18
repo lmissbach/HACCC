@@ -16,13 +16,17 @@ options(scipen=999)
 
 # 1   Loading Data ####
 
-Country.Name <- "Bolivia"
+for(Country.Name in c("Argentina", "Bangladesh", "Bolivia", "Ecuador", "Ethiopia", "India", "Indonesia", "Israel", "Nigeria", "Peru", "Philippines", "South_Africa", "Thailand", "Turkey", "Vietnam")) {
+
+# Country.Name <- "Ecuador"
 
 carbon_pricing_incidence_0 <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Carbon_Pricing_Incidence_%s.csv", Country.Name))
 
 household_information_0    <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/household_information_%s_new.csv", Country.Name))
 
-fuel_expenditures_0        <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/fuel_expenditures_%s.csv", Country.Name))
+#fuel_expenditures_0        <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/fuel_expenditures_%s.csv", Country.Name))
+
+if(Country.Name == "South_Africa") Country.Name <- "South Africa"
 
 # 2   Graphics Individual ####
 
@@ -120,7 +124,7 @@ return(P_X)
 P_1 <- plot_figure_1()
 
 jpeg(sprintf("../1_Carbon_Pricing_Incidence/2_Figures/Figure_1_Distribution_National_Carbon_Price/Figure_1_%s.jpg", Country.Name), width = 6, height = 6, unit = "cm", res = 400)
-P_1
+print(P_1)
 dev.off()
 
 # L_1 <- ggdraw(get_legend(P_1))
@@ -141,19 +145,26 @@ carbon_pricing_incidence_2.2 <- carbon_pricing_incidence_1 %>%
     mean = wtd.mean(   burden_CO2_national, weights = hh_weights))%>%
   ungroup()
 
+# Default Y-Axis
+ylim0 <- 0.085
+
+if(Country.Name == "Ethiopia") ylim0 <- 0.02  
+if(Country.Name == "Argentina" | Country.Name == "Turkey" | Country.Name == "South Africa") ylim0 <- 0.205
+
 plot_figure_2 <- function(ATT  = element_text(size = 7), ATX = element_text(size = 7), ATY = element_text(size = 7),
                           XLAB = "Expenditure Quintiles",
                           YLAB = "Carbon Price Incidence", 
-                          fill0 = "none"){
+                          fill0 = "none",
+                          accuracy_0 = 1){
 
 P_2 <- ggplot(carbon_pricing_incidence_2.2, aes(x = factor(Income_Group_5)))+
   geom_boxplot(aes(ymin = y5, lower = y25, middle = y50, upper = y75, ymax = y95), stat = "identity", position = position_dodge(0.5), outlier.shape = NA, width = 0.5, size = 0.3) +
   theme_bw()+
   xlab(XLAB)+ ylab(YLAB)+
   geom_point(aes(y = mean), shape = 23, size = 1.3, stroke = 0.2, fill = "white")+
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = c(0,0))+
+  scale_y_continuous(labels = scales::percent_format(accuracy = accuracy_0), expand = c(0,0))+
   scale_x_discrete(labels = c("1 \n Poorest \n 20 Percent", "2", "3", "4", "5 \n Richest \n 20 Percent"))+
-  coord_cartesian(ylim = c(0,0.065))+
+  coord_cartesian(ylim = c(0,ylim0))+
   ggtitle(Country.Name)+
   theme(axis.text.y = ATY, 
         axis.text.x = ATX,
@@ -175,12 +186,14 @@ return(P_2)
 
 P_2 <- plot_figure_2()
 
+if(Country.Name == "Ethiopia") P_2 <- plot_figure_2(accuracy_0 = 0.1)
+
 jpeg(sprintf("../1_Carbon_Pricing_Incidence/2_Figures/Figure_2_Boxplot_National_Carbon_Price/Figure_2_%s.jpg", Country.Name), width = 6, height = 6, unit = "cm", res = 400)
-P_2
+print(P_2)
 dev.off()
 
 
-# 2.2 Vertical Distribution across Instruments ####
+# 2.3 Vertical Distribution across Instruments ####
 
 carbon_pricing_incidence_2.3 <- carbon_pricing_incidence_1 %>%
   group_by(Income_Group_5)%>%
@@ -236,7 +249,7 @@ plot_figure_3 <- function(ATT  = element_text(size = 7), ATX = element_text(size
           legend.title = element_text(size = 7),
           plot.margin = unit(c(0.1,0.1,0,0), "cm"),
           panel.border = element_rect(size = 0.3))+
-    coord_cartesian(ylim = c(0.5,1.5))+
+    coord_cartesian(ylim = c(0.5,2.5))+
     #guides(fill = guide_legend(nrow = 2, order = 1), colour = guide_legend(nrow = 2, order = 1), shape = guide_legend(nrow = 2, order = 1), alpha = FALSE, size = FALSE)+
     guides(fill = fill0, colour = fill0, shape = fill0, size = fill0, alpha = fill0)+
     xlab(XLAB)+
@@ -250,11 +263,15 @@ plot_figure_3 <- function(ATT  = element_text(size = 7), ATX = element_text(size
 P_3 <- plot_figure_3()
 
 jpeg(sprintf("../1_Carbon_Pricing_Incidence/2_Figures/Figure_3_Vertical_Effects/Figure_3_%s.jpg", Country.Name), width = 6, height = 6, unit = "cm", res = 400)
-P_3
+print(P_3)
 dev.off()
 
+# 2.4 Correlations with Incidence - Energy, Fuels etc. ####
+# 2.5 Tax Policies ####
+# 2.6 Maps ####
 # 3.X ####
 
+print(paste0("End ", Country.Name))
 
 rm(list = ls())
-
+}

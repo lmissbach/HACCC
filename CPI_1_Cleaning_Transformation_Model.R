@@ -16,11 +16,11 @@ options(scipen=999)
 
 # 1.1     Setup ####
 
-#for(Country.Name in c("Bangladesh", "Bolivia", "Ecuador", "India", "Indonesia", "Israel","Pakistan", "Philippines", "Thailand", "Turkey", "Vietnam")) {
-Country.Name <- "Ecuador"
+for(Country.Name in c("Bangladesh", "Bolivia", "Ecuador", "India", "Indonesia", "Israel","Pakistan", "Peru", "Philippines", "Thailand", "Turkey", "Vietnam")) {
+#Country.Name <- "Ethiopia"
 
-Country_Year <- data.frame(Country = c("Bangladesh", "Bolivia", "Ecuador", "India", "Indonesia", "Israel","Pakistan", "Peru", "Philippines", "Thailand", "Turkey", "Vietnam"), 
-                           Year =    c("2010",       "2018",    "2013",    "2012",  "2018",      "2018",  "2013",     "2016", "2015",        "2013",     "2013",   "2012"))
+Country_Year <- data.frame(Country = c("Argentina", "Bangladesh", "Bolivia", "Ecuador", "Ethiopia", "India", "Indonesia", "Israel", "Nigeria", "Pakistan", "Peru", "Philippines", "South_Africa", "Thailand", "Turkey", "Vietnam"), 
+                           Year =    c("2018",      "2010",       "2018",    "2013",  "2018",  "2012",  "2018",      "2018",  "2016",     "2013",     "2016", "2015",        "2014",         "2013",     "2013",   "2012"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
 
@@ -30,13 +30,17 @@ print(paste0(Country.Name, " Start"))
 
 path_0 <-list.files("../0_Data/1_Household Data/")[grep(Country.Name, list.files("../0_Data/1_Household Data/"), ignore.case = T)]
 
-household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/household_information_%s.csv", path_0, Country.Name))
+household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/household_information_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
 
-expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name))
+expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
+
+appliances_0               <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
 
 if(ncol(expenditure_information)>4){
 print("Warning! Expenditure-DF is in Wide-Format.")
 }
+
+if(nrow(count(expenditure_information, hh_id)) != nrow(count(household_information, hh_id))) print("WARNING!")
 
 # 3       Data Cleaning ####
 # 3.1     Check for Duplicates ####
@@ -116,7 +120,7 @@ hh_duplicates_expenditures_3 <- expenditure_information_3 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name == "India" | Country.Name == "Indonesia" | Country.Name == "Philippines"){
+if(Country.Name == "India" | Country.Name == "Indonesia" | Country.Name == "Philippines" | Country.Name == "Ethiopia"){
 
 household_information <- household_information %>%
    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -187,6 +191,8 @@ rm(expenditure_information_4.1, expenditure_information_4, expenditure_outlier)
 # 5.1.1   Supplementary Data ####
 # Exchange Rates
 
+if(Country.Name == "South_Africa") Country.Name <- "South Africa"
+
 information.ex <- read.xlsx("../0_Data/9_Supplementary Data/Exchange_Rates_2014.xlsx") # from World Bank
 
 exchange.rate  <- as.numeric(information.ex$exchange_rate[information.ex$Country == Country.Name]) # not ppp-adjusted
@@ -215,6 +221,8 @@ cpis_1 <- cpis_0 %>%
 
 
 inflation_factor <- cpis_1$inflation_factor[cpis_1$Country == Country.Name]
+
+if(Country.Name == "South Africa") Country.Name <- "South_Africa"
 
 rm(cpis_1, cpis_0, information.ex, cpis)
 
@@ -254,7 +262,7 @@ rm(matching.check, item_codes)
 
 # 5.1.3   Matching Category Concordance ####
 
-categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE, )
+categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
 if(Country.Name == "Bangladesh" | Country.Name == "Thailand"){
   categories <- categories %>%
@@ -310,6 +318,8 @@ rm(energy)
 
 # 5.1.6   Vector with Carbon Intensities ####
 
+if(Country.Name == "South_Africa") Country.Name <- "South Africa"
+
 carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
 GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 
@@ -326,6 +336,7 @@ carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Numbe
   select(GTAP, starts_with("CO2_t"))
 
 rm(carbon_intensities_0, GTAP_code)
+if(Country.Name == "South Africa") Country.Name <- "South_Africa"
 
 # ____    ####
 # 6       Transformation of Data ####
@@ -344,7 +355,13 @@ expenditure_information <- left_join(expenditure_information, household_ids)%>%
   select(hh_id_new, everything(), -hh_id)%>%
   rename(hh_id = hh_id_new)
 
-rm(household_ids)
+appliances_1 <- left_join(appliances_0, household_ids)%>%
+  select(hh_id_new, everything(), - hh_id)%>%
+  rename(hh_id = hh_id_new)
+
+write_csv(appliances_1, sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_new_%s.csv", path_0, Country.Name))
+
+rm(household_ids, appliances_1, appliances_0)
 
 basic_household_information <- household_information %>%
   select(hh_id, hh_size, hh_weights)
@@ -452,7 +469,8 @@ household_carbon_incidence <- household_carbon_footprint %>%
 
 final_incidence_information <- household_carbon_incidence %>%
   left_join(binning_0)%>%
-  left_join(expenditures_categories_0)
+  left_join(expenditures_categories_0)%>%
+  left_join(expenditures_fuels)
 
 if(max(final_incidence_information$CO2_t_global) == "Inf") "Warning! Check Intensities."
 
@@ -466,4 +484,4 @@ write_csv(left_join(expenditures_fuels, expenditure_information_2), sprintf("../
 rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information, expenditure_information_2, expenditures_fuels)
 
 print(paste0("End ", Country.Name))
-#}
+}
