@@ -16,12 +16,12 @@ options(scipen=999)
 
 # 1.1     Setup ####
 
-# for(Country.Name in c("Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "Mexico", "Peru", "Uruguay")) {
+for(Country.Name in c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Mexico", "Nicaragua", "Peru", "Uruguay")) {
 
-Country.Name <- "Dominican Republic"
+#Country.Name <- "Brazil"
 
-Country_Year <- data.frame(Country = c("Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "Mexico", "Peru", "Uruguay"), 
-                           Year =    c("2017",      "2018",    "2017"  , "2018",  "2016",     "2018",       "2018",               "2013",    "2019",   "2016", "2016"))
+Country_Year <- data.frame(Country = c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Mexico","Nicaragua", "Peru", "Uruguay"), 
+                           Year =    c("2017",     "2016"  ,    "2018",    "2017"  , "2018",  "2016",     "2018",       "2018",               "2013",    "2015",        "2014",     "2019",   "2014",    "2016", "2016"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
 
@@ -35,13 +35,15 @@ household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Dat
 
 expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
 
-appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
+if(Country.Name != "Chile"){appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))}
 
 if(ncol(expenditure_information)>4){
 print("Warning! Expenditure-DF is in Wide-Format.")
 }
 
 if(nrow(count(expenditure_information, hh_id)) != nrow(count(household_information, hh_id))) print("WARNING!")
+
+if(sum(is.na(household_information$inc_gov_cash))==nrow(household_information)){break}
 
 # 3       Data Cleaning ####
 # 3.1     Check for Duplicates ####
@@ -156,6 +158,28 @@ if(Country.Name == "Mexico" | Country.Name == "Dominican Republic"){
     filter(!hh_id %in% hh_duplicates_information$hh_id)
 }
 
+if(Country.Name == "El_Salvador"){
+  household_information <- household_information %>%
+    filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
+    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
+  
+  expenditure_information <- expenditure_information %>%
+    filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
+    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
+  
+}
+
+if(Country.Name == "Barbados"){
+  expenditure_information <- expenditure_information %>%
+    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
+  
+  household_information <- household_information %>%
+    filter(hh_id %in% expenditure_information$hh_id)
+  
+  appliances_0 <- appliances_0 %>%
+    filter(hh_id %in% expenditure_information$hh_id)
+}
+
 rm(expenditure_information_1, expenditure_information_2, expenditure_information_3, household_information_1, 
    hh_duplicates_expenditures_1, hh_duplicates_expenditures_2, hh_duplicates_expenditures_3, hh_duplicates_information,
    hh_negative_expenditures_4, expenditure_information_4)
@@ -247,11 +271,19 @@ cpis_1 <- cpis_0 %>%
 
 inflation_factor <- cpis_1$inflation_factor[cpis_1$Country == Country.Name]
 
+#if(Country.Name == "Argentina"){inflation_factor <- 1}
+
 rm(cpis_1, cpis_0, information.ex, cpis)
 
 # 5.1.2   Matching GTAP Concordance ####
 
 matching <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_GTAP_Concordance_%s.xlsx", path_0, Country.Name))
+
+if(Country.Name == "Colombia"){
+  matching <- matching %>%
+    mutate(X41 = as.character(X41),
+           X42 = as.character(X42),
+           X43 = as.character(X43))}
 
 matching <- matching %>%
   select (-Explanation) %>%
@@ -327,7 +359,9 @@ rm(energy)
 # 5.1.6   Vector with Carbon Intensities ####
 
 
-carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
+if(Country.Name != "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)}
+if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest_of_the_Caribbean")}
+
 GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 
 carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
@@ -361,12 +395,12 @@ expenditure_information <- left_join(expenditure_information, household_ids)%>%
   select(hh_id_new, everything(), -hh_id)%>%
   rename(hh_id = hh_id_new)
 
-appliances_1 <- left_join(appliances_0, household_ids)%>%
+if(Country.Name != "Chile"){appliances_1 <- left_join(appliances_0, household_ids)%>%
   select(hh_id_new, everything(), - hh_id)%>%
   rename(hh_id = hh_id_new)
 
 write_csv(appliances_1, sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_new_%s.csv", path_0, Country.Name))
-
+}
 rm(household_ids, appliances_1, appliances_0)
 
 basic_household_information <- household_information %>%
