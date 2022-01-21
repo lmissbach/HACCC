@@ -16,12 +16,12 @@ options(scipen=999)
 
 # 1.1     Setup ####
 
-for(Country.Name in c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Mexico", "Nicaragua", "Peru", "Uruguay")) {
+for(Country.Name in c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Mexico", "Nicaragua", "Paraguay" ,"Peru", "Uruguay")) {
 
 #Country.Name <- "Brazil"
 
-Country_Year <- data.frame(Country = c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Mexico","Nicaragua", "Peru", "Uruguay"), 
-                           Year =    c("2017",     "2016"  ,    "2018",    "2017"  , "2018",  "2016",     "2018",       "2018",               "2013",    "2015",        "2014",     "2019",   "2014",    "2016", "2016"))
+Country_Year <- data.frame(Country = c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Mexico","Nicaragua", "Paraguay", "Peru", "Uruguay"), 
+                           Year =    c("2017",     "2016"  ,    "2018",    "2017"  , "2018",  "2016",     "2018",       "2018",               "2013",    "2015",        "2014",     "2019",   "2014",    "2011","2016", "2016"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
 
@@ -158,7 +158,7 @@ if(Country.Name == "Mexico" | Country.Name == "Dominican Republic"){
     filter(!hh_id %in% hh_duplicates_information$hh_id)
 }
 
-if(Country.Name == "El_Salvador"){
+if(Country.Name == "El Salvador"){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
     filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -258,15 +258,16 @@ cpis_1 <- cpis_0 %>%
   mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
   mutate_at(vars('2010':'2019'), function(x) x = 1 + x/100)%>%
   rename_at(vars(starts_with("2")), list(~ str_replace(., "^", "Year_")))%>%
-  mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014, 
-                                   ifelse(Year_0 == 2012, Year_2013*Year_2014,
-                                          ifelse(Year_0 == 2013, Year_2014,
-                                                 ifelse(Year_0 == 2014, 1,
-                                                        ifelse(Year_0 == 2015, 1/Year_2015,
-                                                               ifelse(Year_0 == 2016, 1/(Year_2015*Year_2016),
-                                                                      ifelse(Year_0 == 2017, 1/(Year_2015*Year_2016*Year_2017),
-                                                                             ifelse(Year_0 == 2018, 1/(Year_2015*Year_2016*Year_2017*Year_2018), 
-                                                                                    ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0))))))))))
+  mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014,
+                                   ifelse(Year_0 == 2011, Year_2012*Year_2013*Year_2014,
+                                          ifelse(Year_0 == 2012, Year_2013*Year_2014,
+                                                 ifelse(Year_0 == 2013, Year_2014,
+                                                        ifelse(Year_0 == 2014, 1,
+                                                               ifelse(Year_0 == 2015, 1/Year_2015,
+                                                                      ifelse(Year_0 == 2016, 1/(Year_2015*Year_2016),
+                                                                             ifelse(Year_0 == 2017, 1/(Year_2015*Year_2016*Year_2017),
+                                                                                    ifelse(Year_0 == 2018, 1/(Year_2015*Year_2016*Year_2017*Year_2018),
+                                                                                           ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0)))))))))))
 
 
 inflation_factor <- cpis_1$inflation_factor[cpis_1$Country == Country.Name]
@@ -347,6 +348,8 @@ fuels <- fuels %>%
   filter(!is.na(item_code))%>%
   rename(fuel = X1)%>%
   select(fuel, item_code)
+
+if(Country.Name == "Paraguay"){fuels$item_code <- as.character(fuels$item_code)}
 
 energy <- filter(categories, category == "energy")%>%
   full_join(fuels)%>%
@@ -449,7 +452,12 @@ expenditures_fuels <- left_join(expenditure_information, fuels)%>%
   group_by(hh_id, fuel)%>%
   summarise(expenditures = sum(expenditures))%>%
   ungroup()%>%
-  pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_LCU_")
+  mutate(expenditures = expenditures*inflation_factor*exchange.rate)%>%
+  pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_USD_", values_fill = 0)
+
+expenditures_fuels <- distinct(household_information, hh_id)%>%
+  left_join(expenditures_fuels)%>%
+  mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))
 
 rm(expenditure_information, fuels)
 
