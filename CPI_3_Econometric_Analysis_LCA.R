@@ -350,9 +350,9 @@ for(i in Country.Set){
                                     ifelse(rowname_1 == "refrigerator.01", "Refrigerator Own.",
                                            ifelse(rowname_1 == "urban_01", "Urban Area",
                                                   ifelse(rowname_1 == "log_hh_expenditures_USD_2014", "HH Exp. (log)", 
-                                                         ifelse(rowname_1 == "Sample: (Income_Group_5)", "Sample:",rowname_1)))))))%>%
+                                                         ifelse(rowname_1 == "Sample (Income_Group_5)", "Sample:",rowname_1)))))))%>%
     select(rowname_1, starts_with("model"))%>%
-    mutate(rowname_1 = ifelse(rowname_1 == lag(rowname_1),"",rowname_1))%>%
+    mutate(rowname_1 = ifelse(rowname_1 == lag(rowname_1) & rowname_1 != "Sample:","",rowname_1))%>%
     mutate(rowname_1 = ifelse(i == "Mexico" & rowname_1 == 'i(var=Ethnicity,ref="Non-Indigeneous")', "ETH: Non-Indigeneous", rowname_1))
   
   tidy_2.1.1.1 <- tidy(model_2.1.1.0)%>%
@@ -393,6 +393,8 @@ data_2.1.2 <- data_joint_0 %>%
 list_2.1.2 <- list()
 data_frame_2.1.2 <- data.frame()
 
+ref_list_2 <- data.frame()
+
 for(i in Country.Set){
   
   household_information_0    <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/household_information_%s_new.csv", i))
@@ -403,17 +405,27 @@ for(i in Country.Set){
   formula_0 <- "affected_more_than_80q_CO2n ~ log_hh_expenditures_USD_2014 + hh_size"
   
   if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
-  if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
+  #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
   if(i != "Chile" & sum(is.na(data_2.1.2.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
-  if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$CF))==0)       formula_0 <- paste0(formula_0, " + CF")
-  if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$LF))==0)      formula_0 <- paste0(formula_0, " + LF")
+  if(i != "Chile" & sum(is.na(data_2.1.2.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
+  if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$CF))==0){
+    if(i != "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
+    if(i == "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Kerosene")')
+  }
+  #if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$LF))==0)      formula_0 <- paste0(formula_0, " + LF")
   #if("heating_fuel" %in% colnames(household_information_0))      formula_0 <- paste0(formula_0, " + HF")
-  if("edu_hhh" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$ISCED))==0)            formula_0 <- paste0(formula_0, " + factor(ISCED)")
-  if("ethnicity" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$ethnicity))==0)          formula_0 <- paste0(formula_0, " + factor(ethnicity)")
+  if("edu_hhh" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$ISCED))==0)            formula_0 <- paste0(formula_0, " + i(ISCED, ref = 1)")
+  if("ethnicity" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$Ethnicity))==0){
+    ref_0 <- count(data_2.1.2.1, Ethnicity)$Ethnicity[which.max(count(data_2.1.2.1, Ethnicity)$n)]
+    
+    ref_list_2 <- bind_rows(ref_list_2, data.frame(Country = i, Type = "Ethnicity", ref = ref_0))
+    
+    formula_0 <- paste0(formula_0, ' + i(Ethnicity, ref = "', ref_0,'")')
+  }
   if("religion" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$religion))==0)           formula_0 <- paste0(formula_0, " + factor(religion)")
   #if("district" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$district))==0)           formula_0 <- paste0(formula_0, " + factor(district)")
   #if("province" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$province))==0)           formula_0 <- paste0(formula_0, " + factor(province)")
-  
+
   formula_1 <- as.formula(formula_0)
   model_2.1.2.0 <- feglm(formula_1, data = data_2.1.2.1, weights = data_2.1.2.1$hh_weights, family = quasibinomial("logit"), se = "hetero")
   model_2.1.2.1 <- feglm(formula_1, data = data_2.1.2.1, weights = data_2.1.2.1$hh_weights, family = quasibinomial("logit"), se = "hetero", fsplit = ~ Income_Group_5)
@@ -427,7 +439,7 @@ for(i in Country.Set){
     separate("model 4", c("model_4", "model_4_SE"), sep = " ")%>%
     separate("model 5", c("model_5", "model_5_SE"), sep = " ")%>%
     separate("model 6", c("model_6", "model_6_SE"), sep = " ")%>%
-    mutate(n = 1:n())
+    mutate(number = 1:n())
   
   model_2.1.2.3 <- model_2.1.2.2 %>%
     select(- ends_with("_SE"))
@@ -437,7 +449,28 @@ for(i in Country.Set){
     rename_at(vars(starts_with("model")), list(~ str_replace(., "_SE", "")))
   
   model_2.1.2.5 <- rbind(model_2.1.2.3, model_2.1.2.4)%>%
-    arrange(n)
+    arrange(number)%>%
+    filter(number != 1 | model_2 == 1)%>%
+    mutate(model_1 = ifelse(model_1 == "Full", "Full Sample", model_1))%>%
+    filter(number != 2 | model_2 == "burden_CO2_national")%>%
+    mutate_at(vars(starts_with("model")), list(~ ifelse(. == "burden_CO2_national", "Carbon Price Incidence",.)))%>%
+    filter(number != 3)%>%
+    filter(!(rowname != lead(rowname) & rowname %in% c("_____________________________________", "S.E. type",
+                                                       "Observations", "R2", "Adj. R2")))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,2)  == "CF", paste0("Cooks with ", str_sub(rowname,5,-1)), rowname))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,5) == "ISCED", paste0("ISCED: ", str_sub(rowname,-1,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,2)  == "HF", paste0("Heats with", str_sub(rowname,3,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,2)  == "LF", paste0("Lighting Fuel:", str_sub(rowname,3,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,9) == "Ethnicity", paste0("ETH: ", str_sub(rowname,12,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(rowname_1 == "hh_size", "HH Size", 
+                              ifelse(rowname_1 == "car.01", "Car Ownership",
+                                     ifelse(rowname_1 == "refrigerator.01", "Refrigerator Own.",
+                                            ifelse(rowname_1 == "urban_01", "Urban Area",
+                                                   ifelse(rowname_1 == "log_hh_expenditures_USD_2014", "HH Exp. (log)", 
+                                                          ifelse(str_sub(rowname_1,1,6) == "Sample", "Sample:",rowname_1)))))))%>%
+    select(rowname_1, starts_with("model"))%>%
+    mutate(rowname_1 = ifelse(rowname_1 == lag(rowname_1) & rowname_1 != "Sample:","",rowname_1))%>%
+    mutate(rowname_1 = ifelse(i == "Mexico" & rowname_1 == 'i(var=Ethnicity,ref="Non-Indigeneous")', "ETH: Non-Indigeneous", rowname_1))
   
   tidy_2.1.2.1 <- tidy(model_2.1.2.0)%>%
     mutate(Country = i)
@@ -456,6 +489,11 @@ data_frame_2.1.2.1 <- data_frame_2.1.2 %>%
   filter(term != "(Intercept)")%>%
   mutate(Type_A = "Affected 80",
          Type_B = "Logit")
+
+ref_list_2 <- ref_list_2
+
+write.xlsx(ref_list_2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Affected_Logit/Table_6.1_Reference.xlsx")
+
 
 # 2.1.3 Fields Decomposition ####
 
