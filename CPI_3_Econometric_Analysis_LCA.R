@@ -45,6 +45,19 @@ for(Country.Name in c("Argentina", "Barbados","Bolivia", "Brazil", "Chile", "Col
         mutate(district = as.character(district))
     }
     
+    if("ethnicity" %in% colnames(carbon_pricing_incidence_1)){
+      carbon_pricing_incidence_1 <- carbon_pricing_incidence_1 %>%
+        mutate(ethnicity = as.character(ethnicity))
+      
+      Ethnicity.Code <- read_csv(sprintf("../0_Data/1_Household Data/3_%s/2_Codes/Ethnicity.Code.csv", Country.Name.2))%>%
+        select(ethnicity, everything())%>%
+        mutate(ethnicity = as.character(ethnicity))
+      
+      colnames(Ethnicity.Code) <- c("ethnicity", "Ethnicity")
+      carbon_pricing_incidence_1 <- left_join(carbon_pricing_incidence_1, Ethnicity.Code)
+      
+    }    
+        
     if("province" %in% colnames(carbon_pricing_incidence_1)){
       carbon_pricing_incidence_1 <- carbon_pricing_incidence_1 %>%
         mutate(province = as.character(province))
@@ -143,7 +156,10 @@ data_joint_0 <- data_joint_0 %>%
   mutate(share_other_binning = ifelse(is.na(share_other_binning),0, share_other_binning))%>%
   mutate(car.01 = ifelse(Country != "Chile" & is.na(car.01),0,car.01),
          CF = ifelse(is.na(CF), "Unknown", CF),
-         LF = ifelse(is.na(LF), "Unknown", LF))
+         LF = ifelse(is.na(LF), "Unknown", LF),
+         ISCED = ifelse(is.na(ISCED), 9, ISCED),
+         Ethnicity = ifelse(is.na(ethnicity) & Country == "Guatemala","Ignorado",Ethnicity),
+         Ethnicity = ifelse(is.na(ethnicity) & Country == "Barbados", "Other",Ethnicity))
 
 # 1.2 Several Summary Statistics ####
 
@@ -259,6 +275,7 @@ write.xlsx(Summary_1.4, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_T
 
 list_2.1.1 <- list()
 data_frame_2.1.1 <- data.frame()
+ref_list <- data.frame()
 
 for(i in Country.Set){
   
@@ -270,13 +287,23 @@ for(i in Country.Set){
   formula_0 <- "burden_CO2_national ~ log_hh_expenditures_USD_2014 + hh_size"
   
   if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
-  if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
+  #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
   if(i != "Chile" & sum(is.na(data_2.1.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
-  if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$CF))==0)       formula_0 <- paste0(formula_0, " + CF")
-  if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$LF))==0)      formula_0 <- paste0(formula_0, " + LF")
+  if(i != "Chile" & sum(is.na(data_2.1.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
+  if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$CF))==0){
+    if(i != "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
+    if(i == "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Kerosene")')
+    }
+  #if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$LF))==0)      formula_0 <- paste0(formula_0, " + LF")
   #if("heating_fuel" %in% colnames(household_information_0))      formula_0 <- paste0(formula_0, " + HF")
-  if("edu_hhh" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$ISCED))==0)            formula_0 <- paste0(formula_0, " + factor(ISCED)")
-  if("ethnicity" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$ethnicity))==0)          formula_0 <- paste0(formula_0, " + factor(ethnicity)")
+  if("edu_hhh" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$ISCED))==0)            formula_0 <- paste0(formula_0, " + i(ISCED, ref = 1)")
+  if("ethnicity" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$Ethnicity))==0){
+    ref_0 <- count(data_2.1.1, Ethnicity)$Ethnicity[which.max(count(data_2.1.1, Ethnicity)$n)]
+    
+    ref_list <- bind_rows(ref_list, data.frame(Country = i, Type = "Ethnicity", ref = ref_0))
+    
+    formula_0 <- paste0(formula_0, ' + i(Ethnicity, ref = "', ref_0,'")')
+  }
   if("religion" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$religion))==0)           formula_0 <- paste0(formula_0, " + factor(religion)")
   #if("district" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$district))==0)           formula_0 <- paste0(formula_0, " + factor(district)")
   #if("province" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$province))==0)           formula_0 <- paste0(formula_0, " + factor(province)")
@@ -295,7 +322,7 @@ for(i in Country.Set){
     separate("model 4", c("model_4", "model_4_SE"), sep = " ")%>%
     separate("model 5", c("model_5", "model_5_SE"), sep = " ")%>%
     separate("model 6", c("model_6", "model_6_SE"), sep = " ")%>%
-    mutate(n = 1:n())
+    mutate(number = 1:n())
   
   model_2.1.1.3 <- model_2.1.1.2 %>%
     select(- ends_with("_SE"))
@@ -305,7 +332,28 @@ for(i in Country.Set){
     rename_at(vars(starts_with("model")), list(~ str_replace(., "_SE", "")))
   
   model_2.1.1.5 <- rbind(model_2.1.1.3, model_2.1.1.4)%>%
-    arrange(n)
+    arrange(number)%>%
+    filter(number != 1 | model_2 == 1)%>%
+    mutate(model_1 = ifelse(model_1 == "Full", "Full Sample", model_1))%>%
+    filter(number != 2 | model_2 == "burden_CO2_national")%>%
+    mutate_at(vars(starts_with("model")), list(~ ifelse(. == "burden_CO2_national", "Carbon Price Incidence",.)))%>%
+    filter(number != 3)%>%
+    filter(!(rowname != lead(rowname) & rowname %in% c("_____________________________________", "S.E. type",
+                                                    "Observations", "R2", "Adj. R2")))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,2)  == "CF", paste0("Cooks with ", str_sub(rowname,5,-1)), rowname))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,5) == "ISCED", paste0("ISCED: ", str_sub(rowname,-1,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,2)  == "HF", paste0("Heats with", str_sub(rowname,3,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,2)  == "LF", paste0("Lighting Fuel:", str_sub(rowname,3,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(str_sub(rowname,1,9) == "Ethnicity", paste0("ETH: ", str_sub(rowname,12,-1)), rowname_1))%>%
+    mutate(rowname_1 = ifelse(rowname_1 == "hh_size", "HH Size", 
+                             ifelse(rowname_1 == "car.01", "Car Ownership",
+                                    ifelse(rowname_1 == "refrigerator.01", "Refrigerator Own.",
+                                           ifelse(rowname_1 == "urban_01", "Urban Area",
+                                                  ifelse(rowname_1 == "log_hh_expenditures_USD_2014", "HH Exp. (log)", 
+                                                         ifelse(rowname_1 == "Sample: (Income_Group_5)", "Sample:",rowname_1)))))))%>%
+    select(rowname_1, starts_with("model"))%>%
+    mutate(rowname_1 = ifelse(rowname_1 == lag(rowname_1),"",rowname_1))%>%
+    mutate(rowname_1 = ifelse(i == "Mexico" & rowname_1 == 'i(var=Ethnicity,ref="Non-Indigeneous")', "ETH: Non-Indigeneous", rowname_1))
   
   tidy_2.1.1.1 <- tidy(model_2.1.1.0)%>%
     mutate(Country = i)
@@ -326,6 +374,10 @@ data_frame_2.1.1.1 <- data_frame_2.1.1 %>%
          Type_B = "OLS")
 
 # Alle Variablen, die signifikant mit burden_CO2_national korrelieren
+
+ref_list_1 <- ref_list
+
+write.xlsx(ref_list_1, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Burden_OLS/Table_6.2_Reference.xlsx")
 
 # 2.1.2 Logit ####
 
@@ -489,6 +541,14 @@ data_frame_2.1.3.1 <- data_2.1.3.0 %>%
   mutate(Type_A = "Burden National",
          Type_B = "Fields")
 
+t <- data_frame_2.1.3.1 %>%
+  filter(Income_Group_5 == "Whole Sample")%>%
+  arrange(Country, -p_j)%>%
+  group_by(Country)%>%
+  mutate(cumsum_p_j = cumsum(p_j))%>%
+  ungroup()%>%
+  select(Country, factor, p_j, cumsum_p_j)
+
 
 # 2.2 Decomposing Loosers + No Access to Transfers ####
 
@@ -579,6 +639,59 @@ data_frame_2.2.2.1 <- data_frame_2.2.2 %>%
 # 2.2.3 Fields Decomposition ####
 
   
+
+# 2.2.4 How to characterize the households, which loose and have no access to transfers? ####
+
+data_2.2.4.1 <- data_2.2.2 %>%
+  filter(affected_80_no_transfers == 1)%>%
+  mutate(LPG = ifelse(CF == "LPG",1,0),
+         Firewood = ifelse(CF == "Firewood" | CF == "Firewood Charcoal",1,0),
+         Gas = ifelse(CF == "Gas",1,0))%>%
+  group_by(Country)%>%
+  summarise(total                    = sum(hh_weights),
+         car.01                   = sum(hh_weights[car.01 == 1]),
+         urban_01                 = sum(hh_weights[urban_01 == 1]),
+         hh_expenditures_USD_2014 = wtd.mean(hh_expenditures_USD_2014, weights = hh_weights),
+         LPG = sum(hh_weights[LPG == 1]),
+         Gas = sum(hh_weights[Gas == 1]),
+         Firewood = sum(hh_weights[Firewood == 1]))%>%
+  ungroup()%>%
+  mutate(car.01   = car.01/total,
+         urban_01 = urban_01/total,
+         LPG = LPG/total,
+         Gas = Gas/total,
+         Firewood = Firewood/total)%>%
+  select(Country, hh_expenditures_USD_2014, car.01, urban_01, LPG, Gas, Firewood)
+
+data_2.2.4.2 <- data_2.2.2 %>%
+    mutate(LPG    = ifelse(CF == "LPG",1,0),
+         Firewood = ifelse(CF == "Firewood" | CF == "Firewood Charcoal",1,0),
+         Gas      = ifelse(CF == "Gas",1,0))%>%
+  group_by(Country)%>%
+  summarise(total                    = sum(hh_weights),
+            car.01                   = sum(hh_weights[car.01 == 1]),
+            urban_01                 = sum(hh_weights[urban_01 == 1]),
+            hh_expenditures_USD_2014C = wtd.mean(hh_expenditures_USD_2014, weights = hh_weights),
+            LPG = sum(hh_weights[LPG == 1]),
+            Gas = sum(hh_weights[Gas == 1]),
+            Firewood = sum(hh_weights[Firewood == 1]))%>%
+  ungroup()%>%
+  mutate(car.01C   = car.01/total,
+         urban_01C = urban_01/total,
+         LPGC = LPG/total,
+         GasC = Gas/total,
+         FirewoodC = Firewood/total)%>%
+  select(Country, hh_expenditures_USD_2014C, car.01C, urban_01C, LPGC, GasC, FirewoodC)
+
+data_2.2.4.3 <- left_join(data_2.2.4.1, data_2.2.4.2)%>%
+  select(Country, starts_with("hh"), starts_with("car"), starts_with("urban"), starts_with("LPG"), starts_with("Gas"), starts_with("Firewood"))%>%
+  mutate_at(vars(starts_with("hh")), list(~ round(.,0)))%>%
+  mutate_at(vars(car.01:FirewoodC), list(~round(.,3)))%>%
+  mutate_at(vars(car.01:FirewoodC), list(~ ifelse(. == 0,NA,.)))%>%
+  mutate_at(vars(setdiff(ends_with("C"), starts_with("hh"))), list(~ ifelse(!is.na(.),paste0("(",.*100,"%)"),.)))
+
+write.xlsx(data_2.2.4.3, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Summary_Stats_3/Affected_no_Transfers_vs_All.xlsx")
+
 
 # 3   Cross-Sectional Analysis ####
 # 3.1 Regressions across regions ####
