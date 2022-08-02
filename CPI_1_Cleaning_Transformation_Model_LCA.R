@@ -21,7 +21,7 @@ for(Country.Name in c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Co
 #Country.Name <- "Brazil"
 
 Country_Year <- data.frame(Country = c("Argentina", "Barbados", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Mexico","Nicaragua", "Paraguay", "Peru", "Uruguay"), 
-                           Year =    c("2017",     "2016"  ,    "2018",    "2017"  , "2018",  "2016",     "2018",       "2018",               "2013",    "2015",        "2014",     "2019",   "2014",    "2011","2016", "2016"))
+                           Year =    c("2017",     "2016"  ,    "2019",    "2017"  , "2018",  "2016",     "2018",       "2018",               "2013",    "2015",        "2014",     "2019",   "2014",    "2011",       "2019", "2016"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
 
@@ -32,9 +32,8 @@ print(paste0(Country.Name, " Start"))
 path_0                  <-list.files("../0_Data/1_Household Data/")[grep(Country.Name, list.files("../0_Data/1_Household Data/"), ignore.case = T)]
 
 household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/household_information_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
-
 expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
-
+if(Country.Name == "Bolivia"){expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character(),item_code = col_character()))}
 if(Country.Name != "Chile"){appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))}
 
 if(ncol(expenditure_information)>4){
@@ -150,7 +149,7 @@ expenditure_information <- expenditure_information %>%
 
 }
 
-if(Country.Name == "Mexico" | Country.Name == "Dominican Republic"){
+if(Country.Name == "Mexico" | Country.Name == "Dominican Republic" | Country.Name == "Bolivia" | Country.Name == "Peru"){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)
   
@@ -286,6 +285,11 @@ if(Country.Name == "Colombia"){
            X42 = as.character(X42),
            X43 = as.character(X43))}
 
+if(Country.Name == "Bolivia"){
+  matching <- matching %>%
+    mutate_at(.vars = vars(-GTAP), .funs = list(~ as.character(.)))
+}
+
 matching <- matching %>%
   select (-Explanation) %>%
   pivot_longer(-GTAP, names_to = "drop", values_to = "item_code")%>%
@@ -314,6 +318,11 @@ rm(matching.check, item_codes)
 # 5.1.3   Matching Category Concordance ####
 
 categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
+
+if(Country.Name == "Bolivia"){
+  categories <- categories %>%
+    mutate_at(.vars = vars(-X1), .funs = list(~ as.character(.)))
+}
 
 categories <- categories %>%
   pivot_longer(-X1, names_to = "drop", values_to = "item_code")%>%

@@ -3,7 +3,12 @@
 # Author: L. Missbach, missbach@mcc-berlin.net
 
 carbon.price <- 377 # TBD
-
+gas.price    <- 1.38 # relative price increase in percent: 1.38 = 138%
+coal.price   <- 0.15 # relative price increase in percent: 0.15 = 15%
+p_c.price    <- 0.15 # relative price increase in percent: 0.15 = 15%
+oil.price    <- 0.15 # relative price increase in percent: 0.15 = 15%
+  
+  
 # 1       Packages ####
 
 library("haven")
@@ -322,7 +327,7 @@ GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv"
 carbon_intensities_EU <- data.frame()
   
 for(i in countries_b){
-  carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas.xlsx", sheet = i)
+  carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC.xlsx", sheet = i)
   carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
     select(-Explanation, - Number)%>%
     mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
@@ -336,8 +341,10 @@ for(i in countries_b){
            CO2_t_per_dollar_gas          = CO2_Mt_Gas/        Total_HH_Consumption_MUSD,
            CO2_t_per_dollar_gas_direct   = CO2_Mt_Gas_direct/ Total_HH_Consumption_MUSD,
            CO2_t_per_dollar_gas_indirect = CO2_Mt_Gas_indir/  Total_HH_Consumption_MUSD)%>%
-    select(GTAP, starts_with("CO2_t"))%>%
-    mutate(Country = i)
+    select(GTAP, starts_with("CO2_t"), starts_with("GAS_"), starts_with("COAL_"), starts_with("P_C"), starts_with("OIL_"))%>%
+    mutate(Country = i)%>%
+    mutate(GAS_USD_Gas = ifelse(GTAP == "gasgdt", GAS_USD_Gas -1, GAS_USD_Gas),
+           GAS_USD_Gas_direct = ifelse(GTAP == "gasgdt", GAS_USD_Gas_direct - 1, GAS_USD_Gas_direct))
   
   carbon_intensities_EU <- carbon_intensities_EU %>%
     bind_rows(carbon_intensities)
@@ -446,23 +453,49 @@ rm(exchange.rate, inflation_factor_EU, basic_household_information)
 
 household_carbon_footprint <- left_join(expenditure_information_1, carbon_intensities_EU, by = c("GTAP", "Country"))%>%
   filter(GTAP != "other")%>%
-  mutate(CO2_t_global       = expenditures_USD_2014*CO2_t_per_dollar_global,
-         CO2_t_national     = expenditures_USD_2014*CO2_t_per_dollar_national,
-         CO2_t_electricity  = expenditures_USD_2014*CO2_t_per_dollar_electricity,
-         CO2_t_transport    = expenditures_USD_2014*CO2_t_per_dollar_transport,
-         CO2_t_gas          = expenditures_USD_2014*CO2_t_per_dollar_gas,
-         CO2_t_gas_direct   = expenditures_USD_2014*CO2_t_per_dollar_gas_direct,
-         CO2_t_gas_indirect = expenditures_USD_2014*CO2_t_per_dollar_gas_indirect)%>%
+  mutate(CO2_t_global              = expenditures_USD_2014*CO2_t_per_dollar_global,
+         CO2_t_national            = expenditures_USD_2014*CO2_t_per_dollar_national,
+         CO2_t_electricity         = expenditures_USD_2014*CO2_t_per_dollar_electricity,
+         CO2_t_transport           = expenditures_USD_2014*CO2_t_per_dollar_transport,
+         CO2_t_gas                 = expenditures_USD_2014*CO2_t_per_dollar_gas,
+         CO2_t_gas_direct          = expenditures_USD_2014*CO2_t_per_dollar_gas_direct,
+         CO2_t_gas_indirect        = expenditures_USD_2014*CO2_t_per_dollar_gas_indirect,
+         GAS_USD_on_gas            = expenditures_USD_2014*GAS_USD_Gas,
+         GAS_USD_on_gas_direct     = expenditures_USD_2014*GAS_USD_Gas_direct,
+         GAS_USD_on_gas_indirect   = expenditures_USD_2014*GAS_USD_Gas_indir,
+         
+         COAL_USD_on_coal          = expenditures_USD_2014*COAL_USD_Coal,
+         COAL_USD_on_coal_direct   = expenditures_USD_2014*COAL_USD_Coal_direct,
+         COAL_USD_on_coal_indirect = expenditures_USD_2014*COAL_USD_Coal_indir,
+         
+         P_C_USD_on_p_c            = expenditures_USD_2014*P_C_USD_p_c,
+         P_C_USD_on_p_c_direct     = expenditures_USD_2014*P_C_USD_p_c_direct,
+         P_C_USD_on_p_c_indirect   = expenditures_USD_2014*P_C_USD_p_c_indir,
+         
+         OIL_USD_on_oil            = expenditures_USD_2014*OIL_USD_oil)%>%
   select(-starts_with("CO2_t_per"))%>%
   group_by(hh_id)%>%
-  summarise(hh_expenditures_USD_2014 = first(hh_expenditures_USD_2014),
-            CO2_t_global             = sum(CO2_t_global),    
-            CO2_t_national           = sum(CO2_t_national),  
-            CO2_t_electricity        = sum(CO2_t_electricity),
-            CO2_t_transport          = sum(CO2_t_transport),
-            CO2_t_gas                = sum(CO2_t_gas),
-            CO2_t_gas_direct         = sum(CO2_t_gas_direct),
-            CO2_t_gas_indirect       = sum(CO2_t_gas_indirect))%>%
+  summarise(hh_expenditures_USD_2014  = first(hh_expenditures_USD_2014),
+            CO2_t_global              = sum(CO2_t_global),    
+            CO2_t_national            = sum(CO2_t_national),  
+            CO2_t_electricity         = sum(CO2_t_electricity),
+            CO2_t_transport           = sum(CO2_t_transport),
+            CO2_t_gas                 = sum(CO2_t_gas),
+            CO2_t_gas_direct          = sum(CO2_t_gas_direct),
+            CO2_t_gas_indirect        = sum(CO2_t_gas_indirect),
+            GAS_USD_on_gas            = sum(GAS_USD_on_gas),
+            GAS_USD_on_gas_direct     = sum(GAS_USD_on_gas_direct),
+            GAS_USD_on_gas_indirect   = sum(GAS_USD_on_gas_indirect),
+            
+            COAL_USD_on_coal          = sum(COAL_USD_on_coal),
+            COAL_USD_on_coal_direct   = sum(COAL_USD_on_coal_direct),
+            COAL_USD_on_coal_indirect = sum(COAL_USD_on_coal_indirect),
+            
+            P_C_USD_on_p_c            = sum(P_C_USD_on_p_c),
+            P_C_USD_on_p_c_direct     = sum(P_C_USD_on_p_c_direct),
+            P_C_USD_on_p_c_indirect   = sum(P_C_USD_on_p_c_indirect),
+            
+            OIL_USD_on_oil            = sum(OIL_USD_on_oil))%>%
   ungroup()
 
 
@@ -477,16 +510,36 @@ household_carbon_incidence <- household_carbon_footprint %>%
          #exp_CO2_national            = CO2_t_national*carbon.price,
          #exp_CO2_electricity         = CO2_t_electricity*carbon.price,
          #exp_CO2_transport           = CO2_t_transport*carbon.price,
-         exp_CO2_gas                 = CO2_t_gas*carbon.price,
-         exp_CO2_gas_direct          = CO2_t_gas_direct*carbon.price,
-         exp_CO2_gas_indirect        = CO2_t_gas_indirect*carbon.price)%>%
+         exp_CO2_gas            = CO2_t_gas*carbon.price,
+         exp_CO2_gas_direct     = CO2_t_gas_direct*carbon.price,
+         exp_CO2_gas_indirect   = CO2_t_gas_indirect*carbon.price,
+         exp_GAS_gas            = GAS_USD_on_gas*gas.price,
+         exp_GAS_gas_direct     = GAS_USD_on_gas_direct*gas.price,
+         exp_GAS_gas_indirect   = GAS_USD_on_gas_indirect*gas.price,
+         exp_COAL_coal          = COAL_USD_on_coal*coal.price,
+         exp_COAL_coal_direct   = COAL_USD_on_coal_direct*coal.price,
+         exp_COAL_coal_indirect = COAL_USD_on_coal_indirect*coal.price,
+         exp_P_C_p_c            = P_C_USD_on_p_c*p_c.price,
+         exp_P_C_p_c_direct     = P_C_USD_on_p_c_direct*p_c.price,
+         exp_P_C_p_c_indirect   = P_C_USD_on_p_c_indirect*p_c.price,
+         exp_OIL_oil            = OIL_USD_on_oil*oil.price)%>%
   mutate(#burden_CO2_global           = exp_CO2_global/     hh_expenditures_USD_2014,
          #burden_CO2_national         = exp_CO2_national/   hh_expenditures_USD_2014,
          #burden_CO2_electricity      = exp_CO2_electricity/hh_expenditures_USD_2014,
          #burden_CO2_transport        = exp_CO2_transport/  hh_expenditures_USD_2014,
          burden_CO2_gas          = exp_CO2_gas/hh_expenditures_USD_2014,
          burden_CO2_gas_direct   = exp_CO2_gas_direct/hh_expenditures_USD_2014,
-         burden_CO2_gas_indirect = exp_CO2_gas_indirect/hh_expenditures_USD_2014)
+         burden_CO2_gas_indirect = exp_CO2_gas_indirect/hh_expenditures_USD_2014,
+         burden_GAS_gas          = exp_GAS_gas/hh_expenditures_USD_2014,
+         burden_GAS_direct       = exp_GAS_gas_direct/hh_expenditures_USD_2014,
+         burden_GAS_indirect     = exp_GAS_gas_indirect/hh_expenditures_USD_2014,
+         burden_COAL_coal        = exp_COAL_coal/hh_expenditures_USD_2014,
+         burden_COAL_direct      = exp_COAL_coal_direct/hh_expenditures_USD_2014,
+         burden_COAL_indirect    = exp_COAL_coal_indirect/hh_expenditures_USD_2014,
+         burden_P_C_p_c          = exp_P_C_p_c/hh_expenditures_USD_2014,
+         burden_P_C_direct       = exp_P_C_p_c_direct/hh_expenditures_USD_2014,
+         burden_P_C_indirect     = exp_P_C_p_c_indirect/hh_expenditures_USD_2014,
+         burden_OIL_oil          = exp_OIL_oil/hh_expenditures_USD_2014)
 
 final_incidence_information <- household_carbon_incidence %>%
   left_join(binning_0)%>%
