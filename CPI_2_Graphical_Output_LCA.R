@@ -346,6 +346,10 @@ carbon_pricing_incidence_4.1.1 <- data_joint_0 %>%
     y75 = wtd.quantile(burden_CO2_national, weights = hh_weights, probs = 0.75),
     y95 = wtd.quantile(burden_CO2_national, weights = hh_weights, probs = 0.95),
     mean = wtd.mean(   burden_CO2_national, weights = hh_weights))%>%
+  ungroup()%>%
+  group_by(Country)%>%
+  mutate(min_median = min(y50),
+         max_median = max(y50))%>%
   ungroup()
 
 # Default Y-Axis
@@ -359,7 +363,8 @@ plot_figure_2 <- function(ATT  = element_text(size = 7), ATX = element_text(size
                           data_0 = carbon_pricing_incidence_4.1.1,
                           title_0 = "National Carbon Prices"){
   
-  P_2 <- ggplot(data_0, aes(x = factor(Income_Group_5)))+
+  P_2 <- ggplot(data_0, aes(x = as.character(Income_Group_5)))+
+    geom_rect(aes(ymin = min_median, ymax = max_median), xmin = 0, xmax = 6, alpha = 0.2, fill = "lightblue", inherit.aes = FALSE)+
     geom_boxplot(aes(ymin = y5, lower = y25, middle = y50, upper = y75, ymax = y95), stat = "identity", position = position_dodge(0.5), outlier.shape = NA, width = 0.5, size = 0.3) +
     theme_bw()+
     facet_wrap(.~Country, nrow = 4)+
@@ -389,7 +394,7 @@ plot_figure_2 <- function(ATT  = element_text(size = 7), ATX = element_text(size
 
 P_4.1.1 <- plot_figure_2()
 
-jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/1_Figures/Figure_2_Boxplot/National_Carbon_Price_Figure_2_Joint_1_Flipped.jpg", width = 15.5, height = 15, unit = "cm", res = 400)
+jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/1_Figures/Figure_2_Boxplot/National_Carbon_Price_Figure_2_Joint_1_Flipped_Ext.jpg", width = 15.5, height = 15, unit = "cm", res = 400)
 print(P_4.1.1)
 dev.off()
 

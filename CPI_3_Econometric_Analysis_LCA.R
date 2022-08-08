@@ -11,11 +11,14 @@ library("fixest")
 library("ggsci")
 library("haven")
 library("Hmisc")
+library("kableExtra")
 library("openxlsx")
 library("rattle")
 library("scales")
 library("tidyverse")
+library("xtable")
 options(scipen=999)
+
 
 # 1   Loading Data ####
 
@@ -52,6 +55,13 @@ for(Country.Name in c("Argentina", "Barbados","Bolivia", "Brazil", "Chile", "Col
       Ethnicity.Code <- read_csv(sprintf("../0_Data/1_Household Data/3_%s/2_Codes/Ethnicity.Code.csv", Country.Name.2))%>%
         select(ethnicity, everything())%>%
         mutate(ethnicity = as.character(ethnicity))
+      
+      if(Country.Name == "Guatemala" | Country.Name == "Nicaragua") Ethnicity.Code <- Ethnicity.Code %>%
+        select(-Ethnicity_0)
+      
+      if(Country.Name == "Bolivia") Ethnicity.Code <- Ethnicity.Code %>%
+        select(-ethnicity,-Ethnicity_1)%>%
+        rename(ethnicity = Ethnicity_0)
       
       colnames(Ethnicity.Code) <- c("ethnicity", "Ethnicity")
       carbon_pricing_incidence_1 <- left_join(carbon_pricing_incidence_1, Ethnicity.Code)
@@ -140,7 +150,8 @@ data_joint_0 <- data_joint_0 %>%
   mutate(hh_expenditures_USD_2014_pc     = hh_expenditures_USD_2014/hh_size,
          log_hh_expenditures_USD_2014    = log(hh_expenditures_USD_2014),
          log_hh_expenditures_USD_2014_pc = log(hh_expenditures_USD_2014_pc))%>%
-  mutate(electricity.access = ifelse(Country == "Chile" & exp_USD_Electricity == 0,0,1))%>%
+  mutate(electricity.access = ifelse(Country == "Chile" & exp_USD_Electricity == 0,0,
+                                     ifelse(Country == "Chile" & exp_USD_Electricity > 0,1,electricity.access)))%>%
   select(hh_id, hh_weights, hh_size, Country, hh_expenditures_USD_2014,
          urban_01, province, district, village, municipality,
          adults, children, age_hhh, sex_hhh, ind_hhh, ISCED,
@@ -154,12 +165,23 @@ data_joint_0 <- data_joint_0 %>%
          -sewing_machine.01, -printer.01, -vaccum.01, - mobile.01, -stove.01a,
          -lighting_fuel, -heating_fuel, -cooking_fuel, -water, -toilet, edu_hhh)%>%
   mutate(share_other_binning = ifelse(is.na(share_other_binning),0, share_other_binning))%>%
-  mutate(car.01 = ifelse(Country != "Chile" & is.na(car.01),0,car.01),
+  mutate(car.01          = ifelse(Country != "Chile" & is.na(car.01),0,car.01),
+         refrigerator.01 = ifelse(Country != "Chile" & is.na(refrigerator.01),0,refrigerator.01),
          CF = ifelse(is.na(CF), "Unknown", CF),
          LF = ifelse(is.na(LF), "Unknown", LF),
          ISCED = ifelse(is.na(ISCED), 9, ISCED),
-         Ethnicity = ifelse(is.na(ethnicity) & Country == "Guatemala","Ignorado",Ethnicity),
-         Ethnicity = ifelse(is.na(ethnicity) & Country == "Barbados", "Other",Ethnicity))
+         Ethnicity = ifelse(is.na(ethnicity) & Country == "Guatemala","No Indica",Ethnicity),
+         Ethnicity = ifelse(is.na(ethnicity) & Country == "Barbados", "Other",Ethnicity),
+         Ethnicity = ifelse(is.na(ethnicity) & Country == "Costa Rica", "Otro(a)", Ethnicity),
+         Ethnicity = ifelse(is.na(ethnicity) & Country == "Peru", "no sabe/no responde", Ethnicity))
+
+# 1.1 Screen Data ####
+
+# Ethnicity    <- count(data_joint_0, Country, Ethnicity)       # Okay
+# Refrigerator <- count(data_joint_0, Country, refrigerator.01) # Okay
+# Car          <- count(data_joint_0, Country, car.01)          # Okay
+# Urban        <- count(data_joint_0, Country, urban_01)        # Okay
+# Cooking      <- count(data_joint_0, Country, CF)              # Okay
 
 # 1.2 Several Summary Statistics ####
 
@@ -168,17 +190,17 @@ data_joint_0 <- data_joint_0 %>%
 Summary_1.2 <- data.frame()
 
 for(i in Country.Set){
+  
   sum_1.2 <- data_joint_0 %>%
     filter(Country == i)%>%
     summarise(number                   = n(),
+              weights                  = sum(hh_weights),
               hh_size                  = wtd.mean(hh_size, weights = hh_weights),
-              urban_01                 = sum(urban_01),
-              electricity.access       = sum(electricity.access),
+              urban_01                 = wtd.mean(urban_01, weights = hh_weights),
+              electricity.access       = wtd.mean(electricity.access, weights = hh_weights),
               hh_expenditures_USD_2014 = wtd.mean(hh_expenditures_USD_2014, weights = hh_weights),
-              car.01                   = sum(car.01))%>%
-    mutate(urban_01                    = ifelse(i == "Argentina",1,urban_01/number),
-           electricity.access          = electricity.access/number,
-           car.01                      = car.01/number)%>%
+              car.01                   = wtd.mean(car.01, weights = hh_weights))%>%
+    mutate(urban_01                    = ifelse(i == "Argentina",1,urban_01))%>%
     mutate(Country = i)%>%
     select(Country, number, hh_size, urban_01, electricity.access, hh_expenditures_USD_2014, car.01)%>%
     mutate(hh_expenditures_USD_2014 = round(hh_expenditures_USD_2014,0),
@@ -187,11 +209,25 @@ for(i in Country.Set){
            urban_01 = paste0(round(urban_01*100,0),"%"),
            hh_size = round(hh_size,2))
   
+  sum_1.2.1 <- data_joint_0 %>%
+    filter(Country == i)%>%
+    mutate(Firewood_Biomass_Consumption = ifelse((!is.na(exp_USD_Firewood) & exp_USD_Firewood > 0 ) | (!is.na(exp_USD_Biomass) & exp_USD_Biomass > 0) | 
+                                                   CF == "Biomass" | CF == "Charcoal" | CF == "Firewood" | CF == "Firewood Charcoal" | CF == "Firewood Kerosene" |
+                                                   CF == "Firewood LPG" | CF == "Firewood LPG Charcoal" | CF == "Other Biomass",hh_weights,0))%>%
+    mutate(sum_hh_weights = sum(hh_weights))%>%
+    summarise(Firewood_Biomass_Consumption = sum(Firewood_Biomass_Consumption),
+              sum_hh_weights               = sum(hh_weights))%>%
+    mutate(share_Firewood = paste0(round((Firewood_Biomass_Consumption/sum_hh_weights)*100,0),"%"))%>%
+    select(share_Firewood)
+  
+  sum_1.2 <- bind_cols(sum_1.2, sum_1.2.1)
+    
+  
   Summary_1.2 <- Summary_1.2 %>%
     bind_rows(sum_1.2)
 }
 
-colnames(Summary_1.2) <- c("Country", "Observations", "Average Household Size", "Urban Population", "Electricity Access", "Average Household Expenditures", "Car Ownership")
+colnames(Summary_1.2) <- c("Country", "Observations", "Average Household Size", "Urban Population", "Electricity Access", "Average Household Expenditures", "Car Ownership", "Share of Firewood Cons.")
 
 write.xlsx(Summary_1.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Summary_Stats_1/1_Households_General.xlsx")
 
@@ -271,6 +307,15 @@ write.xlsx(Summary_1.4, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_T
 
 # 2.1 Decomposing Additional Cost Burden ####
 
+tex.style <- style.tex(model.title = "", fixef.title = "\\midrule",
+                       stats.title = "\\midrule", model.format = "",
+                       fontsize = "tiny")
+
+dict_latex <- c(Income_Group_5 = "Expenditure Quintile", log_hh_expenditures_USD_2014 = "HH Exp. (log)", car.01 = "Car Ownership",
+                hh_size = "HH Size", refrigerator.01 = "Refrigerator Own.", urban_01 = "Urban Area", burden_CO2_national = "Carbon Price Incidence",
+                affected_more_than_80q_CO2n ="Log-Odds of Expecting Higher Additional Costs than 80% of Population",
+                affected_80_no_transfers = "Log-Odds of Higher Incidence than 80% of Pop. and No Access to Transfers")
+
 # 2.1.1 Simple OLS ####
 
 list_2.1.1 <- list()
@@ -288,11 +333,11 @@ for(i in Country.Set){
   
   if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
   #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
-  if(i != "Chile" & i != "Costa Rica" & sum(is.na(data_2.1.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
+  if(i != "Chile" & sum(is.na(data_2.1.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
   if(i != "Chile" & sum(is.na(data_2.1.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
   if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$CF))==0){
-    if(i != "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
-    if(i == "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Kerosene")')
+    if(i != "Guatemala" & i != "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
+    if(i == "Guatemala" | i == "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "LPG")')
     }
   #if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$LF))==0)      formula_0 <- paste0(formula_0, " + LF")
   #if("heating_fuel" %in% colnames(household_information_0))      formula_0 <- paste0(formula_0, " + HF")
@@ -310,8 +355,19 @@ for(i in Country.Set){
   
   formula_1 <- as.formula(formula_0)
   
-  model_2.1.1.0 <- feols(formula_1, data = data_2.1.1, weights = data_2.1.1$hh_weights)
-  model_2.1.1.1 <- feols(formula_1, data = data_2.1.1, weights = data_2.1.1$hh_weights, fsplit = ~ Income_Group_5)
+  model_2.1.1.0 <- feols(formula_1, data = data_2.1.1, weights = data_2.1.1$hh_weights, vcov = "hetero")
+  model_2.1.1.1 <- feols(formula_1, data = data_2.1.1, weights = data_2.1.1$hh_weights, fsplit = ~ Income_Group_5, vcov = "hetero")
+  
+  notes_0 <- sprintf("This table displays regression results from equation (8) in the carbon price incidence of any household in %s. 
+                     Coefficients are estimates on regressions on the full sample and separated by expenditure quintile.", i)
+  
+  tex.style <- style.tex(model.title = "", fixef.title = "\\midrule",
+                         stats.title = "\\midrule", model.format = "",
+                         fontsize = "scriptsize")
+  
+  etable(model_2.1.1.1, dict = dict_latex, tex = TRUE, file = sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_2_OLS/Table_OLS_%s.tex", i),
+         digits = 3, replace = TRUE, fitstat = c("n", "r2"), style.tex = tex.style, se.row = TRUE,
+         title = sprintf("OLS-Regression Coefficients for %s", i),  label = sprintf("tab:OLS_%s",i), adjustbox = "width = 1\\textwidth, max height = 0.6\\textheight, center", placement = "htbp!")
   
   model_2.1.1.2 <- etable(model_2.1.1.1)%>%
     as_tibble(rownames = NA)%>%
@@ -365,7 +421,7 @@ for(i in Country.Set){
   print(i)
 }
 
-write.xlsx(list_2.1.1, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Burden_OLS/Table_6.2_Multifactor_Burden_OLS.xlsx", colNames = FALSE)
+# write.xlsx(list_2.1.1, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Burden_OLS/Table_6.2_Multifactor_Burden_OLS.xlsx", colNames = FALSE)
 
 data_frame_2.1.1.1 <- data_frame_2.1.1 %>%
   filter(p.value <= 0.05)%>%
@@ -383,7 +439,7 @@ write.xlsx(ref_list_1, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Ta
 
 barrier_0 <- data_joint_0 %>%
   group_by(Country)%>%
-  summarise(burden_CO2_national_80q = wtd.quantile(burden_CO2_national, probs = 0.90, weights = hh_weights))%>%
+  summarise(burden_CO2_national_80q = wtd.quantile(burden_CO2_national, probs = 0.80, weights = hh_weights))%>%
   ungroup()
 
 data_2.1.2 <- data_joint_0 %>%
@@ -406,11 +462,11 @@ for(i in Country.Set){
   
   if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
   #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
-  if(i != "Chile" & i != "Costa Rica" & sum(is.na(data_2.1.2.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
+  if(i != "Chile" & sum(is.na(data_2.1.2.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
   if(i != "Chile" & sum(is.na(data_2.1.2.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
   if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$CF))==0){
-    if(i != "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
-    if(i == "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Kerosene")')
+    if(i != "Guatemala" & i != "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
+    if(i == "Guatemala" | i == "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "LPG")')
   }
   #if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$LF))==0)      formula_0 <- paste0(formula_0, " + LF")
   #if("heating_fuel" %in% colnames(household_information_0))      formula_0 <- paste0(formula_0, " + HF")
@@ -429,6 +485,15 @@ for(i in Country.Set){
   formula_1 <- as.formula(formula_0)
   model_2.1.2.0 <- feglm(formula_1, data = data_2.1.2.1, weights = data_2.1.2.1$hh_weights, family = quasibinomial("logit"), se = "hetero")
   model_2.1.2.1 <- feglm(formula_1, data = data_2.1.2.1, weights = data_2.1.2.1$hh_weights, family = quasibinomial("logit"), se = "hetero", fsplit = ~ Income_Group_5)
+  
+    tex.style <- style.tex(model.title = "", fixef.title = "\\midrule",
+                         stats.title = "\\midrule", model.format = "",
+                         fontsize = "scriptsize")
+  
+  etable(model_2.1.2.1, dict = dict_latex, tex = TRUE, file = sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_4_Logit_Burden/Table_Logit_Burden_%s.tex", i),
+         digits = 3, replace = TRUE, fitstat = c("n", "cor2"), style.tex = tex.style, se.row = TRUE,
+         title = sprintf("Logit-Model Coefficients Hardship Cases in %s", i),  label = sprintf("tab:Logit_1_%s",i), adjustbox = "width = 1\\textwidth, max height = 0.8\\textheight, center", placement = "htbp!")
+  
   
   model_2.1.2.2 <- etable(model_2.1.2.1)%>%
     as_tibble(rownames = NA)%>%
@@ -482,7 +547,7 @@ for(i in Country.Set){
   print(i)
 }
 
-write.xlsx(list_2.1.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Affected_Logit/Table_6.1_Multifactor_Affected_Logit.xlsx", colNames = FALSE)
+# write.xlsx(list_2.1.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Affected_Logit/Table_6.1_Multifactor_Affected_Logit.xlsx", colNames = FALSE)
 
 data_frame_2.1.2.1 <- data_frame_2.1.2 %>%
   filter(p.value <= 0.05)%>%
@@ -500,6 +565,8 @@ write.xlsx(ref_list_2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Ta
 # From Israel / Sinem
 data_2.1.3.0 <- data.frame()
 decomposition_Fields <- list()
+
+# options(warn = 1) # Set iotion warn = 2, to detect warning --> Income_Group_4 in Guatemala / Ethnicity is collinear
 
 for(i in Country.Set){
   
@@ -527,7 +594,7 @@ for(i in Country.Set){
     
     if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
     #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
-    if(i != "Chile" & i != "Costa Rica" & sum(is.na(data_2.1.3.4$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
+    if(i != "Chile" & sum(is.na(data_2.1.3.4$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
     if(i != "Chile" & sum(is.na(data_2.1.3.4$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
     if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$CF))==0)       formula_0 <- paste0(formula_0, " + CF")
     #if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$LF))==0 & i != "Costa Rica" & i != "Uruguay")      formula_0 <- paste0(formula_0, " + LF")
@@ -572,8 +639,7 @@ for(i in Country.Set){
                                                          ifelse(factor == "CF", "Cooking Fuel",
                                                                 ifelse(factor == "factor(ISCED)", "Education",
                                                                        ifelse(factor == "factor(Ethnicity)", "Ethnicity",
-                                                                              ifelse(factor == "residuals", factor, factor))))))))))%>%
-      rename("Sample:" = factor)
+                                                                              ifelse(factor == "residuals", factor, factor))))))))))
 
     df_2.1.3 <- df_2.1.3 %>%
       bind_rows(joined_1)
@@ -584,39 +650,48 @@ for(i in Country.Set){
     pivot_wider(names_from = "Income_Group_5", values_from = "s_k")%>%
     mutate_at(vars(-factor), list(~ round(.,3)))%>%
     filter(factor != "residuals")%>%
-    select(factor, 'Full Sample', everything())
+    select(factor, 'Full Sample', everything())%>%
+    rename("Sample:" = factor)
   
+  kbl(df_2.1.3, format = "latex", caption = sprintf("Contribution of each variable to explaining variance in carbon pricing incidence in %s",i), booktabs = T)%>%
+    kable_styling(position = "center", latex_options = "HOLD_position")%>%
+    add_header_above(c("","","Expenditure Quintile" = 5))%>%
+    footnote(general = sprintf("This table shows the contribution of each independent variable to explain variance in carbon pricing incidence across the full sample and each expenditure quintile in %s. These are estimates from equation (11) based on OLS-regression according to equation (8).", i), threeparttable = T)%>%
+    save_kable(., sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_3_Decomposition/Table_3_Decomp_%s.tex",i))
+    
   data_2.1.3.0 <- data_2.1.3.0 %>%
-    bind_rows(df_2.1.3)
+    bind_rows(mutate(df_2.1.3, Country = i))
   print(i)
   decomposition_Fields[[i]] <- df_2.1.3
   
 }
 
-write.xlsx(decomposition_Fields, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Fields_Decomp/Table_6.1_Multifactor_Fields_Decomp.xlsx")
+# write.xlsx(decomposition_Fields, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_6_Multifactor_Fields_Decomp/Table_6.1_Multifactor_Fields_Decomp.xlsx")
 
 data_frame_2.1.3.1 <- data_2.1.3.0 %>%
   mutate(Type_A = "Burden National",
          Type_B = "Fields")
 
-t <- data_frame_2.1.3.1 %>%
-  filter(Income_Group_5 == "Whole Sample")%>%
+data_frame_2.1.3.2 <- data_frame_2.1.3.1 %>%
+  select("Sample:", "Full Sample", Country)%>%
+  rename(p_j = "Full Sample", variable = "Sample:")%>%
   arrange(Country, -p_j)%>%
   group_by(Country)%>%
   mutate(cumsum_p_j = cumsum(p_j))%>%
   ungroup()%>%
-  select(Country, factor, p_j, cumsum_p_j)
+  select(Country, variable, p_j, cumsum_p_j)%>%
+  mutate(more_than_10 = ifelse(p_j > 0.1,"Yes","No"),
+         cumulative_95 = ifelse(cumsum_p_j < 0.95, "Yes", "No"))
 
+write.xlsx(data_frame_2.1.3.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_2_Overview_OLS_Logit_Decomp/Table_2_Output_from_R.xlsx")
 
 # 2.2 Decomposing Loosers + No Access to Transfers ####
-
-# 2.2.1 Simple OLS ####
 
 # 2.2.2 Logit ####
 
 barrier_0 <- data_joint_0 %>%
   group_by(Country)%>%
-  summarise(burden_CO2_national_80q = wtd.quantile(burden_CO2_national, probs = 0.90, weights = hh_weights))%>%
+  summarise(burden_CO2_national_80q = wtd.quantile(burden_CO2_national, probs = 0.80, weights = hh_weights))%>%
   ungroup()
 
 data_2.2.2 <- data_joint_0 %>%
@@ -643,8 +718,8 @@ for(i in Country.Set){
   if(i != "Chile" & sum(is.na(data_2.2.2.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
   if(i != "Chile" & sum(is.na(data_2.2.2.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
   if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.2.2.1$CF))==0){
-    if(i != "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
-    if(i == "Guatemala") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Kerosene")')
+    if(i != "Guatemala" & i != "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
+    if(i == "Guatemala" | i == "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "LPG")')
   }
   #if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.2.2.1$LF))==0)      formula_0 <- paste0(formula_0, " + LF")
   #if("heating_fuel" %in% colnames(household_information_0))      formula_0 <- paste0(formula_0, " + HF")
@@ -663,6 +738,15 @@ for(i in Country.Set){
   formula_1 <- as.formula(formula_0)
   model_2.2.2.0 <- feglm(formula_1, data = data_2.2.2.1, weights = data_2.2.2.1$hh_weights, family = quasibinomial("logit"), se = "hetero")
   model_2.2.2.1 <- feglm(formula_1, data = data_2.2.2.1, weights = data_2.2.2.1$hh_weights, family = quasibinomial("logit"), se = "hetero", fsplit = ~ Income_Group_5)
+  
+  tex.style <- style.tex(model.title = "", fixef.title = "\\midrule",
+                         stats.title = "\\midrule", model.format = "",
+                         fontsize = "scriptsize")
+  
+  etable(model_2.2.2.1, dict = dict_latex, tex = TRUE, file = sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_5_Logit_Transfers_Burden/Table_Logit_Transfers_Burden_%s.tex", i),
+         digits = 3, replace = TRUE, fitstat = c("n", "cor2"), style.tex = tex.style, se.row = TRUE,
+         title = sprintf("Logit-Model Coefficients Hardship Cases and no Access to Transfers in %s", i),  label = sprintf("tab:Logit_2_%s",i), adjustbox = "width = 1\\textwidth, max height = 0.8\\textheight, center", placement = "htbp!")
+  
   
   model_2.2.2.2 <- etable(model_2.2.2.1)%>%
     as_tibble(rownames = NA)%>%
@@ -717,7 +801,7 @@ for(i in Country.Set){
   
 }
 
-write.xlsx(list_2.2.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_7_Multifactor_Affected_Logit/Table_7.1_Multifactor_Affected_Logit.xlsx", colNames = FALSE)
+# write.xlsx(list_2.2.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_7_Multifactor_Affected_Logit/Table_7.1_Multifactor_Affected_Logit.xlsx", colNames = FALSE)
 
 data_frame_2.2.2.1 <- data_frame_2.2.2 %>%
   filter(p.value <= 0.05)%>%
@@ -728,11 +812,6 @@ data_frame_2.2.2.1 <- data_frame_2.2.2 %>%
 ref_list_3 <- ref_list_3
 
 write.xlsx(ref_list_3, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_7_Multifactor_Affected_Logit/Table_7.1_Reference.xlsx")
-
-
-# 2.2.3 Fields Decomposition ####
-
-  
 
 # 2.2.4 How to characterize the households, which loose and have no access to transfers? ####
 
@@ -788,10 +867,8 @@ write.xlsx(data_2.2.4.3, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_
 
 
 # 3   Cross-Sectional Analysis ####
-# 3.1 Regressions across regions ####
-# 3.2 Maps ####
 
-# 9.00 Test-Analysis for Adrien 
+# 9.00 Test-Analysis for Adrien ####
 
 education.code               <- read_csv(sprintf("../0_Data/1_Household Data/%s/2_Codes/Education.Code.csv", path_0))%>%
   rename(Education = Label)
@@ -838,4 +915,232 @@ summary(model_6)
 model_7 <- feols(share_energy ~ log_total_expenditures + Urban + Education + hh_size +  car.01, data = data_0, weights = data_0$hh_weights)
 summary(model_7)
 
+# 9.01 Test-Analysis for myself ####
 
+data_901 <- data_joint_0 %>%
+  filter(Country == "Brazil")%>%
+  select(hh_id, hh_size, hh_weights, burden_CO2_national, province, district,
+         urban_01, ethnicity, ISCED, CF, car.01, log_hh_expenditures_USD_2014)
+
+# Square of Standard deviation - covariance of burden_CO2_national with itself
+# Covariance expresses correlation - covariance of zero expresses no correlation
+variance_incidence <- wtd.var(data_901$burden_CO2_national, weights = data_901$hh_weights)
+
+household_information_0    <- read_csv("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/household_information_Brazil_new.csv")
+  
+formula_0 <- "burden_CO2_national ~ log_hh_expenditures_USD_2014 + car.01 + urban_01 + hh_size + ethnicity + CF + ISCED" 
+#  CF + ISCED"
+formula_1 <- as.formula(formula_0)
+
+model_901.0 <- lm(formula_1, data = data_901, weights = hh_weights)
+summary(model_901.0)
+# R2: 0.1536 (full model)
+# R2: 0.6936 (log_hh_expenditures_USD_2014)
+# R2: 0.0772 (log_hh_expenditures_USD_2014 + urban_01)
+# R2: 0.08406 (log_hh_expenditures_USD_2014 + urban_01 + hh_size)
+# R2: 0.1526 (log_hh_expenditures_USD_2014 + urban_01 + hh_size + car.01)
+# R2: 0.1528 (log_hh_expenditures_USD_2014 + urban_01 + hh_size + car.01 + ethnicity)
+# R2: 0.1535 (log_hh_expenditures_USD_2014 + urban_01 + hh_size + car.01 + ethnicity + CF)
+# R2: 0.1536 (log_hh_expenditures_USD_2014 + urban_01 + hh_size + car.01 + ethnicity + CF + ISCED)
+# R2: 0.1654 (log_hh_expenditures_USD_2014 + urban_01 + hh_size + car.01 + ethnicity + province)
+# R2: 01.865 (log_hh_expenditures_USD_2014 + urban_01 + hh_size + car.01 + ethnicity + province + district)
+prediction_901.0 <- as.data.frame(predict.lm(model_901.0, data_901, type = "terms"))%>%
+  mutate(residuals = resid(model_901.0))
+
+# Computes correlation between predictions and burden_CO2_national  
+correlations <- sapply(prediction_901.0, function(.) corr(d = cbind(., data_901$burden_CO2_national), w = data_901$hh_weights))
+
+# Computes variance for each variable
+variance     <- sapply(prediction_901.0, function(x) wtd.var(x, weights = data_901$hh_weights))
+
+joined_0 <- cbind(correlations, variance)
+# Correlations between variable and burden and variance of variable
+joined_1 <- cbind(joined_0, rownames(joined_0))%>%
+  as_tibble()%>%
+  rename(factor = V3)%>%
+  select(factor, everything())%>%
+  mutate(var_inc      = variance_incidence, # adds variance of incidence
+         correlations = as.numeric(correlations),
+         variance     = as.numeric(variance))%>%
+  mutate(covariance   = correlations*sqrt(variance*var_inc),
+         s_j          = covariance/var_inc,
+         R_squared    = summary(model_901.0)$r.squared,
+         p_j = ifelse(factor != "residuals", s_j/R_squared,1-R_squared))%>%
+  rename(s_k = p_j)
+
+# s_j expresses covariance over variance in incidence and sums up to one
+# i.e. covariance should sum up to variance in incidence
+# Covarianz wird berechnet aus den Korrelationskoeffizienteb (zwischen Inzidenz und Variablen) sowie Wurzel aus Varianz der Inzidenz und Varzianz der Variable
+# confirmed
+# Wichtig: Die Korrelation und und die Varianz werden aus den geschätzten Werten der Regression ermittelt !
+# Weil R-Squared angibt, wie viel % der Varianz der Inzidenz erklärt mit dem Modell erklärt wird, ist einleuchtend, dass s_j sich zu eins addiert
+
+# Vorhersage: CF und ISCED zu droppen sollte R2 steigen lassen - stimmt nicht. Es bedeutet nur, dass diese Faktoren Gleichheit erklären können
+
+# Zu testen: Was passiert, wenn zwei Variablen in die Regression einbezogen werden, die stark miteinander korrelieren?
+
+test_data <- data.frame("HH_ID" = seq(1,10000))%>%
+  mutate(intercept = rnorm(10000,2,0.01),
+         X_1       = -(HH_ID - HH_ID^2)/3*rnorm(10000,3,0.2),
+         error_i   = rnorm(10000,0,0.5),
+         Y_1       = HH_ID^2 + rnorm(10000,0,0.3),
+         Y_2       = (HH_ID+1)^2 + rnorm(10000,0,0.3))
+
+test_data <- rnorm_multi(n = 10000,
+                         mu = c(10,5,5),
+                         sd = c(0.5,0.2,0.3),
+                         r = c(0.2,0.2,0.9),
+                         varnames = c("X_1", "X_2", "X_3"),
+                         empirical = FALSE)%>%
+  mutate(HH_ID = seq(1,10000),
+         error_i = rnorm(10000,0,0.2))%>%
+  mutate(Y_i = X_1 + X_2 + X_3 + error_i)
+
+# What happens if we include X2 and X3?
+
+variance_incidence <- var(test_data$Y_i)
+
+formula_0 <- as.formula("Y_i ~ X_1")
+formula_1 <- as.formula("Y_i ~ X_1 + X_2")
+formula_2 <- as.formula("Y_i ~ X_1 + X_3")
+formula_3 <- as.formula("Y_i ~ X_1 + X_2 + X_3")
+
+model_0 <- lm(formula_0, data = test_data)
+summary(model_0)
+# R2: 0.5767
+model_1 <- lm(formula_1, data = test_data)
+summary(model_1)
+# R2: 0.9109
+model_2 <- lm(formula_2, data = test_data)
+summary(model_2)
+# R2: 0.9245
+model_3 <- lm(formula_3, data = test_data)
+summary(model_3)
+# R3: 0.9369
+
+prediction_0 <- as.data.frame(predict.lm(model_0, test_data, type = "terms"))%>%
+  mutate(residuals = resid(model_0))
+
+# Computes correlation between predictions and burden_CO2_national  
+correlations <- sapply(prediction_0, function(.) corr(d = cbind(., test_data$Y_i)))
+
+# Computes variance for each variable
+variance     <- sapply(prediction_0, function(x) var(x))
+
+joined_0 <- cbind(correlations, variance)
+# Correlations between variable and burden and variance of variable
+joined_0.0 <- cbind(joined_0, rownames(joined_0))%>%
+  as_tibble()%>%
+  rename(factor = V3)%>%
+  select(factor, everything())%>%
+  mutate(var_inc      = variance_incidence, # adds variance of incidence
+         correlations = as.numeric(correlations),
+         variance     = as.numeric(variance))%>%
+  mutate(covariance   = correlations*sqrt(variance*var_inc),
+         s_j          = covariance/var_inc,
+         R_squared    = summary(model_0)$r.squared,
+         p_j = ifelse(factor != "residuals", s_j/R_squared,1-R_squared))%>%
+  rename(s_k = p_j)
+
+# X1
+
+prediction_1 <- as.data.frame(predict.lm(model_1, test_data, type = "terms"))%>%
+  mutate(residuals = resid(model_1))
+
+# Computes correlation between predictions and burden_CO2_national  
+correlations <- sapply(prediction_1, function(.) corr(d = cbind(., test_data$Y_i)))
+
+# Computes variance for each variable
+variance     <- sapply(prediction_1, function(x) var(x))
+
+joined_1 <- cbind(correlations, variance)
+# Correlations between variable and burden and variance of variable
+joined_1.0 <- cbind(joined_1, rownames(joined_1))%>%
+  as_tibble()%>%
+  rename(factor = V3)%>%
+  select(factor, everything())%>%
+  mutate(var_inc      = variance_incidence, # adds variance of incidence
+         correlations = as.numeric(correlations),
+         variance     = as.numeric(variance))%>%
+  mutate(covariance   = correlations*sqrt(variance*var_inc),
+         s_j          = covariance/var_inc,
+         R_squared    = summary(model_1)$r.squared,
+         p_j = ifelse(factor != "residuals", s_j/R_squared,1-R_squared))%>%
+  rename(s_k = p_j)
+
+# X2
+
+prediction_2 <- as.data.frame(predict.lm(model_2, test_data, type = "terms"))%>%
+  mutate(residuals = resid(model_2))
+
+# Computes correlation between predictions and burden_CO2_national  
+correlations <- sapply(prediction_2, function(.) corr(d = cbind(., test_data$Y_i)))
+
+# Computes variance for each variable
+variance     <- sapply(prediction_2, function(x) var(x))
+
+joined_2 <- cbind(correlations, variance)
+# Correlations between variable and burden and variance of variable
+joined_2.0 <- cbind(joined_2, rownames(joined_2))%>%
+  as_tibble()%>%
+  rename(factor = V3)%>%
+  select(factor, everything())%>%
+  mutate(var_inc      = variance_incidence, # adds variance of incidence
+         correlations = as.numeric(correlations),
+         variance     = as.numeric(variance))%>%
+  mutate(covariance   = correlations*sqrt(variance*var_inc),
+         s_j          = covariance/var_inc,
+         R_squared    = summary(model_2)$r.squared,
+         p_j = ifelse(factor != "residuals", s_j/R_squared,1-R_squared))%>%
+  rename(s_k = p_j)
+
+# X2 + X3 
+
+prediction_3 <- as.data.frame(predict.lm(model_3, test_data, type = "terms"))%>%
+  mutate(residuals = resid(model_3))
+
+# Computes correlation between predictions and burden_CO2_national  
+correlations <- sapply(prediction_3, function(.) corr(d = cbind(., test_data$Y_i)))
+
+# Computes variance for each variable
+variance     <- sapply(prediction_3, function(x) var(x))
+
+joined_3 <- cbind(correlations, variance)
+# Correlations between variable and burden and variance of variable
+joined_3.0 <- cbind(joined_3, rownames(joined_3))%>%
+  as_tibble()%>%
+  rename(factor = V3)%>%
+  select(factor, everything())%>%
+  mutate(var_inc      = variance_incidence, # adds variance of incidence
+         correlations = as.numeric(correlations),
+         variance     = as.numeric(variance))%>%
+  mutate(covariance   = correlations*sqrt(variance*var_inc),
+         s_j          = covariance/var_inc,
+         R_squared    = summary(model_3)$r.squared,
+         p_j = ifelse(factor != "residuals", s_j/R_squared,1-R_squared))%>%
+  rename(s_k = p_j)
+
+# Wenn zwei Variablen stark miteinander korreliert sind, können beide statistisch signifikant sein, würden sich aber den Anteil am R2 teilen
+# Aussage ist nur innerhalb des Modells zulässig - angenommen, wir berücksichtigen alle Faktoren, die die Steuerbelastung beeinflussen könnten dann
+# bedeutet s_j, dass exkl. Variation in j s_j Prozent erklärt
+# während Variation in j+1 s_j+1 Prozent erklärt
+# Das bedeutet nicht, dass kausale Zusammenhänge beschrieben werden (was aber auch nicht unser Ziel ist)
+
+
+# Shorrocks Inequality Decomposition
+
+test <- data_joint_0 %>%
+  filter(Country == "Colombia")%>%
+  mutate(burden_residual = burden_CO2_national - burden_CO2_electricity - burden_CO2_transport)
+
+cov_1 <- cov(test$burden_CO2_national, test$burden_CO2_transport)
+cov_2 <- cov(test$burden_CO2_national, test$burden_CO2_electricity)
+cov_3 <- cov(test$burden_CO2_national, test$burden_residual)
+
+var_0 <- var(test$burden_CO2_national)
+
+s_1 <- cov_1/var_0
+s_2 <- cov_2/var_0
+s_3 <- cov_3/var_0
+
+s_1 + s_2 + s_3

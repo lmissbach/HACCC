@@ -423,8 +423,6 @@ basic_household_information <- household_information %>%
 expenditure_information_1 <- left_join(expenditure_information, matching, by = "item_code")%>%
   filter(GTAP != "deleted")
 
-rm(matching)
-
 # 6.3     Assign Households to Expenditure Bins ####
 
 binning_0 <- expenditure_information_1 %>%
@@ -452,7 +450,7 @@ expenditures_categories_0 <- left_join(expenditure_information, categories)%>%
   select(hh_id, category, share_category)%>%
   pivot_wider(names_from = "category", values_from = "share_category", names_prefix = "share_", values_fill = 0)
 
-rm(categories)
+rm()
 
 # 6.5     Calculating Expenditure Shares on detailed Energy Items ####
 
@@ -468,7 +466,7 @@ expenditures_fuels <- distinct(household_information, hh_id)%>%
   left_join(expenditures_fuels)%>%
   mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))
 
-rm(expenditure_information, fuels)
+rm()
 
 # 6.6     Summarising Expenditures on the GTAP Level ####
 
@@ -487,7 +485,7 @@ expenditure_information_2 <- expenditure_information_1 %>%
   summarise(hh_expenditures_LCU = sum(expenditures))%>%
   ungroup()
 
-rm(exchange.rate, inflation_factor, basic_household_information)
+rm(basic_household_information)
 
 # 6.7     Merging Expenditures and Carbon Intensities ####
 
@@ -506,7 +504,49 @@ household_carbon_footprint <- left_join(expenditure_information_1, carbon_intens
             CO2_t_transport   = sum(CO2_t_transport))%>%
   ungroup()
 
-rm(carbon_intensities, expenditure_information_1)
+rm(expenditure_information_1)
+
+# 6.8     Add-On: Sectoral Emissions and additional expenditures ####
+
+household_sectoral_carbon_footprint <- left_join(expenditure_information, matching, by = "item_code")%>%
+  left_join(categories)%>%
+  left_join(fuels)%>%
+  filter(GTAP != "deleted")%>%
+  filter(category != "deleted" & category != "in-kind" & category != "self-produced" & category != "other_binning")%>%
+  mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
+  group_by(hh_id)%>%
+  mutate(hh_expenditures_USD_2014 = sum(expenditures_USD_2014))%>%
+  ungroup()%>%
+  mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
+                                     ifelse(is.na(category), "NA_1", 
+                                            ifelse(category == "energy" & is.na(fuel), "Other energy",
+                                                   ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "Transport fuels",
+                                                          ifelse(category == "energy" & fuel == "Electricity", "Electricity",
+                                                                 ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene"), "Cooking fuel", "NA_2")))))))%>%
+  left_join(carbon_intensities, by = "GTAP")%>%
+  mutate(
+    #CO2_s_t_global      = expenditures_USD_2014*CO2_t_per_dollar_global,
+         CO2_s_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national,
+    #   CO2_s_t_electricity = expenditures_USD_2014*CO2_t_per_dollar_electricity,
+    #   CO2_s_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport
+    )%>%
+  select(-starts_with("CO2_t_per"))%>%
+  mutate(exp_s_CO2_national = CO2_s_t_national*carbon.price,
+         burden_s_CO2_national = exp_s_CO2_national/hh_expenditures_USD_2014)%>%
+  group_by(hh_id, aggregate_category)%>%
+  summarise(CO2_s_t_national      = sum(CO2_s_t_national),
+            exp_s_CO2_national    = sum(exp_s_CO2_national),
+            burden_s_CO2_national = sum(burden_s_CO2_national))%>%
+  ungroup()%>%
+  # weiterrechnen mit burden_s_CO2_national (CO2 und exp sind äquivalent)
+  select(-CO2_s_t_national, -exp_s_CO2_national)%>%
+  pivot_wider(names_from = "aggregate_category", values_from = "burden_s_CO2_national", values_fill = 0)%>%
+  rename(Goods = goods, Services = services, Food = food)
+
+write_csv(household_sectoral_carbon_footprint, 
+          sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/Sectoral_Burden_%s.csv",  Country.Name))
+
+rm(expenditure_information, matching, exchange.rate, inflation_factor, fuels, categories, household_sectoral_carbon_footprint)
 
 # ____    ####
 # 7       Model / Calculating Carbon Incidence ####
