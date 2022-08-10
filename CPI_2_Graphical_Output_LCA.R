@@ -802,7 +802,30 @@ data_4.3.4.4 <- data_4.3.4.0 %>%
 
 data_4.3.4.5 <- data_4.3.4.3 %>%
   select(Country, share_access)%>%
-  left_join(select(data_4.3.4.4, Country,poorest_20_percent_1, access_to_transfers_1, poor_no_access_1), by = "Country")
+  left_join(select(data_4.3.4.4, Country,poorest_20_percent_1, access_to_transfers_1, poor_no_access_1), by = "Country")%>%
+  mutate_at(vars(-Country), list(~ paste0(round(., 3)*100, "%")))
+
+colnames(data_4.3.4.5) <- c("Country", 
+                            #"\\rotatebox{90}{Households with access to transfer programs}",
+                            #"\\rotatebox{90}{...are poorer than 80\\% of the population?}",
+                            #"\\rotatebox{90}{...have access to governmental transfer programs?}",
+                            #"\\rotatebox{90}{...are poorer than 80\\% of the population and have no access to governmental transfer programs?}"
+                            "Households with access to transfer programs",
+                            "...are poorer than 80 % of  the population?",
+                            "...have access to governmental transfer programs?",
+                            "...are poorer than 80 % of the population and have no access to governmental transfer programs?"
+)
+
+kbl(data_4.3.4.5, format = "latex", caption = "Summary Statistics on Access to Transfer Programmes", label = "tab:transfer",
+    booktabs = T, linesep = "", align = "lcccc")%>%
+
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
+  column_spec(1, width = "4 cm", border_right = T)%>%
+  column_spec(2, width = "3 cm", border_right = T)%>%
+  column_spec(3:5, width = "3 cm")%>%
+  add_header_above(c(" " = 2, "Of the most affected 20\\\\% of households, how many..." = 3), escape = FALSE)%>%
+  footnote(general = "This table reports shares of total population and shares of the 20% of population with highest carbon pricing incidence adhering to different criteria for 16 countries in Latin America and the Caribbean.", threeparttable = T)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_A8/Table_A8.tex")
 
 #write.xlsx(data_4.3.4.5, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Summary_Stats_2/Transfers_Stats.xlsx")
 
