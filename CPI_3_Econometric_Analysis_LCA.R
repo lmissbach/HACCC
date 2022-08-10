@@ -1,8 +1,8 @@
-# 0   General ####
+# 0     General ####
 
 # Author: L. Missbach, missbach@mcc-berlin.net
 
-# 0.1 Packages ####
+# 0.1   Packages ####
 
 library("boot")
 library("broom")
@@ -20,7 +20,7 @@ library("xtable")
 options(scipen=999)
 
 
-# 1   Loading Data ####
+# 1     Loading Data ####
 
 Country.Set <- c("Argentina", "Barbados","Bolivia", "Brazil", "Chile", "Colombia",
                  "Costa Rica", "Dominican Republic", "Ecuador",
@@ -35,6 +35,13 @@ for(Country.Name in c("Argentina", "Barbados","Bolivia", "Brazil", "Chile", "Col
     carbon_pricing_incidence_0 <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/Carbon_Pricing_Incidence_%s.csv", Country.Name))
     
     household_information_0    <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/household_information_%s_new.csv", Country.Name))
+    
+    burden_decomposition_0     <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/Sectoral_Burden_%s.csv", Country.Name))
+    
+    if(!"exp_s_other_energy" %in% colnames(burden_decomposition_0)){
+      burden_decomposition_0 <- burden_decomposition_0 %>%
+        mutate(exp_s_other_energy = 0)
+    }
     
     if(Country.Name == "El_Salvador") Country.Name.2 <- "El Salvador" else Country.Name.2 <- Country.Name
     
@@ -137,6 +144,17 @@ for(Country.Name in c("Argentina", "Barbados","Bolivia", "Brazil", "Chile", "Col
     }
     
     if(Country.Name != "Chile") {carbon_pricing_incidence_1 <- left_join(carbon_pricing_incidence_1, appliances_0_1)}
+        
+    carbon_pricing_incidence_1 <- left_join(carbon_pricing_incidence_1, burden_decomposition_0)%>%
+      mutate(burden_s_cooking_fuels   = exp_s_cooking_fuels/hh_expenditures_USD_2014,
+             burden_s_transport_fuels = exp_s_transport_fuels/hh_expenditures_USD_2014,
+             burden_s_Goods           = exp_s_Goods/hh_expenditures_USD_2014,
+             burden_s_Services        = exp_s_Services/hh_expenditures_USD_2014,
+             burden_s_Food            = exp_s_Food/hh_expenditures_USD_2014,
+             burden_s_Electricity     = exp_s_Electricity/hh_expenditures_USD_2014,
+             burden_s_other_energy    = exp_s_other_energy/hh_expenditures_USD_2014
+      )%>%
+      select(-starts_with("exp_s_"))
     
     print(Country.Name)
     
@@ -175,7 +193,7 @@ data_joint_0 <- data_joint_0 %>%
          Ethnicity = ifelse(is.na(ethnicity) & Country == "Costa Rica", "Otro(a)", Ethnicity),
          Ethnicity = ifelse(is.na(ethnicity) & Country == "Peru", "no sabe/no responde", Ethnicity))
 
-# 1.1 Screen Data ####
+# 1.1   Screen Data ####
 
 # Ethnicity    <- count(data_joint_0, Country, Ethnicity)       # Okay
 # Refrigerator <- count(data_joint_0, Country, refrigerator.01) # Okay
@@ -183,7 +201,7 @@ data_joint_0 <- data_joint_0 %>%
 # Urban        <- count(data_joint_0, Country, urban_01)        # Okay
 # Cooking      <- count(data_joint_0, Country, CF)              # Okay
 
-# 1.2 Several Summary Statistics ####
+# 1.2   Several Summary Statistics ####
 
 # General Summary Statistics
 
@@ -205,8 +223,8 @@ for(i in Country.Set){
     select(Country, number, hh_size, urban_01, electricity.access, hh_expenditures_USD_2014, car.01)%>%
     mutate(hh_expenditures_USD_2014 = round(hh_expenditures_USD_2014,0),
            electricity.access = paste0(round(electricity.access*100,1),"%"),
-           car.01 = paste0(round(car.01*100,0),"%"),
-           urban_01 = paste0(round(urban_01*100,0),"%"),
+           car.01   = ifelse(!is.na(car.01), paste0(round(car.01*100,0),"%"),""),
+           urban_01 = ifelse(!is.na(urban_01), paste0(round(urban_01*100,0),"%"), ""),
            hh_size = round(hh_size,2))
   
   sum_1.2.1 <- data_joint_0 %>%
@@ -227,9 +245,16 @@ for(i in Country.Set){
     bind_rows(sum_1.2)
 }
 
-colnames(Summary_1.2) <- c("Country", "Observations", "Average Household Size", "Urban Population", "Electricity Access", "Average Household Expenditures", "Car Ownership", "Share of Firewood Cons.")
+colnames(Summary_1.2) <- c("Country", "Observations", "Average \nHousehold Size", "Urban \nPopulation", "Electricity \nAccess", "Average \nHousehold \nExpenditures [USD]", "Car \nOwnership", "Share of \nFirewood Cons.")
 
 write.xlsx(Summary_1.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Summary_Stats_1/1_Households_General.xlsx")
+
+kbl(Summary_1.2, format = "latex", caption = "Summary Statistics", booktabs = T, align = "l|rrccrcc", format.args = list(big.mark = ",", scientific = FALSE), linesep = "", vline = "", escape = FALSE)%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
+  column_spec(1, width = "3 cm")%>%
+  column_spec(2:8, width = "2 cm")%>%
+  footnote(general = "This table provides summary statistics for households in our sample. All values (except observations) are household-weighted averages. The Argentinian sample comprises urban households only.", threeparttable = T)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_Summary_A1/Table_Summary_A1.tex")
 
 # Average Expenditure und Energy Expenditure Share Income Groups
 
@@ -263,9 +288,20 @@ Summary_1.3 <- Summary_1.3 %>%
   mutate_at(vars(starts_with("hh_expenditures_USD_2014")), list(~ round(.,0)))%>%
   mutate_at(vars(starts_with("share_energy")), list(~ paste0(round(.*100,1), "%")))
 
-colnames(Summary_1.3) <- c("Country", rep(c("All","IG1","IG2","IG3","IG4","IG5"),2))
+colnames(Summary_1.3) <- c("Country", rep(c("All","EQ1","EQ2","EQ3","EQ4","EQ5"),2))
 
 write.xlsx(Summary_1.3, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Summary_Stats_1/2_Households_Exp_Share.xlsx")
+
+kbl(Summary_1.3, format = "latex", caption = "Average Expenditures and Average Expenditure Shares per Expenditure Quintile", booktabs = T, align = "l|rrrrrr|rrrrrr", vline = "", format.args = list(big.mark = ",", scientific = FALSE), linesep = "")%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
+  column_spec(1, width = "3.15 cm")%>%
+  column_spec(2:7, width = "1.13 cm")%>%
+  column_spec(8:13, width = "1.04 cm")%>%
+  add_header_above(c(" " = 2, "Expenditure quintile" = 5, " " = 1, "Expenditure quintile" = 5))%>%
+  add_header_above(c(" " = 1, "Average household expenditures [USD]" = 6, "Average energy expenditure shares" = 6))%>%
+  footnote(general = "This table shows average household expenditures and average energy expenditure shares for households in 16 countries of Latin America and the Caribbean. Wes estimate household-weighted averages for the whole population and per expenditure quintile.", threeparttable = T)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_Summary_A2/Table_Summary_A2.tex")
+
 
 # Footprint und Burden National
 
@@ -299,13 +335,42 @@ Summary_1.4 <- Summary_1.4 %>%
   mutate_at(vars(starts_with("CO2_t_national")), list(~ round(.,1)))%>%
   mutate_at(vars(starts_with("burden_CO2_national")), list(~ paste0(round(.*100,2), "%")))
 
-colnames(Summary_1.4) <- c("Country", rep(c("All","IG1","IG2","IG3","IG4","IG5"),2))
+colnames(Summary_1.4) <- c("Country", rep(c("All","EQ1","EQG2","EQ3","EQ4","EQ5"),2))
 
 write.xlsx(Summary_1.4, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Summary_Stats_1/3_Households_CO2_Burden.xlsx")
 
-# 2.0  Decomposing Horizontal Factors ####
+kbl(Summary_1.4, format = "latex", caption = "Average Carbon Footprint and Average USD/tCO$_{2}$ Carbon Price Incidence per Expenditure Quintile", booktabs = T, align = "l|rrrrrr|rrrrrr", vline = "", linesep = "")%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
+  column_spec(1, width = "3.15 cm")%>%
+  column_spec(2:7, width = "1.05 cm")%>%
+  column_spec(8:13, width = "1.15 cm")%>%
+  add_header_above(c(" " = 2, "Expenditure quintile" = 5, " " = 1, "Expenditure quintile" = 5))%>%
+  add_header_above(c(" " = 1, "Average carbon footprint [tCO$_{2}$]" = 6, "Average incidence from USD 40/tCO$_{2}$ carbon price" = 6), escape = FALSE)%>%
+  footnote(general = "This table shows average carbon footprints in tCO$_{2}$ and average levels of carbon price incidence for households in 16 countries of Latin America and the Caribbean. Wes estimate household-weighted averages for the whole population and per expenditure quintile.", threeparttable = T, escape = FALSE)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_Summary_A3/Table_Summary_A3.tex")
 
-# 2.1 Decomposing Additional Cost Burden ####
+# Electricity-Table
+
+LAC_Electricity <- read_excel("T:/MSA/papers_internal/work_in_progress/Mi_Homogenized_Datainfrastructure/1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/3_Supplementary Information/LAC_Electricity.xlsx")
+
+LAC_Electricity_2 <- LAC_Electricity %>%
+  mutate_at(vars("Coal":"Other"),list(~ paste0(round(.*100,1), "%")))%>%
+  rename("Cons. [TWh]" = "total Electricity Consumption in TWh (2020)", "Cons. pc. [MWh]" = "Electricity Consumption MWh / per capita (2020)")
+
+kbl(mutate_all(LAC_Electricity_2, linebreak), format = "latex", caption = "Electricity Generation in 16 Countries of Latin America and the Caribbean", 
+    booktabs = T, align = "l|rrrrrrrrrr|r|r", vline = "", format.args = list(big.mark = ",", scientific = FALSE), linesep = "")%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
+  column_spec(1, width = "3.15 cm")%>%
+  column_spec(2:10, width = "1.3 cm")%>%
+  column_spec(11:12, width = "1.4 cm")%>%
+  add_header_above(c(" " = 1, "Share of Electricity Generation by Source in Percent (2020)" = 10, " " = 1, " " = 1))%>%
+  footnote(general = " ", threeparttable = T)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_A7/Table_A7.tex")
+
+
+# 2.0   Decomposing Horizontal Factors ####
+
+# 2.1   Decomposing Additional Cost Burden ####
 
 tex.style <- style.tex(model.title = "", fixef.title = "\\midrule",
                        stats.title = "\\midrule", model.format = "",
@@ -314,7 +379,8 @@ tex.style <- style.tex(model.title = "", fixef.title = "\\midrule",
 dict_latex <- c(Income_Group_5 = "Expenditure Quintile", log_hh_expenditures_USD_2014 = "HH Exp. (log)", car.01 = "Car Ownership",
                 hh_size = "HH Size", refrigerator.01 = "Refrigerator Own.", urban_01 = "Urban Area", burden_CO2_national = "Carbon Price Incidence",
                 affected_more_than_80q_CO2n ="Log-Odds of Expecting Higher Additional Costs than 80% of Population",
-                affected_80_no_transfers = "Log-Odds of Higher Incidence than 80% of Pop. and No Access to Transfers")
+                affected_80_no_transfers = "Log-Odds of Higher Incidence than 80% of Pop. and No Access to Transfers",
+                electricity.access = "Electricity Acc.")
 
 # 2.1.1 Simple OLS ####
 
@@ -332,9 +398,9 @@ for(i in Country.Set){
   formula_0 <- "burden_CO2_national ~ log_hh_expenditures_USD_2014 + hh_size"
   
   if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
-  #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
+  if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
   if(i != "Chile" & sum(is.na(data_2.1.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
-  if(i != "Chile" & sum(is.na(data_2.1.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
+  #if(i != "Chile" & sum(is.na(data_2.1.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
   if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.1$CF))==0){
     if(i != "Guatemala" & i != "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
     if(i == "Guatemala" | i == "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "LPG")')
@@ -461,9 +527,9 @@ for(i in Country.Set){
   formula_0 <- "affected_more_than_80q_CO2n ~ log_hh_expenditures_USD_2014 + hh_size"
   
   if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
-  #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
+  if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
   if(i != "Chile" & sum(is.na(data_2.1.2.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
-  if(i != "Chile" & sum(is.na(data_2.1.2.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
+  # if(i != "Chile" & sum(is.na(data_2.1.2.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
   if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.2.1$CF))==0){
     if(i != "Guatemala" & i != "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
     if(i == "Guatemala" | i == "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "LPG")')
@@ -492,7 +558,7 @@ for(i in Country.Set){
   
   etable(model_2.1.2.1, dict = dict_latex, tex = TRUE, file = sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_4_Logit_Burden/Table_Logit_Burden_%s.tex", i),
          digits = 3, replace = TRUE, fitstat = c("n", "cor2"), style.tex = tex.style, se.row = TRUE,
-         title = sprintf("Logit-Model Coefficients Hardship Cases in %s", i),  label = sprintf("tab:Logit_1_%s",i), adjustbox = "width = 1\\textwidth, max height = 0.8\\textheight, center", placement = "htbp!")
+         title = sprintf("Logit-Model Coefficients Hardship Cases in %s", i),  label = sprintf("tab:Logit_1_%s",i), adjustbox = "width = 1\\textwidth, max height = 0.6\\textheight, center", placement = "htbp!")
   
   
   model_2.1.2.2 <- etable(model_2.1.2.1)%>%
@@ -593,9 +659,9 @@ for(i in Country.Set){
     formula_0 <- "burden_CO2_national ~ log_hh_expenditures_USD_2014 + hh_size"
     
     if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
-    #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
+    if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
     if(i != "Chile" & sum(is.na(data_2.1.3.4$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
-    if(i != "Chile" & sum(is.na(data_2.1.3.4$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
+    # if(i != "Chile" & sum(is.na(data_2.1.3.4$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
     if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$CF))==0)       formula_0 <- paste0(formula_0, " + CF")
     #if("lighting_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.1.3.4$LF))==0 & i != "Costa Rica" & i != "Uruguay")      formula_0 <- paste0(formula_0, " + LF")
     #if("heating_fuel" %in% colnames(household_information_0))      formula_0 <- paste0(formula_0, " + HF")
@@ -639,7 +705,8 @@ for(i in Country.Set){
                                                          ifelse(factor == "CF", "Cooking Fuel",
                                                                 ifelse(factor == "factor(ISCED)", "Education",
                                                                        ifelse(factor == "factor(Ethnicity)", "Ethnicity",
-                                                                              ifelse(factor == "residuals", factor, factor))))))))))
+                                                                              ifelse(factor == "residuals", factor, 
+                                                                                     ifelse(factor == "electricity.access", "Electricity Acc.", factor)))))))))))
 
     df_2.1.3 <- df_2.1.3 %>%
       bind_rows(joined_1)
@@ -685,7 +752,7 @@ data_frame_2.1.3.2 <- data_frame_2.1.3.1 %>%
 
 write.xlsx(data_frame_2.1.3.2, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_2_Overview_OLS_Logit_Decomp/Table_2_Output_from_R.xlsx")
 
-# 2.2 Decomposing Loosers + No Access to Transfers ####
+# 2.2   Decomposing Loosers + No Access to Transfers ####
 
 # 2.2.2 Logit ####
 
@@ -714,9 +781,9 @@ for(i in Country.Set){
   formula_0 <- "affected_80_no_transfers ~ log_hh_expenditures_USD_2014 + hh_size"
   
   if("urban_01" %in% colnames(household_information_0) & sum(is.na(data_2.2.2.1$urban_01))==0)           formula_0 <- paste0(formula_0, " + urban_01")
-  #if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.2.2.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
+  if("electricity.access" %in% colnames(household_information_0) & sum(is.na(data_2.2.2.1$electricity.access))==0) formula_0 <- paste0(formula_0, " + electricity.access")
   if(i != "Chile" & sum(is.na(data_2.2.2.1$car.01))==0)                                                formula_0 <- paste0(formula_0, " + car.01")
-  if(i != "Chile" & sum(is.na(data_2.2.2.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
+  #if(i != "Chile" & sum(is.na(data_2.2.2.1$refrigerator.01))==0)                                                formula_0 <- paste0(formula_0, " + refrigerator.01")
   if("cooking_fuel" %in% colnames(household_information_0) & sum(is.na(data_2.2.2.1$CF))==0){
     if(i != "Guatemala" & i != "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "Electricity")')
     if(i == "Guatemala" | i == "Dominican Republic") formula_0 <- paste0(formula_0, ' + i(CF, ref = "LPG")')
@@ -745,7 +812,7 @@ for(i in Country.Set){
   
   etable(model_2.2.2.1, dict = dict_latex, tex = TRUE, file = sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_5_Logit_Transfers_Burden/Table_Logit_Transfers_Burden_%s.tex", i),
          digits = 3, replace = TRUE, fitstat = c("n", "cor2"), style.tex = tex.style, se.row = TRUE,
-         title = sprintf("Logit-Model Coefficients Hardship Cases and no Access to Transfers in %s", i),  label = sprintf("tab:Logit_2_%s",i), adjustbox = "width = 1\\textwidth, max height = 0.8\\textheight, center", placement = "htbp!")
+         title = sprintf("Logit-Model Coefficients Hardship Cases and no Access to Transfers in %s", i),  label = sprintf("tab:Logit_2_%s",i), adjustbox = "width = 1\\textwidth, max height = 0.6\\textheight, center", placement = "htbp!")
   
   
   model_2.2.2.2 <- etable(model_2.2.2.1)%>%
@@ -865,6 +932,83 @@ data_2.2.4.3 <- left_join(data_2.2.4.1, data_2.2.4.2)%>%
 
 write.xlsx(data_2.2.4.3, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Summary_Stats_3/Affected_no_Transfers_vs_All.xlsx")
 
+
+# 2.3.0 Decomposing burden ####
+
+data_2.3.00 <- tibble()
+
+for (i in Country.Set){
+
+data_2.3.0 <- data_joint_0 %>%
+  filter(Country == i)
+
+var_0 <- var(data_2.3.0$burden_CO2_national)
+
+data_frame_2.3.0 <- tibble()
+
+for (j in c("burden_s_cooking_fuels", "burden_s_transport_fuels", "burden_s_Electricity", "burden_s_Food", "burden_s_Services",
+            "burden_s_other_energy", "burden_s_Goods")){
+  
+  data_2.3.1 <- data_2.3.0 %>%
+    rename(var_0 = j)%>%
+    select(burden_CO2_national, var_0)
+  
+  data_frame_2.3.0 <- bind_rows(data_frame_2.3.0, c("Variable" = j, "Covariance" = as.numeric(cov(data_2.3.1$burden_CO2_national, data_2.3.1$var_0))))
+  
+  rm(data_2.3.1)
+}
+
+data_frame_2.3.0 <- data_frame_2.3.0 %>%
+  mutate(Covariance = as.numeric(Covariance))%>%
+  mutate(Country = i)%>%
+  mutate(variance = var_0)%>%
+  mutate(s_j = Covariance/variance)%>%
+  mutate(sum_s_j = sum(s_j))
+
+data_2.3.00 <- bind_rows(data_2.3.00, data_frame_2.3.0)
+}  
+
+# Export as table
+
+# Export as figure
+
+data_2.3.01 <- data_2.3.00 %>%
+  mutate(Variable = ifelse(Variable == "burden_s_cooking_fuels", "Cooking fuels",
+                           ifelse(Variable == "burden_s_Electricity", "Electricity",
+                                  ifelse(Variable == "burden_s_Food", "Food",
+                                         ifelse(Variable == "burden_s_Goods", "Goods",
+                                                ifelse(Variable == "burden_s_other_energy", "Other energy",
+                                                       ifelse(Variable == "burden_s_Services", "Services",
+                                                              ifelse(Variable == "burden_s_transport_fuels", "Transport fuels", "FAIL"))))))))%>%
+  arrange(Country, -s_j)
+
+P_2.3.00 <- ggplot(data_2.3.01)+
+  geom_col(aes(y = s_j, fill = Variable, x = 1, group = "Variable"), position = "stack", colour = "black", width = 0.75)+
+  facet_wrap(. ~ Country)+
+  theme_bw()+
+  scale_fill_npg()+
+  scale_x_discrete()+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = c(0,0.5,1))+
+  guides(fill = guide_legend(nrow = 1, title = "Expenditure type"))+
+  labs(x = "", y = "Variance in carbon pricing incidence explained by expenditure type")+
+  theme(axis.text.y = element_text(size = 7), 
+        axis.text.x = element_text(size = 7),
+        axis.title  = element_text(size = 7),
+        plot.title = element_text(size = 7),
+        legend.position = "bottom",
+        strip.text = element_text(size = 7),
+        strip.text.y = element_text(angle = 180),
+        panel.grid.major = element_line(size = 0.3),
+        panel.grid.minor = element_blank(),
+        axis.ticks = element_line(size = 0.2),
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 6),
+        plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm"),
+        panel.border = element_rect(size = 0.3))
+
+jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/1_Figures/Figure_Appendix_Decomposition/Figure_Decomp_Ext.jpg", width = 15.5, height = 15, unit = "cm", res = 400)
+print(P_2.3.00)
+dev.off()
 
 # 3   Cross-Sectional Analysis ####
 

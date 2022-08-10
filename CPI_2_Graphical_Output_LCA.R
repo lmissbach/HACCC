@@ -291,6 +291,17 @@ for(Country.Name in c("Argentina", "Barbados","Bolivia", "Brazil", "Chile", "Col
   
   if(Country.Name == "El_Salvador") Country.Name.2 <- "El Salvador" else Country.Name.2 <- Country.Name
   
+  if(Country.Name == "Bolivia") {
+    ETH <- read_csv("../0_Data/1_Household Data/3_Bolivia/2_Codes/Ethnicity.Code.csv")%>%
+      rename(ETH = ethnicity, ethnicity = Ethnicity_0)%>%
+      select(ETH, ethnicity)
+    
+    household_information_0 <- household_information_0 %>%
+      left_join(ETH)%>%
+      select(-ethnicity)%>%
+      rename(ethnicity = ETH)
+    
+  }
   carbon_pricing_incidence_1 <- left_join(carbon_pricing_incidence_0, household_information_0)%>%
     mutate(Country = Country.Name.2)
   
@@ -821,9 +832,31 @@ data_5.1.1 <- data_5.1 %>%
   mutate_at(vars(median_burden_CO2_national_1:dif_q80_q20_burden_CO2_national_5), list(~ label_percent(accuracy = 0.01)(.)))%>%
   mutate_at(vars(median_1_5:dif_80_20_1_5), list(~ round(.,2)))
 
-colnames(data_5.1.1) <- c("Country", "MAC1", "MAC5", "H1", "H5", "H1A", "H5A", "MAC 1/5", "H 1/5", "H 1/5 A")
+colnames(data_5.1.1) <- c("Country", "$\\overline{AC}_{r}^{1}$", "MAC5", "H1", "H5", "H1A", "H5A", "MAC 1/5", "H 1/5", "H 1/5 A")
 
 write.xlsx(data_5.1.1, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_5_Horizontal_vs_Vertical_Effects/Table_5.xlsx")
+
+kbl(data_5.1.1, format = "latex", caption = "Comparing Median Additional Costs (AC) and Horizontal Spread between first and fifth Expenditure Quintile", 
+    booktabs = F, align = "l|cc|cccc|ccc", vline = "", linesep = "",
+    col.names = NULL)%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
+  add_header_above(c("Country" = 1, 
+                     "$\\\\overline{AC}_{r}^{1}$" = 1, 
+                     "$\\\\overline{AC}_{r}^{5}$" = 1, 
+                     "$\\\\overline{H}_{r}^{1}$" = 1, 
+                     "$\\\\overline{H}_{r}^{5}$" = 1,
+                     "$\\\\overline{H}_{r}^{1*}$" = 1,
+                     "$\\\\overline{H}_{r}^{5*}$" = 1,
+                     "$\\\\widehat{AC}_{r}^{1}$" = 1,
+                     "$\\\\widehat{H}_{r}^{1}$" = 1,
+                     "$\\\\widehat{H}_{r}^{1*}$" = 1), escape = FALSE, align = "c")%>%
+  column_spec(1, width = "2.88 cm")%>%
+  column_spec(2:10, width = "1.46 cm")%>%
+  footnote(general = "This table shows the median additional costs from carbon pricing in the first expenditure quintile ($\\\\overline{AC}_{r}^{1}$) and in the fifth quintile ($\\\\overline{AC}_{r}^{5}$). It displays the difference between the 5$^{th}$ (20$^{th}$) and 95$^{th}$ (80$^{th}$) within quintile percentile incidence for the first ($\\\\overline{H}_{r}^{1}$ and $\\\\overline{H}_{r}^{1*}$) and the fifth quintile ($\\\\overline{H}_{r}^{5}$ and $\\\\overline{H}_{r}^{5*}$). It also compares median additional costs from carbon pricing in the first income quintile to that in the fifth quintile ($\\\\hat{AC}$$_{r}^{1}$). Lastly it displays our comparison index faciltiating the comparison of within quintile variation between the first and fifth quintile ($\\\\hat{H}_{r}^{1}$ and $\\\\hat{H}_{r}^{1*}$ respectively).",
+           threeparttable = T, escape = FALSE)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_A4/Table_A4.tex")
+
+
 
 poly <- data.frame(g = c(1,1,1,2,2,2,2,3,3,3,4,4,4,5,5,5,5,6,6,6), x = c(0.05,0.05,0.95,
                                                                          0.05,0.05,0.95,0.95,
@@ -949,8 +982,17 @@ for(i in c("Argentina", "Barbados", "Bolivia", "Brazil" ,
 }  
 
 data_5.2.1 <- data_5.2 %>%
+  mutate(Correlation = round(Correlation,2))%>%
   pivot_wider(names_from = "Category", values_from = "Correlation")%>%
   select(-Help)
+
+kbl(mutate_all(data_5.2.1, linebreak), format = "latex", caption = "Correlation Coefficients for Carbon Pricing Incidence and Expenditure Shares on different Consumption Categories", 
+    booktabs = T, align = "l|cccc", format.args = list(big.mark = ",", scientific = FALSE), linesep = "", vline = "")%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position"))%>%
+  column_spec(1, width = "3.5 cm")%>%
+  column_spec(2:5, width = "2 cm")%>%
+  footnote(general = "This table displays correlation coefficients for carbon pricing incidence and expenditure shares on different consumption categories.", threeparttable = T)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_A5/Table_A5.tex")
 
 write.xlsx(data_5.2.1, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Correlation_Consumption.xlsx")
 
@@ -1020,8 +1062,19 @@ for(i in c("Argentina", "Barbados", "Bolivia", "Brazil" ,
 }  
 
 data_5.3.1 <- data_5.3 %>%
-  pivot_wider(names_from = "Category", values_from = "Correlation")%>%
-  select(-Help)
+  mutate(Correlation = round(Correlation,2))%>%
+  pivot_wider(names_from = "Category", values_from = "Correlation", values_fill = NA)%>%
+  select(-Help)%>%
+  mutate_all(~ ifelse(is.na(.),"",.))
+
+kbl(mutate_all(data_5.3.1, linebreak), format = "latex", caption = "Correlation Coefficients for Carbon Pricing Incidence and Expenditure Shares on different Energy Consumption Categories", 
+    booktabs = T, align = "l|cccccccc", format.args = list(big.mark = ",", scientific = FALSE), linesep = "", vline = "")%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
+  column_spec(1, width = "3.5 cm")%>%
+  column_spec(2:8, width = "1.5 cm")%>%
+  footnote(general = "This table displays correlation coefficients for carbon pricing incidence and expenditure shares on different energy items.", threeparttable = T)%>%
+  save_kable(., "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Tables/Table_A6/Table_A6.tex")
+
 
 write.xlsx(data_5.3.1, "../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/2_Tables/Table_Correlation_Coefficients/Correlation_Energy.xlsx")
 

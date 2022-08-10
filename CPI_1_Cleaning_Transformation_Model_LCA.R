@@ -512,17 +512,14 @@ household_sectoral_carbon_footprint <- left_join(expenditure_information, matchi
   left_join(categories)%>%
   left_join(fuels)%>%
   filter(GTAP != "deleted")%>%
-  filter(category != "deleted" & category != "in-kind" & category != "self-produced" & category != "other_binning")%>%
+  filter(category != "deleted" & category != "in-kind" & category != "self-produced" & category != "other_binning" & GTAP != "other")%>%
   mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
-  group_by(hh_id)%>%
-  mutate(hh_expenditures_USD_2014 = sum(expenditures_USD_2014))%>%
-  ungroup()%>%
   mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
                                      ifelse(is.na(category), "NA_1", 
-                                            ifelse(category == "energy" & is.na(fuel), "Other energy",
-                                                   ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "Transport fuels",
+                                            ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass" | fuel == "Firewood"), "other_energy",
+                                                   ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "transport_fuels",
                                                           ifelse(category == "energy" & fuel == "Electricity", "Electricity",
-                                                                 ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene"), "Cooking fuel", "NA_2")))))))%>%
+                                                                 ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal"), "cooking_fuels", "NA_2")))))))%>%
   left_join(carbon_intensities, by = "GTAP")%>%
   mutate(
     #CO2_s_t_global      = expenditures_USD_2014*CO2_t_per_dollar_global,
@@ -531,17 +528,14 @@ household_sectoral_carbon_footprint <- left_join(expenditure_information, matchi
     #   CO2_s_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport
     )%>%
   select(-starts_with("CO2_t_per"))%>%
-  mutate(exp_s_CO2_national = CO2_s_t_national*carbon.price,
-         burden_s_CO2_national = exp_s_CO2_national/hh_expenditures_USD_2014)%>%
   group_by(hh_id, aggregate_category)%>%
-  summarise(CO2_s_t_national      = sum(CO2_s_t_national),
-            exp_s_CO2_national    = sum(exp_s_CO2_national),
-            burden_s_CO2_national = sum(burden_s_CO2_national))%>%
+  summarise(CO2_s_t_national      = sum(CO2_s_t_national))%>%
   ungroup()%>%
-  # weiterrechnen mit burden_s_CO2_national (CO2 und exp sind äquivalent)
-  select(-CO2_s_t_national, -exp_s_CO2_national)%>%
-  pivot_wider(names_from = "aggregate_category", values_from = "burden_s_CO2_national", values_fill = 0)%>%
-  rename(Goods = goods, Services = services, Food = food)
+  mutate(exp_s_CO2_national    = CO2_s_t_national*carbon.price)%>%
+  select(-CO2_s_t_national)%>%
+  # Weiterrechnen mit exp_s_CO2_national
+  pivot_wider(names_from = "aggregate_category", values_from = "exp_s_CO2_national", values_fill = 0, names_prefix = "exp_s_")%>%
+  rename(exp_s_Goods = exp_s_goods, exp_s_Services = exp_s_services, exp_s_Food = exp_s_food)
 
 write_csv(household_sectoral_carbon_footprint, 
           sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/Sectoral_Burden_%s.csv",  Country.Name))
