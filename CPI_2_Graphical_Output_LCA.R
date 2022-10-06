@@ -7,9 +7,12 @@
 library("cowplot")
 library("eulerr")
 library("ggpubr")
+library("ggrepel")
 library("ggsci")
 library("haven")
 library("Hmisc")
+library("knitr")
+library("kableExtra")
 library("openxlsx")
 library("rattle")
 library("scales")
@@ -442,7 +445,7 @@ plot_figure_3 <- function(ATT  = element_text(size = 7), ATX = element_text(size
     scale_y_continuous(labels = scales::percent_format(accuracy = accuracy_0), expand = c(0,0))+
     scale_x_discrete(labels = c("1", "2", "3", "4", "5"))+
     coord_flip(ylim = c(0,ylim0))+
-    ggtitle(title_0)+
+    #ggtitle(title_0)+
     theme(axis.text.y = ATY, 
           axis.text.x = ATX,
           axis.title  = ATT,
@@ -463,7 +466,7 @@ plot_figure_3 <- function(ATT  = element_text(size = 7), ATX = element_text(size
 
 P_4.1.2 <- plot_figure_3()
 
-jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/1_Figures/Figure_2_Boxplot/Fossil_Fuel_Subsidy_Reform_Figure_3_Joint_Flipped.jpg", width = 15.5, height = 15, unit = "cm", res = 400)
+jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Figures/Figure_2_Boxplot_FFF_Joint_Flipped.jpg", width = 15.5, height = 15, unit = "cm", res = 400)
 print(P_4.1.2)
 dev.off()
 
@@ -480,7 +483,7 @@ P_4.2 <- ggplot(data_joint_0)+
   xlab("Total Household Expenditures (USD)")+
   scale_x_continuous(labels = scales::unit_format(unit = "", scale = 1/1000), expand = c(0,0))+
   scale_y_continuous(expand = c(0,0))+
-  ggtitle("Carbon Footprint of Consumption")+
+  #ggtitle("Carbon Footprint of Consumption")+
   theme(axis.text.y = element_text(size = 7), 
         axis.text.x = element_text(size = 7),
         axis.title  = element_text(size = 7),
@@ -493,10 +496,10 @@ P_4.2 <- ggplot(data_joint_0)+
         axis.ticks = element_line(size = 0.2),
         legend.text = element_text(size = 7),
         legend.title = element_text(size = 7),
-        plot.margin = unit(c(0.1,0.1,0,0), "cm"),
+        plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm"),
         panel.border = element_rect(size = 0.3))
 
-jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/1_Figures/Figure_0_Carbon_Footprints/Figure_0_Joint_1.jpg", width = 15.5, height = 15, unit = "cm", res = 400)
+jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Figures/Figure_1_Carbon_Footprints.jpg", width = 15.5, height = 15, unit = "cm", res = 400)
 print(P_4.2)
 dev.off()
 
@@ -690,7 +693,7 @@ create_venn_diagram <- function(Country.0){
   )
   
   P.venn <- plot(euler(data_4.3.3.4, shape = "ellipse"), labels = FALSE,
-                 quantities = list(type = "percent", fontsize = 6), fills = list(fill = c("#BC3C29FF", "#FFDC91FF", "#6F99ADFF"), alpha = 0.8),
+                 quantities = list(type = "percent", fontsize = 7), fills = list(fill = c("#BC3C29FF", "#FFDC91FF", "#6F99ADFF"), alpha = 0.8),
                  main = list(label = Country.0, fontsize = 7),
                  #legend = list(side = "bottom", nrow = 1, ncol = 3)
                  )
@@ -703,7 +706,7 @@ create_venn_diagram <- function(Country.0){
   data_4.3.3.6 <- rownames_to_column(as.data.frame(data_4.3.3.4))%>%
     rename(Type = rowname, value = data_4.3.3.4)%>%
     mutate(total = pop)%>%
-    mutate(percent = round(value/total,3))%>%
+    mutate(percent = round(value/total,2))%>%
     mutate(label = paste0(percent*100, "%"))
     
 P.venn$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.1$children$tag.quantity.1$label <- data_4.3.3.6$label[data_4.3.3.6$Type == "Most Affected"]
@@ -727,10 +730,10 @@ for(Country in c("Argentina", "Barbados", "Brazil", "Bolivia", "Chile",
   P.List[[Country]] <- P.V
 }
 
-data.0 <- data.frame(A = c("Most Affected", "Access to Transfers", "The Poorest"),
+data.0 <- data.frame(A = c("Most Affected (20%)", "Access to Transfers", "The Poorest (20%)"),
                      B = c(1,2,3),
                      C = c(1,2,3))
-data.0$A <- factor(data.0$A, levels = c("Most Affected", "The Poorest", "Access to Transfers"))
+data.0$A <- factor(data.0$A, levels = c("Most Affected (20%)", "The Poorest (20%)", "Access to Transfers"))
 
 Legend <- ggplot(data.0, aes(x = B, y = C, fill = A))+
   geom_point(shape = 21, alpha = 0.8, size = 2)+
@@ -923,13 +926,13 @@ poly_2 <- data.frame(g = c(1,1,1,1,
                            3,3,3,3,
                            4,4,4,4),
                      y = c(0.01,0.99,0.99,0.01,
-                           1.01,2.99,2.99,1.01,
-                           1.01,2.99,2.99,1.01,
+                           1.01,3.19,3.19,1.01,
+                           1.01,3.19,3.19,1.01,
                            0.01,0.99,0.99,0.01),
                      x = c(0.01,0.01,0.99,0.99,
                            0.01,0.01,0.99,0.99,
-                           1.01,1.01,2.99,2.99,
-                           1.01,1.01,2.99,2.99),
+                           1.01,1.01,3.19,3.19,
+                           1.01,1.01,3.19,3.19),
                      label = c(rep("Progressive and more heterogeneous in IQ5",4),
                                rep("Regressive and more heterogeneous in IQ5",4),
                                rep("Regressive and more heterogeneous in IQ1",4),
@@ -937,15 +940,33 @@ poly_2 <- data.frame(g = c(1,1,1,1,
 
 poly_3 <- data.frame(g = c(1,1,1,
                            2,2,2),
-                     y = c(0.03,2.98,2.98,
-                           0.02,2.97,0.02),
-                     x = c(0.02,0.02,2.97,
-                           0.03,2.98,2.98))
+                     y = c(0.03,3.18,3.18,
+                           0.02,3.17,0.02),
+                     x = c(0.02,0.02,3.17,
+                           0.03,3.18,3.18))
 
 poly_4 <- data.frame(text = c("Horizontal Differences > Vertical Differences",
                               "Vertical Differences > Horizontal Differences"),
                      x = c(2,1),
                      y = c(0.5,2.5))
+
+data_5.1.2 <- data_5.1 %>%
+  mutate(Country_Code = ifelse(Country == "Argentina", "ARG",
+                               ifelse(Country == "Barbados", "BRB",
+                                      ifelse(Country == "Bolivia", "BOL",
+                                             ifelse(Country == "Brazil", "BRA",
+                                                    ifelse(Country == "Chile", "CHL", 
+                                                           ifelse(Country == "Colombia", "COL",
+                                                                  ifelse(Country == "Costa Rica", "CRI",
+                                                                         ifelse(Country == "Dominican Republic", "DOM",
+                                                                                ifelse(Country == "El Salvador", "SLV",
+                                                                                       ifelse(Country == "Ecuador", "ECU",
+                                                                                              ifelse(Country == "Guatemala", "GTM",
+                                                                                                     ifelse(Country == "Mexico", "MEX",
+                                                                                                            ifelse(Country == "Nicaragua", "NIC",
+                                                                                                                   ifelse(Country == "Paraguay", "PRY",
+                                                                                                                          ifelse(Country == "Peru", "PER",
+                                                                                                                                 ifelse(Country == "Uruguay", "URY", "Fail")))))))))))))))))
 
 P.5.1 <- ggplot()+
   #geom_polygon(data = poly, aes(x = y, y = x, group = g), colour = "black", alpha = 0.5, fill = NA)+
@@ -954,8 +975,10 @@ P.5.1 <- ggplot()+
   geom_text(data = poly_4, aes(label = text, x = x, y = y))+
   #geom_text(data = poly, aes(x = z_4, y = z_3, group = g, label = label))+
   theme_bw()+
-  geom_point(data = data_5.1, aes(y = median_1_5, x = dif_95_05_1_5), shape = 17, colour = "black", size = 2)+
-  coord_cartesian(xlim = c(0,3), ylim = c(0,3))+
+  geom_point(data = data_5.1.2, aes(y = median_1_5, x = dif_95_05_1_5), shape = 17, colour = "black", size = 2)+
+  geom_text_repel(data = data_5.1.2, aes(label = Country_Code, y = median_1_5, x = dif_95_05_1_5),
+                  direction = "x", size = 2.5)+
+  coord_cartesian(xlim = c(0,3.2), ylim = c(0,3.2))+
   #geom_abline(intercept = 0, slope = 1)+
   scale_fill_npg()+
   scale_shape_manual(values = c(15,15,15,15,17,17,17,17,18,18,18,18,19,19,19,19))+
@@ -1011,7 +1034,7 @@ data_5.2.1 <- data_5.2 %>%
 
 kbl(mutate_all(data_5.2.1, linebreak), format = "latex", caption = "Correlation Coefficients for Carbon Pricing Incidence and Expenditure Shares on different Consumption Categories", 
     booktabs = T, align = "l|cccc", format.args = list(big.mark = ",", scientific = FALSE), linesep = "", vline = "")%>%
-  kable_styling(position = "center", latex_options = c("HOLD_position"))%>%
+  kable_styling(position = "center", latex_options = c("HOLD_position", "scale_down"))%>%
   column_spec(1, width = "3.5 cm")%>%
   column_spec(2:5, width = "2 cm")%>%
   footnote(general = "This table displays correlation coefficients for carbon pricing incidence and expenditure shares on different consumption categories.", threeparttable = T)%>%
@@ -1023,7 +1046,7 @@ P.5.2 <- ggplot(data_5.2, aes(x = Correlation, group = Country))+
   geom_vline(aes(xintercept = 0))+
   facet_wrap(Category ~ ., strip.position = "left", nrow = 4)+
   theme_bw()+
-  geom_point(aes(y = factor(Help), shape = Country, fill = Country), colour = "black", size = 2, position = position_jitter(height = 0.4))+
+  geom_point(aes(y = factor(Help), shape = Country, fill = Country), colour = "black", size = 2, position = position_jitter(height = 0.4, seed = 2022))+
   coord_cartesian(xlim = c(-1,1))+
   scale_x_continuous(expand = c(0,0), labels = c("-1","0.5","0","0.5",1))+
   scale_shape_manual(values = c(rep(c(21,22,24,25),4)))+
@@ -1106,7 +1129,7 @@ P.5.3 <- ggplot(data_5.3, aes(x = Correlation, group = Country))+
   geom_vline(aes(xintercept = 0))+
   facet_wrap(Category ~ ., strip.position = "left", nrow = 4)+
   theme_bw()+
-  geom_point(aes(y = factor(Help), shape = Country, fill = Country), colour = "black", size = 2, position = position_jitter(height = 0.4))+
+  geom_point(aes(y = factor(Help), shape = Country, fill = Country), colour = "black", size = 2, position = position_jitter(height = 0.4, seed = 2022))+
   coord_cartesian(xlim = c(-1,1))+
   scale_x_continuous(expand = c(0,0), labels = c("-1","0.5","0","0.5",1))+
   scale_shape_manual(values = c(rep(c(21,22,24,25),4)))+
@@ -1148,7 +1171,7 @@ dev.off()
 
 data_5.4 <- data.frame()
 
-for (i in seq(0.01, 0.99,0.01)){
+for (i in seq(0.01, 1,0.01)){
   
   lower_0 <- 0.5 - i/2
   upper_0 <- 0.5 + i/2
@@ -1199,7 +1222,7 @@ PH1 <- ggplot(data = data_5.4.3)+
   scale_size_manual(values = c(0.3,0.5))+
   xlab("Percentage covered to compute horizontal spread")+
   scale_x_continuous(labels = scales::percent_format(), expand = c(0,0), breaks = c(0,0.5,0.9))+
-  coord_cartesian(xlim = c(0,1))+
+  coord_cartesian(xlim = c(0,1), ylim = c(0,4))+
   guides(fill = "none", size = "none", colour = "none")+
   theme(axis.text.y = element_text(size = 7), 
         axis.text.x = element_text(size = 7),
@@ -1216,7 +1239,7 @@ PH1 <- ggplot(data = data_5.4.3)+
         plot.margin = unit(c(0.1,0.1,0,0), "cm"),
         panel.border = element_rect(size = 0.3))
 
-jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/1_Figures/Figure_Appendix_H1/Figure_H1_Appendix.jpg", width = 14, height = 15, unit = "cm", res = 400)
+jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/6_App/Latin-America-Paper/Figures/Figure_A3.jpg", width = 14, height = 15, unit = "cm", res = 400)
 print(PH1)
 dev.off()
 
