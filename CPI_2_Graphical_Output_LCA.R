@@ -730,10 +730,10 @@ for(Country in c("Argentina", "Barbados", "Brazil", "Bolivia", "Chile",
   P.List[[Country]] <- P.V
 }
 
-data.0 <- data.frame(A = c("Most Affected (20%)", "Access to Transfers", "The Poorest (20%)"),
+data.0 <- data.frame(A = c("20% most affected", "Access to transfers", "Poorest 20%"),
                      B = c(1,2,3),
                      C = c(1,2,3))
-data.0$A <- factor(data.0$A, levels = c("Most Affected (20%)", "The Poorest (20%)", "Access to Transfers"))
+data.0$A <- factor(data.0$A, levels = c("20% most affected", "Poorest 20%", "Access to transfers"))
 
 Legend <- ggplot(data.0, aes(x = B, y = C, fill = A))+
   geom_point(shape = 21, alpha = 0.8, size = 2)+

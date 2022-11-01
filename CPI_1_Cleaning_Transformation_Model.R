@@ -19,8 +19,8 @@ options(scipen=999)
 for(Country.Name in c("Bangladesh", "Bolivia", "Ecuador", "Europe", "India", "Indonesia", "Israel", "Pakistan", "Peru", "Philippines", "Thailand", "Turkey", "Vietnam")) {
 #Country.Name <- "Ethiopia"
 
-Country_Year <- data.frame(Country = c("Argentina", "Bangladesh", "Bolivia", "Ecuador", "Ethiopia", "Europe", "India", "Indonesia", "Israel", "Mongolia", "Nigeria", "Pakistan", "Peru", "Philippines", "South_Africa", "Thailand", "Turkey", "Vietnam"), 
-                           Year =    c("2018",      "2010",       "2018",    "2013",  "2018", "2015",  "2012",  "2018",      "2018",          "2016",     "2016",     "2013",     "2016", "2015",        "2014",         "2013",     "2013",   "2012"))
+Country_Year <- data.frame(Country = c("Argentina", "Bangladesh", "Bolivia", "Ecuador", "Ethiopia", "Europe", "India", "Indonesia", "Israel", "Mongolia", "Morocco", "Nigeria", "Pakistan", "Peru", "Philippines", "South_Africa", "Thailand", "Turkey", "Vietnam"), 
+                           Year =    c("2018",      "2010",       "2018",    "2013",  "2018", "2015",  "2012",  "2018",      "2018",          "2016",     "2013"         ,"2016",     "2013",     "2016", "2015",        "2014",         "2013",     "2013",   "2012"))
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
 
