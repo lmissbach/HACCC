@@ -6,21 +6,19 @@ carbon.price <- 40 # in USD/tCO2
 
 # 1       Packages ####
 
-library("haven")
-library("Hmisc")
-library("openxlsx")
-library("rattle")
-library("scales")
-library("tidyverse")
+if(!require("pacman")) install.packages("pacman")
+
+p_load("haven", "Hmisc", "openxlsx", "rattle", "scales", "tidyverse")
+
 options(scipen=999)
 
 # 1.1     Setup ####
 
 for(Country.Name in c("Bangladesh", "Bolivia", "Ecuador", "Europe", "India", "Indonesia", "Israel", "Pakistan", "Peru", "Philippines", "Thailand", "Turkey", "Vietnam")) {
-#Country.Name <- "Ethiopia"
 
-Country_Year <- data.frame(Country = c("Argentina", "Bangladesh", "Bolivia", "Ecuador", "Ethiopia", "Europe", "India", "Indonesia", "Israel", "Mongolia", "Morocco", "Nigeria", "Pakistan", "Peru", "Philippines", "South_Africa", "Thailand", "Turkey", "Vietnam"), 
-                           Year =    c("2018",      "2010",       "2018",    "2013",  "2018", "2015",  "2012",  "2018",      "2018",          "2016",     "2013"         ,"2016",     "2013",     "2016", "2015",        "2014",         "2013",     "2013",   "2012"))
+Country.Name <- "Israel"
+
+Country_Year <- read.xlsx("../0_Data/9_Supplementary Data/Countries_Years.xlsx")
 
 Year_0 <- Country_Year$Year[Country_Year$Country == Country.Name]
 
@@ -527,6 +525,10 @@ expenditures_fuels <- left_join(expenditure_information, fuels)%>%
   ungroup()%>%
   pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_LCU_")
 
+expenditures_fuels <- distinct(household_information, hh_id)%>%
+  left_join(expenditures_fuels)%>%
+  mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))
+
 rm(expenditure_information, fuels)
 
 # 6.6     Summarising Expenditures on the GTAP Level ####
@@ -601,6 +603,36 @@ if(Country.Name == "Europe"){
 }
 
 rm(carbon_intensities, expenditure_information_1)
+
+# 6.8     Add-On: Sectoral Emissions and additional expenditures ####
+
+household_sectoral_carbon_footprint <- left_join(expenditure_information, matching, by = "item_code")%>%
+  left_join(categories)%>%
+  left_join(fuels)%>%
+  filter(GTAP != "deleted")%>%
+  filter(category != "deleted" & category != "in-kind" & category != "self-produced" & category != "other_binning" & GTAP != "other")%>%
+  mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
+  mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
+                                     ifelse(is.na(category), "NA_1", 
+                                            ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass" | fuel == "Firewood"), "other_energy",
+                                                   ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "transport_fuels",
+                                                          ifelse(category == "energy" & fuel == "Electricity", "Electricity",
+                                                                 ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal"), "cooking_fuels", "NA_2")))))))%>%
+  left_join(carbon_intensities, by = "GTAP")%>%
+  mutate(CO2_s_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national)%>%
+  select(-starts_with("CO2_t_per"))%>%
+  group_by(hh_id, aggregate_category)%>%
+  summarise(CO2_s_t_national      = sum(CO2_s_t_national))%>%
+  ungroup()%>%
+  mutate(exp_s_CO2_national    = CO2_s_t_national*carbon.price)%>%
+  select(-CO2_s_t_national)%>%
+  pivot_wider(names_from = "aggregate_category", values_from = "exp_s_CO2_national", values_fill = 0, names_prefix = "exp_s_")%>%
+  rename(exp_s_Goods = exp_s_goods, exp_s_Services = exp_s_services, exp_s_Food = exp_s_food)
+
+#write_csv(household_sectoral_carbon_footprint, 
+#          sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/Sectoral_Burden_%s.csv",  Country.Name))
+
+rm(expenditure_information, matching, exchange.rate, inflation_factor, fuels, categories, household_sectoral_carbon_footprint)
 
 # ____    ####
 # 7       Model / Calculating Carbon Incidence ####
