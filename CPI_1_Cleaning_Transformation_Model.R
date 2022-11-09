@@ -16,7 +16,7 @@ options(scipen=999)
 
 for(Country.Name in c("Bangladesh", "Bolivia", "Ecuador", "Europe", "India", "Indonesia", "Israel", "Pakistan", "Peru", "Philippines", "Thailand", "Turkey", "Vietnam")) {
 
-Country.Name <- "Israel"
+Country.Name <- "Mexico"
 
 Country_Year <- read.xlsx("../0_Data/9_Supplementary Data/Countries_Years.xlsx")
 
@@ -68,7 +68,8 @@ expenditure_information_1 <- expenditure_information %>%
   group_by_at(vars(-hh_id))%>%
   mutate(number = n(),
          flag = ifelse(number > 1,1,0))%>%
-  ungroup()
+  ungroup()%>%
+  arrange(desc(flag))
 
 print(paste("There are ", nrow(count(expenditure_information, hh_id)) - nrow(filter(expenditure_information_1, flag == 0)), sprintf(" cases of exact duplicates of expenditures on the item level in %s.", Country.Name)))
 
@@ -132,7 +133,7 @@ hh_negative_expenditures_4 <- expenditure_information_4 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name == "India" | Country.Name == "Indonesia" | Country.Name == "Philippines" | Country.Name == "Ethiopia"){
+if(Country.Name %in% c("India", "Indonesia", "Philippines","Ethiopia")){
 
 household_information <- household_information %>%
    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -141,6 +142,36 @@ household_information <- household_information %>%
 expenditure_information <- expenditure_information %>%
    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
 
+}
+
+if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru")){
+  household_information <- household_information %>%
+    filter(!hh_id %in% hh_duplicates_information$hh_id)
+  
+  expenditure_information <- expenditure_information %>%
+    filter(!hh_id %in% hh_duplicates_information$hh_id)
+}
+
+if(Country.Name == "El Salvador"){
+  household_information <- household_information %>%
+    filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
+    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
+  
+  expenditure_information <- expenditure_information %>%
+    filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
+    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
+  
+}
+
+if(Country.Name == "Barbados"){
+  expenditure_information <- expenditure_information %>%
+    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
+  
+  household_information <- household_information %>%
+    filter(hh_id %in% expenditure_information$hh_id)
+  
+  appliances_0 <- appliances_0 %>%
+    filter(hh_id %in% expenditure_information$hh_id)
 }
 
 if(Country.Name == "Europe"){
