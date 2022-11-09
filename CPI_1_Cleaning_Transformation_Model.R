@@ -500,7 +500,7 @@ if(Country.Name == "Europe"){
 expenditure_information_1 <- left_join(expenditure_information, matching, by = "item_code")%>%
   filter(GTAP != "deleted")
 
-rm(matching)
+rm()
 
 # 6.3     Assign Households to Expenditure Bins ####
 
@@ -545,7 +545,7 @@ expenditures_categories_0 <- left_join(expenditure_information, categories)%>%
   select(hh_id, category, share_category)%>%
   pivot_wider(names_from = "category", values_from = "share_category", names_prefix = "share_", values_fill = 0)
 
-rm(categories)
+rm()
 
 # 6.5     Calculating Expenditure Shares on detailed Energy Items ####
 
@@ -554,13 +554,14 @@ expenditures_fuels <- left_join(expenditure_information, fuels)%>%
   group_by(hh_id, fuel)%>%
   summarise(expenditures = sum(expenditures))%>%
   ungroup()%>%
-  pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_LCU_")
+  mutate(expenditures = expenditures*inflation_factor*exchange.rate)%>%
+  pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_USD_", values_fill = 0)
 
 expenditures_fuels <- distinct(household_information, hh_id)%>%
   left_join(expenditures_fuels)%>%
   mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))
 
-rm(expenditure_information, fuels)
+rm()
 
 # 6.6     Summarising Expenditures on the GTAP Level ####
 
@@ -595,7 +596,7 @@ expenditure_information_2 <- expenditure_information_1 %>%
   summarise(hh_expenditures_LCU = sum(expenditures))%>%
   ungroup()
 
-rm(exchange.rate, inflation_factor, basic_household_information)
+rm(basic_household_information)
 
 # 6.7     Merging Expenditures and Carbon Intensities ####
 if(Country.Name != "Europe"){
@@ -660,8 +661,8 @@ household_sectoral_carbon_footprint <- left_join(expenditure_information, matchi
   pivot_wider(names_from = "aggregate_category", values_from = "exp_s_CO2_national", values_fill = 0, names_prefix = "exp_s_")%>%
   rename(exp_s_Goods = exp_s_goods, exp_s_Services = exp_s_services, exp_s_Food = exp_s_food)
 
-#write_csv(household_sectoral_carbon_footprint, 
-#          sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/Sectoral_Burden_%s.csv",  Country.Name))
+write_csv(household_sectoral_carbon_footprint, 
+          sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Sectoral_Burden_%s.csv",  Country.Name))
 
 rm(expenditure_information, matching, exchange.rate, inflation_factor, fuels, categories, household_sectoral_carbon_footprint)
 
