@@ -16,20 +16,23 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 
 # 1.1     Setup ####
 
-for(Country.Name in c(#"Bangladesh","India","Indonesia","Israel","Pakistan","Philippines","Thailand","Turkey","Vietnam",
-                      #"Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay"
+for(Country.Name in c("India","Indonesia","Israel","Maldives","Mongolia","Myanmar",
+                      #"Bangladesh","Pakistan","Philippines","Thailand","Turkey","Vietnam",
+                      "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       #"Europe",
-                      "Benin", "Burkina Faso"
+                      "Benin","Burkina Faso","Cote dIvoire","Guinea-Bissau","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
+                      "South Africa", "Togo",
+                      "Armenia"
                       )) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Burkina Faso"
+Country.Name <- "Maldives"
 
 print(paste0(Country.Name, " Start"))
 
 # 2       Load Household and Expenditure File ####
 
-path_0                  <-list.files("../0_Data/1_Household Data/")[grep(Country.Name, list.files("../0_Data/1_Household Data/"), ignore.case = T)]
+path_0                  <-list.files("../0_Data/1_Household Data/")[grep(Country.Name, list.files("../0_Data/1_Household Data/"), ignore.case = T)][1]
 
 household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/household_information_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
 if(Country.Name == "Bolivia"){expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character(),item_code = col_character()))}
@@ -37,7 +40,9 @@ clean_0 <- nrow(household_information)
 
 expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
 
-if(Country.Name != "Chile")  {appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))}
+if(Country.Name != "Chile" & Country.Name != "Morocco")  {
+  appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
+}
 
 if(Country.Name == "Europe"){
   household_information   <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv")
@@ -143,7 +148,7 @@ hh_negative_expenditures_4 <- expenditure_information_4 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru")){
+if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)
   
@@ -290,8 +295,6 @@ CNTRY  <- Country_Year$Country_Code[Country_Year$Country == Country.Name]
 # 5.1.1   Supplementary Data ####
 # Exchange Rates
 
-if(Country.Name == "South_Africa") Country.Name <- "South Africa"
-
 information.ex <- read.xlsx("../0_Data/9_Supplementary Data/Exchange_Rates_2014.xlsx") # from World Bank
 
 exchange.rate  <- as.numeric(information.ex$exchange_rate[information.ex$Country == Country.Name]) # not ppp-adjusted
@@ -301,8 +304,8 @@ exchange.rate  <- as.numeric(information.ex$exchange_rate[information.ex$Country
 cpis <- read.xlsx("../0_Data/9_Supplementary Data/IMF_Consumer_Price_Index_Inflation_Average.xlsx")
 
 cpis_0 <- cpis %>%
-  select(Country, starts_with("2"))%>%
-  filter(Country == Country.Name)
+  select(ISO, Country, starts_with("2"))%>%
+  filter(Country == Country.Name | ISO == CNTRY)
 
 cpis_1 <- cpis_0 %>%
   mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
@@ -319,7 +322,7 @@ cpis_1 <- cpis_0 %>%
                                                                                     ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0))))))))))
 
 
-inflation_factor <- cpis_1$inflation_factor[cpis_1$Country == Country.Name]
+inflation_factor <- cpis_1$inflation_factor[cpis_1$Country == Country.Name | cpis_1$ISO == CNTRY]
 
 if(Country.Name == "Europe"){
   countries <- distinct(household_information, COUNTRY)
@@ -355,8 +358,6 @@ if(Country.Name == "Europe"){
   
 }
 
-if(Country.Name == "South Africa") Country.Name <- "South_Africa"
-
 rm(cpis_1, cpis_0, information.ex, cpis, Country_Year, Year_0, custom_match)
 
 # 5.1.2   Matching GTAP Concordance ####
@@ -367,7 +368,7 @@ if(Country.Name == "Europe"){
   matching <- read.xlsx("../0_Data/1_Household Data/4_Europe_EU27/3_Matching_Tables/Item_GTAP_Concordance_EU_incl_Artificial.xlsx")
 }
 
-if(Country.Name == "Thailand"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives"){
   matching <- matching %>%
     mutate_at(vars(-GTAP, -Explanation),~ as.numeric(.))
 }
@@ -378,7 +379,7 @@ if(Country.Name == "Colombia"){
            X42 = as.character(X42),
            X43 = as.character(X43))}
 
-if(Country.Name == "Bolivia"){
+if(Country.Name == "Bolivia" | Country.Name == "Armenia"){
   matching <- matching %>%
     mutate_at(.vars = vars(-GTAP), .funs = list(~ as.character(.)))
 }
@@ -412,12 +413,12 @@ rm(matching.check, item_codes)
 
 categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Bangladesh" | Country.Name == "Thailand"){
+if(Country.Name == "Bangladesh" | Country.Name == "Thailand" | Country.Name == "Maldives"){
   categories <- categories %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
 
-if(Country.Name == "Bolivia"){
+if(Country.Name == "Bolivia" | Country.Name == "Armenia"){
   categories <- categories %>%
     mutate_at(.vars = vars(-X1), .funs = list(~ as.character(.)))
 }
@@ -426,7 +427,8 @@ categories <- categories %>%
   pivot_longer(-X1, names_to = "drop", values_to = "item_code")%>%
   filter(!is.na(item_code))%>%
   select(X1, item_code)%>%
-  rename(category = X1)
+  rename(category = X1)%>%
+  distinct(category, item_code)
 
 item_codes <- select(expenditure_information, item_code)%>%
   distinct()%>%
@@ -450,7 +452,7 @@ rm(matching.check, item_codes)
 
 fuels <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Fuel_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Thailand"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives"){
   fuels <- fuels %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
@@ -473,13 +475,14 @@ rm(energy)
 
 # 5.1.6   Vector with Carbon Intensities ####
 
-if(Country.Name == "South_Africa") Country.Name <- "South Africa"
-
-if(Country.Name != "Barbados" & Country.Name != "Suriname"){
+if(Country.Name != "Barbados" & Country.Name != "Suriname" & Country.Name != "Mali" & Country.Name != "Niger" & Country.Name != "Myanmar" & Country.Name != "Maldives"){
   carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
 }
 if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest_of_the_Caribbean")}
 if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South America")}
+if(Country.Name == "Mali" | Country.Name == "Niger"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Africa")}
+if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Southeast Asia")}
+if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South Asia")}
 
 GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 
@@ -496,7 +499,6 @@ carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Numbe
   select(GTAP, starts_with("CO2_t"))
 
 rm(carbon_intensities_0, GTAP_code)
-if(Country.Name == "South Africa") Country.Name <- "South_Africa"
 
 if(Country.Name == "Europe"){
   GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
@@ -542,13 +544,13 @@ expenditure_information <- left_join(expenditure_information, household_ids)%>%
   select(hh_id_new, everything(), -hh_id)%>%
   rename(hh_id = hh_id_new)
 
-if(Country.Name != "Europe" & Country.Name != "Chile"){
+if(Country.Name != "Europe" & Country.Name != "Chile" & Country.Name != "Morocco"){
 appliances_1 <- left_join(appliances_0, household_ids)%>%
   select(hh_id_new, everything(), - hh_id)%>%
   rename(hh_id = hh_id_new)
 write_csv(appliances_1, sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_new_%s.csv", path_0, Country.Name))
+rm(appliances_1, appliances_0)
 }
-rm(household_ids, appliances_1, appliances_0)
 
 basic_household_information <- household_information %>%
   select(hh_id, hh_size, hh_weights)
@@ -657,7 +659,7 @@ expenditure_information_2 <- expenditure_information_1 %>%
 
 clean_6 <- nrow(distinct(expenditure_information_1, hh_id))
 
-rm(basic_household_information)
+rm(basic_household_information, household_ids)
 
 # 6.7     Merging Expenditures and Carbon Intensities ####
 
@@ -790,7 +792,7 @@ colnames(tracking_removals) <- c("Category", paste0("HHs_", CNTRY), paste0("dele
 
 tracking_removals_0 <- left_join(tracking_removals_0, tracking_removals)
 
-rm(tracking_removals, clean_0, clean_1, clean_2, clean_3, clean_4, clean_5, clean_6, clean_7)
+rm(tracking_removals, clean_0, clean_1, clean_2, clean_3, clean_4, clean_5, clean_6, clean_7, CNTRY)
 
 print(paste0("End ", Country.Name))
 }
