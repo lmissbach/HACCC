@@ -16,7 +16,7 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 
 # 1.1     Setup ####
 
-for(Country.Name in c("India","Indonesia","Israel","Maldives","Mongolia","Myanmar",
+for(Country.Name in c("Bangladesh","India","Indonesia","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey",
                       #"Bangladesh","Pakistan","Philippines","Thailand","Turkey","Vietnam",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       #"Europe",
@@ -26,7 +26,7 @@ for(Country.Name in c("India","Indonesia","Israel","Maldives","Mongolia","Myanma
                       )) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Maldives"
+Country.Name <- "Pakistan"
 
 print(paste0(Country.Name, " Start"))
 
@@ -368,7 +368,7 @@ if(Country.Name == "Europe"){
   matching <- read.xlsx("../0_Data/1_Household Data/4_Europe_EU27/3_Matching_Tables/Item_GTAP_Concordance_EU_incl_Artificial.xlsx")
 }
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Pakistan"){
   matching <- matching %>%
     mutate_at(vars(-GTAP, -Explanation),~ as.numeric(.))
 }
@@ -379,7 +379,7 @@ if(Country.Name == "Colombia"){
            X42 = as.character(X42),
            X43 = as.character(X43))}
 
-if(Country.Name == "Bolivia" | Country.Name == "Armenia"){
+if(Country.Name == "Bolivia" | Country.Name == "Armenia" | Country.Name == "Bangladesh"){
   matching <- matching %>%
     mutate_at(.vars = vars(-GTAP), .funs = list(~ as.character(.)))
 }
@@ -395,8 +395,8 @@ matching <- matching %>%
 
 item_codes <- select(expenditure_information, item_code)%>%
   distinct()%>%
-  left_join(matching)%>%
-  filter(is.na(GTAP))
+  full_join(matching)%>%
+  filter(is.na(GTAP) | is.na(item_code))
 
 if(nrow(item_codes != 0))(paste("WARNING! Item-Codes missing in Excel-File!"))
 
@@ -413,12 +413,12 @@ rm(matching.check, item_codes)
 
 categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Bangladesh" | Country.Name == "Thailand" | Country.Name == "Maldives"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives"){
   categories <- categories %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
 
-if(Country.Name == "Bolivia" | Country.Name == "Armenia"){
+if(Country.Name == "Bolivia" | Country.Name == "Armenia" | Country.Name == "Bangladesh"){
   categories <- categories %>%
     mutate_at(.vars = vars(-X1), .funs = list(~ as.character(.)))
 }
@@ -432,8 +432,8 @@ categories <- categories %>%
 
 item_codes <- select(expenditure_information, item_code)%>%
   distinct()%>%
-  left_join(categories)%>%
-  filter(is.na(category))
+  full_join(categories)%>%
+  filter(is.na(category) | is.na(item_code))
 
 if(nrow(item_codes != 0))(paste("WARNING! Item-Codes missing in Category-Excel-File!"))
 
@@ -463,7 +463,7 @@ fuels <- fuels %>%
   rename(fuel = X1)%>%
   select(fuel, item_code)
 
-if(Country.Name == "Paraguay"){fuels$item_code <- as.character(fuels$item_code)}
+if(Country.Name == "Paraguay" | Country.Name == "Bangladesh"){fuels$item_code <- as.character(fuels$item_code)}
 
 energy <- filter(categories, category == "energy")%>%
   full_join(fuels)%>%
