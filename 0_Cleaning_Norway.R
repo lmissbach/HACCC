@@ -1,117 +1,137 @@
-library(tidyverse)
-library(Hmisc)
-library(haven)
-library(readr)
-library(openxlsx)
-library(dplyr)
+# Authors: P. Blechschmidt, L. Missbach (missbach@mcc-berlin.net)
 
-path <- "T:/MSA/papers_internal/work_in_progress/Mi_Homogenized_Datainfrastructure/0_Data/1_Household Data"
-setwd(dir = path)
+if(!require("pacman")) install.packages("pacman")
 
-data_raw <- read_dta("./4_Norway/1_Data_Raw/Consumer Expenditure Survey, 2012.dta")
+p_load("countrycode", "haven", "Hmisc", "openxlsx", "rattle", "scales", "tidyverse", "sjlabelled")
 
-#read in data with translated labels
-data_labeled<- read_dta("4_Norway/1_Data_Raw/data_labeled.dta")
-##Process of translating the first-level variable labels##
+options(scipen=999)
 
-# data_labeled <- data_raw
-# 
-# #get var labels, save, translate externally
-# columns <- colnames(data_raw)
-# sink("./4_Norway/1_Data_Clean/labels.txt")
-# for (n in c(1:1258)) {
-#   print(attr(data_raw[[n]],'label'))
-# }
-# sink()
-# 
-# #import translated labels and overwrite old labels
-# new_labels <- scan("./4_Norway/1_Data_Clean/labelsEN.txt", what = "c", sep= "\n")
-# for(n in c(1:1258)){
-#   attr(data_labeled[[n]], 'label') <- new_labels[n]
-# }
-# write_dta(data_labeled, "4_Norway/1_Data_Raw/data_labeled.dta")
+# Load Data ####
 
-#filter out invalid households and do general cleanup
-data<- data_labeled %>%
-  #total expenses are negative:
-  filter(sfutg_c>0) %>%
-  #filter exact duplicates
-  distinct(lopenr, .keep_all = TRUE) %>%
-  #filter negative total net income
-  filter(aggi_24_2012 > 0) %>%
-  #make education codes higher-level
-  mutate(utdanning = as.numeric(substr(utdanning,1,1)))
+data_raw     <- read_dta("../0_Data/1_Household Data/4_Norway/1_Data_Raw/Consumer Expenditure Survey, 2012.dta")
 
-#save codes
-Gender.Code <- stack(attr(data$kjonn1, 'labels'))%>%
-  rename(sex_hhh = values, Gender = ind)%>%
-  write_csv(., "4_Norway/2_Codes/Gender.Code.csv")
-Industry.Code <- stack(attr(data$knaer1, 'labels')) %>%
-  rename(ind_hhh = values, Industry = ind)%>%
-  write_csv(., "4_Norway/2_Codes/Industry.Code.csv")
-Education.Code <- read.csv("4_Norway/2_Codes/1659.csv", header = TRUE, sep = ";") %>%
-  filter(code < 10) %>%
-  filter(level ==1) %>%
-  select(edu_hhh = code, Education = name) %>%
-  write_csv(., "4_Norway/2_Codes/Education.Code.csv")
+# data_labeled <- read_dta("../0_Data/1_Household Data/4_Norway/1_Data_Raw/data_labeled.dta")
 
-#extract vars of interest for household information
-household_information_Norway <- data %>%
-  select(hh_id = lopenr, hh_size = antpersh,  hh_weights = fvekt,  
-         ald1,  ald2,  ald3,  ald4,  ald5,  ald6,  ald7,  ald8,  ald9,  ald10, 
-         sex_hhh = kjonn1, ind_hhh = knaer1, edu_hhh = utdanning, 
-         income_year11 = aggi_24_2011, income_year12 = aggi_24_2012, expenditures_year = sfutg_c, nuts2) %>%
-  mutate(age1 = ald1>17,  age2 = ald2>17,  age3 = ald3>17,  age4 = ald4>17,  age5 = ald5>17,  age6 = ald6>17,  age7 = ald7>17,  
-         age8 = ald8>17,  age9 = ald9>17,  age10 = ald10>17) %>%
-  rename(age_hhh = ald1) %>%
-  select(!ald2:ald10) %>%
-  rowwise() %>%
-  mutate(adults = sum(age1, age2, age3, age4, age5, age6, age7, age8, age9, age10, na.rm = TRUE), 
-         children = ifelse(hh_size> adults,hh_size - adults,0))%>%
-  select(!age1:age10)%>%
-  write_csv(., "4_Norway/1_Data_Clean/household_information_Norway.csv")
+# Process of translating the first-level variable labels ####
 
-#appliances y/n
-appliances_0_1_Norway <- data %>%
-  select(hh_id = lopenr, contains("sp43eg"), spm40a) %>%
-  rename(Stove = sp43eg1, Microwave = sp43eg2, Washing_Machine =sp43eg3,
-  Fridge_Freezer_Combo=sp43eg4, Fridge = sp43eg5, Freezer = sp43eg6,
-  Sewing_Machine= sp43eg7, Drying_Cabinet = sp43eg8,Dishwasher = sp43eg9,
-  Camping_Trailer = sp43eg10, Motorcycle = sp43eg11, TV = sp43eg12, Mobile_Phone = sp43eg13,
-  Video_Recorder = sp43eg14, Camera = sp43eg15, Video_Camera = sp43eg16, Boat = sp43eg17,
-  Sailboat = sp43eg18, Computer = sp43eg19, Car = spm40a)
-for (n in c(2:21)) {
-  appliances_0_1_Norway[n] = ifelse(appliances_0_1_Norway[n] == 2, 0, 1)
+labels <- data.frame("Label" = c(""))
+
+for(n in c(1:1258)){
+labels_1 <- data.frame("Label" = attr(data_raw[[n]], 'label'))
+labels <- bind_rows(labels, labels_1)
 }
-write_csv(appliances_0_1_Norway, "4_Norway/1_Data_Clean/appliances_0_1_Norway.csv")
+
+# write.table(labels, "../0_Data/1_Household Data/4_Norway/1_Data_Clean/labels.txt", row.names = FALSE)
+ 
+# Import translated labels and overwrite old labels
+
+labels_translated <- read_csv("../0_Data/1_Household Data/4_Norway/1_Data_Clean/labelsEN.txt", 
+                              col_names = FALSE)
+
+data_labeled <- data_raw
+
+for(n in c(1:1258)){
+  attr(data_labeled[[n]], 'label') <- labels_translated$X1[n]
+}
+
+new_labels <- scan("../0_Data/1_Household Data/4_Norway/1_Data_Clean/labelsEN.txt", what = "c", sep= "\n")
+
+Variable.Code.Description <- data.frame()
+
+for(n in c(1:1258)){
+  Var.Code_0 <- data.frame("Variable" = colnames(data_labeled[n]),
+                         "Label"      = attr(data_labeled[[n]], 'label'))
+  Variable.Code.Description <- bind_rows(Variable.Code.Description, Var.Code_0)
+}
+
+# write.xlsx(Variable.Code.Description, "../0_Data/1_Household Data/4_Norway/9_Documentation/Variable_Description.xlsx")
+
+# Transform data ####
+
+data_0 <- data_labeled %>%
+  rename(hh_id = lopenr, hh_size = antpersh,
+         sex_hhh = kjonn1, ind_hhh = knaer1, edu_hhh = utdanning, province = nuts2)%>%
+  mutate(hh_weights = 537.8268)%>% # STRONG ASSUMPTION
+  mutate(children         = antbu16,
+         adults           = hh_size - children,
+         inc_gov_monetary = aggi_13_2012 + aggi_16_2012,
+         inc_gov_cash     = 0,
+         urban_01         = ifelse(bstroek3 == 1,0,1))%>%
+  select(hh_id, hh_size, hh_weights, sex_hhh, ind_hhh, edu_hhh, age_hhh = ald1, adults, children, inc_gov_monetary, inc_gov_cash, province, urban_01)%>%
+  write_csv(., "../0_Data/1_Household Data/4_Norway/1_Data_Clean/household_information_Norway.csv")
+
+# Codes ####
+Province.Code <- distinct(data_labeled, nuts2)%>%
+  arrange(nuts2)%>%
+  rename(province = nuts2)%>%
+  mutate(Province = c("Akershus og Oslo", "Hedmark op Oppland", "Sor-Ostlandet", "Agder og Rogaland", "Vestlandet", "Trondelag", "Nord-Norge"))%>%
+  write_csv(., "../0_Data/1_Household Data/4_Norway/2_Codes/Province.Code.csv")
   
-# tmp<- data%>%
-#   select(lopenr,a = cvnr_04111_belop, b = cvnr_04121_mengde, impA= cvnr_04211_belop, impB =cvnr_04221_mengde)%>%
-#   #filter(a != b)%>%
-#   mutate(c = a/b)%>%
-#   view(.)
+Gender.Code <- stack(attr(data_labeled$kjonn1, 'labels'))%>%
+  rename(sex_hhh = values, Gender = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/4_Norway/2_Codes/Gender.Code.csv")
+Industry.Code <- stack(attr(data_labeled$knaer1, 'labels')) %>%
+  rename(ind_hhh = values, Industry = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/4_Norway/2_Codes/Industry.Code.csv")
+Education.Code <- distinct(data_labeled, utdanning)%>%
+  arrange(utdanning)%>%
+  rename(edu_hhh = utdanning)%>%
+  mutate(Education = NA)%>%
+  write_csv(., "../0_Data/1_Household Data/4_Norway/2_Codes/Education.Code.csv")
 
-#extract item codes and their expenditures
-expenses1 <- data %>%
-  select(lopenr, 222:415)
+# Education.Code <- read.csv("4_Norway/2_Codes/1659.csv", header = TRUE, sep = ";") %>%
+#   filter(code < 10) %>%
+#   filter(level ==1) %>%
+#   select(edu_hhh = code, Education = name) %>%
+#   write_csv(., "4_Norway/2_Codes/Education.Code.csv")
 
-expenses <- expenses1 %>%
+# Expenditures ####
+
+expenditures_items <- data_labeled %>%
   rename(hh_id = lopenr)%>%
-  pivot_longer(-c(hh_id), names_to="item_codes", values_to = "expenditures_year") %>%
-  arrange(expenditures_year, item_codes) %>%
-  write_csv(., "4_Norway/1_Data_Clean/expenditures_items_Norway.csv")
+  select(hh_id, starts_with("cvnr"))%>%
+  select(hh_id, ends_with("belop"))%>%
+  remove_all_labels()%>%
+  pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures_year")%>%
+  filter(expenditures_year > 0)%>%
+  mutate(item_code = str_replace(item_code, "cvnr_",""))%>%
+  mutate(item_code = str_replace(item_code, "_belop",""))%>%
+  write_csv(., "../0_Data/1_Household Data/4_Norway/1_Data_Clean/expenditures_items_Norway.csv")
 
-labels <- scan("./4_Norway/1_Data_Clean/labelsEN.txt", what = "c", sep= "\n")
-item_codes <- expenses1%>%
-  filter(lopenr == 2)%>%
-  pivot_longer(-c(lopenr), names_to="item_code", values_to = "expenditures_year")%>%
-  mutate(item_name = labels[222:415]) %>%
-  select(item_code, item_name)%>%
-  write.xlsx(., "4_Norway/3_Matching_Tables/Item_Codes_Description_Norway.xlsx")
+Item.Matching <- read.xlsx("../0_Data/1_Household Data/4_Norway/3_Matching_Tables/Old/Item_GTAP_Concordance_Norway.xlsx")%>%
+  mutate_at(vars(X3:X33), list(~ str_replace(., "cvnr_","")))%>%
+  mutate_at(vars(X3:X33), list(~ str_replace(., "_belop", "")))%>%
+  write.xlsx(., "../0_Data/1_Household Data/4_Norway/3_Matching_Tables/Item_GTAP_Concordance_Norway.xlsx")
 
-#strange secondary variables for expenses that have the same name with a different ending 
-weird_expenses <- data %>%
-  select(lopenr, 416:609)
+Item.Categories <- read.xlsx("../0_Data/1_Household Data/4_Norway/3_Matching_Tables/Old/Item_Categories_Concordance_Norway.xlsx", colNames = FALSE)%>%
+  mutate_at(vars(X2:X67), list(~ str_replace(., "cvnr_","")))%>%
+  mutate_at(vars(X2:X67), list(~ str_replace(., "_belop", "")))%>%
+  write.xlsx(., "../0_Data/1_Household Data/4_Norway/3_Matching_Tables/Item_Categories_Concordance_Norway.xlsx", colNames = FALSE)
 
-questionnaire <- data%>%
-  select(lopenr, 610:1258)
+Item.Fuels <- read.xlsx("../0_Data/1_Household Data/4_Norway/3_Matching_Tables/Old/Item_Fuel_Concordance_Norway.xlsx", colNames = FALSE)%>%
+  mutate_at(vars(X2:X3), list(~ str_replace(., "cvnr_","")))%>%
+  mutate_at(vars(X2:X3), list(~ str_replace(., "_belop", "")))%>%
+  write.xlsx(., "../0_Data/1_Household Data/4_Norway/3_Matching_Tables/Item_Fuel_Concordance_Norway.xlsx", colNames = FALSE)
+
+# labels <- scan("./4_Norway/1_Data_Clean/labelsEN.txt", what = "c", sep= "\n")
+# item_codes <- expenses1%>%
+#   filter(lopenr == 2)%>%
+#   pivot_longer(-c(lopenr), names_to="item_code", values_to = "expenditures_year")%>%
+#   mutate(item_name = labels[222:415]) %>%
+#   select(item_code, item_name)%>%
+#   write.xlsx(., "4_Norway/3_Matching_Tables/Item_Codes_Description_Norway.xlsx")
+
+# Appliances ####
+
+appliances_0_1_Norway <- data_labeled %>%
+  rename(hh_id = lopenr)%>%
+  select(hh_id, bil, motors, komfyr:pc)%>%
+  rename(car.01 = bil, motorcycle.01 = motors, stove.01 = komfyr, dishwasher.01 = oppvask, 
+         refrigerator.01a = kjfrys,  refrigerator.01b = kjskap, freezer.01 = fryser, washing_machine.01 = vaskem,
+         dryer.01 = toerktr, tv.01 = tv, computer.01 = pc)%>%
+  mutate(refrigerator.01 = ifelse(refrigerator.01a > 0 | refrigerator.01b > 0, 1,0),
+         freezer.01      = ifelse(refrigerator.01a > 0 | freezer.01 > 0,1,0))%>%
+  select(hh_id, ends_with(".01"))%>%
+  mutate_at(vars(-hh_id), list(~ ifelse(. > 0,1,0)))
+
+write_csv(appliances_0_1_Norway, "../0_Data/1_Household Data/4_Norway/1_Data_Clean/appliances_0_1_Norway.csv")
