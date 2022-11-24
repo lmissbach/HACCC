@@ -20,13 +20,13 @@ for(Country.Name in c("Bangladesh","India","Indonesia","Israel","Maldives","Mong
                       #"Bangladesh","Pakistan","Philippines","Thailand","Turkey","Vietnam",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       #"Europe",
-                      "Benin","Burkina Faso","Cote dIvoire","Guinea-Bissau","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
+                      "Benin","Burkina Faso","Cote dIvoire","Ghana","Guinea-Bissau","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
                       "South Africa", "Togo",
                       "Armenia"
                       )) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Pakistan"
+Country.Name <- "Ghana"
 
 print(paste0(Country.Name, " Start"))
 
@@ -179,7 +179,7 @@ if(Country.Name %in% c()){
 
 clean_3 <- nrow(household_information)
 
-if(Country.Name %in% c()){
+if(Country.Name %in% c("Ghana")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_expenditures_3$hh_id)
   
