@@ -82,7 +82,8 @@ sec14.1 <- sec14 %>%
 household_information <- cover_0 %>%
   left_join(sect_1.2.1)%>%
   left_join(housing)%>%
-  left_join(sec14.1)
+  left_join(sec14.1)%>%
+  select(-ea_id)
 
 write_csv(household_information, "../0_Data/1_Household Data/2_Ethiopia/1_Data_Clean/household_information_Ethiopia.csv")
 

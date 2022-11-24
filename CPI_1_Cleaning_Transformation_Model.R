@@ -20,13 +20,13 @@ for(Country.Name in c("Bangladesh","India","Indonesia","Israel","Maldives","Mong
                       #"Bangladesh","Pakistan","Philippines","Thailand","Turkey","Vietnam",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       #"Europe",
-                      "Benin","Burkina Faso","Cote dIvoire","Ghana","Guinea-Bissau","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
+                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
                       "South Africa", "Togo",
                       "Armenia"
                       )) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Ghana"
+Country.Name <- "Ethiopia"
 
 print(paste0(Country.Name, " Start"))
 
