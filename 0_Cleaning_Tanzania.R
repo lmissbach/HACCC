@@ -1,56 +1,19 @@
-# Packages ####
+if(!require("pacman")) install.packages("pacman")
 
-library("haven")
-library("Hmisc")
-library("openxlsx")
-library("rattle")
-library("scales")
-library("sjlabelled")
-library("tidyverse")
+p_load("countrycode", "haven", "Hmisc", "openxlsx", "rattle", "scales", "tidyverse", "sjlabelled")
+
 options(scipen=999)
 
 # Load Data ####
 
-Individual_0 <- read_dta("./2_Tanzania/1_Data_Raw/HBS_2017-18_Final_Individual_Data/HBS 2017-18 _Final_Individual_Data.dta")
-Form_2_0     <- read_dta("./2_Tanzania/1_Data_Raw/HBS_2017-18_Form_II_Data/HBS__Form_2.dta")
+data_0    <- read_dta("../0_Data/1_Household Data/2_Tanzania/1_Data_Raw/HBS_2017-18_Final_Individual_Data/HBS 2017-18 _Final_Individual_Data.dta")
+data_1    <- read_dta("../0_Data/1_Household Data/2_Tanzania/1_Data_Raw/HBS_2017-18_Consumption_Aggregate/HBS_2017-18 Consumption Aggregate and Poverty Analysis Variables.dta")
+data_2    <- read_dta("../0_Data/1_Household Data/2_Tanzania/1_Data_Raw/HBS_2017-18_Form_II_Data/HBS__Form_2.dta")
+data_3    <- read_dta("../0_Data/1_Household Data/2_Tanzania/1_Data_Raw/HBS_2017-18_Poverty_and_Individual_Data/HBS 2017-18 _Final_Poverty+Individual_Data.dta")
+data_11   <- read_dta("../0_Data/1_Household Data/2_Tanzania/1_Data_Raw/Other_Sections_of_Form_I/S11A1.dta")
 
-# load other from form 1
-files <- list.files("./2_Tanzania/1_Data_Raw/Other_Sections_of_Form_I", full.names = TRUE)
-form1 <- read_dta(files[1])
-for (file in c(2:length(files))) {
-  tmp<- read_dta(files[file])
-  form1 <- merge(form1, tmp, all.x=TRUE)
-}
+# Other files available - Form 1, Form 2, Form 3
 
-# load other from form 2
-files <- list.files("./2_Tanzania/1_Data_Raw/Other_Sections_of_Form_II", full.names = TRUE)
-form2 <- read_dta(files[1])
-for (file in c(2:length(files))) {
-  tmp<- read_dta(files[file])
-  form2 <- merge(form1, tmp, all.x=TRUE)
-}
-
-# load other from form 3
-files <- list.files("./2_Tanzania/1_Data_Raw/Other_Sections_of_Form_III", full.names = TRUE)
-form3 <- read_dta(files[1])
-for (file in c(2:length(files))) {
-  tmp<- read_dta(files[file])
-  form2 <- merge(form3, tmp, all.x=TRUE)
-}
-
-#remove two faulty interviews
-data <-Individual_0 %>%
-  filter(interview__id != "9dba3e778ea04ccc92d404032d3aff13", interview__id !="a54f1fc3a2cf4a88b114a03ea1cdc0a5")
-
-#count adults and children
-counts <- count(Individual_0, HHID)
-counts <- merge(counts, count(filter(Individual_0, S1_4<16), HHID, name = "children"), by ="HHID", all.x=TRUE)
-counts <- merge(counts, count(filter(Individual_0, S1_4>=16), HHID, name = "adults"), by ="HHID", all.x=TRUE)
-
-data<-data%>%
-  merge(., counts, by = "HHID")%>%
-  mutate(children = ifelse(is.na(children), ifelse(is.na(adults), NA, 0), children))%>%
-  mutate(adults = ifelse(is.na(adults), ifelse(is.na(children), NA, 0), adults))
 
 #extract vars of interest for household information
 hh_information_all <- data %>%
@@ -70,7 +33,7 @@ household_information_Tanzania<- hh_information_all %>%
 #households without declared head of household (count = 3)
 #missing<-hh_information_all$hh_id[!hh_information_all$hh_id %in% tmp$hh_id] 
 
-#write codes
+# Codes ####
 Toilet_Condition.Code <- stack(attr(Form_2_0$S12_09, 'labels'))%>%
   rename(toilet_condition = values, Toilet_Condition = ind)%>%
   write_csv(., "2_Tanzania/2_Codes/Toilet_Condition.Code.csv")
