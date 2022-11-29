@@ -20,13 +20,13 @@ for(Country.Name in c("Bangladesh","India","Indonesia","Israel","Maldives","Mong
                       #"Bangladesh","Pakistan","Philippines","Thailand","Turkey","Vietnam",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       #"Europe",
-                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
+                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
                       "South Africa", "Togo", "Uganda",
                       "Armenia"
                       )) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Uganda"
+Country.Name <- "Liberia"
 
 print(paste0(Country.Name, " Start"))
 
@@ -475,12 +475,12 @@ rm(energy)
 
 # 5.1.6   Vector with Carbon Intensities ####
 
-if(Country.Name != "Barbados" & Country.Name != "Suriname" & Country.Name != "Mali" & Country.Name != "Niger" & Country.Name != "Myanmar" & Country.Name != "Maldives"){
+if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives")){
   carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
 }
 if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest_of_the_Caribbean")}
 if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South America")}
-if(Country.Name %in% c("Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Africa")}
+if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Africa")}
 if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Southeast Asia")}
 if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South Asia")}
 
