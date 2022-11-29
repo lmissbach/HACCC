@@ -26,7 +26,7 @@ for(Country.Name in c("Bangladesh","India","Indonesia","Israel","Maldives","Mong
                       )) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Liberia"
+Country.Name <- "South Africa"
 
 print(paste0(Country.Name, " Start"))
 
@@ -148,7 +148,7 @@ hh_negative_expenditures_4 <- expenditure_information_4 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel")){
+if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel", "South Africa")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)
   
