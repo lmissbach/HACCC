@@ -1246,7 +1246,7 @@ dev.off()
 # 6     For Presentation Purposes ####
 # 6.1   Figure 2 Boxplot_Flipped ####
 
-Country.Name.6 <- "Brazil"
+Country.Name.6 <- "Uruguay"
 
 carbon_pricing_incidence_6 <- read_csv(sprintf("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/4_Transformed Data/Carbon_Pricing_Incidence_%s.csv", Country.Name.6))
 
@@ -1274,10 +1274,10 @@ P_6.1.1 <- ggplot(carbon_pricing_incidence_6.1, aes(x = factor(Income_Group_5)))
   theme_bw()+
   xlab("Expenditure Quintiles")+ ylab("Carbon Price Incidence")+
   geom_point(aes(y = mean), shape = 23, size = 1.1, stroke = 0.4, fill = "white")+
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = c(0,0))+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 0.1), expand = c(0,0))+
   scale_x_discrete(labels = c("1", "2", "3", "4", "5"))+
-  coord_flip(ylim = c(0,0.062))+
-  ggtitle(expression(paste("Incidence of a National Carbon Price (USD 40/t", CO[2], ") in Brazil", sep = "")))+
+  coord_flip(ylim = c(0,0.025))+
+  ggtitle(expression(paste("Incidence of a National Carbon Price (USD 40/t", CO[2], ") in Uruguay", sep = "")))+
   theme(axis.text.y = element_text(size = 8), 
         axis.text.x = element_text(size = 8),
         axis.title  = element_text(size = 9),
@@ -1298,10 +1298,10 @@ P_6.1.2 <- ggplot(carbon_pricing_incidence_6.1, aes(x = factor(Income_Group_5)))
   theme_bw()+
   xlab("Expenditure Quintiles")+ ylab("Carbon Price Incidence")+
   geom_point(aes(y = mean, shape = factor(Status)), size = 1.1, stroke = 0.4, fill = "white")+
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = c(0,0))+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 0.1), expand = c(0,0))+
   scale_x_discrete(labels = c("1", "2", "3", "4", "5"))+
-  coord_flip(ylim = c(0,0.062))+
-  ggtitle(expression(paste("Incidence of a National Carbon Price (USD 40/t", CO[2], ") in Brazil", sep = "")))+
+  coord_flip(ylim = c(0,0.025))+
+  ggtitle(expression(paste("Incidence of a National Carbon Price (USD 40/t", CO[2], ") in Uruguay", sep = "")))+
   scale_fill_manual(values = c("white", "lightgrey"))+
   guides(fill = "none", shape = "none")+
   scale_shape_manual(values = c(23,22))+
@@ -1325,10 +1325,10 @@ P_6.1.3 <- ggplot(carbon_pricing_incidence_6.1, aes(x = factor(Income_Group_5)))
   theme_bw()+
   xlab("Expenditure Quintiles")+ ylab("Carbon Price Incidence")+
   geom_point(aes(y = mean, shape = factor(Status), size = factor(Status), colour = factor(Status)), size = 1.1, stroke = 0.4, fill = "white")+
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = c(0,0))+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 0.1), expand = c(0,0))+
   scale_x_discrete(labels = c("1", "2", "3", "4", "5"))+
-  coord_flip(ylim = c(0,0.062))+
-  ggtitle(expression(paste("Incidence of a National Carbon Price (USD 40/t", CO[2], ") in Brazil", sep = "")))+
+  coord_flip(ylim = c(0,0.025))+
+  ggtitle(expression(paste("Incidence of a National Carbon Price (USD 40/t", CO[2], ") in Uruguay", sep = "")))+
   scale_fill_manual(values = c("white", "lightgrey"))+
   scale_colour_manual(values = c("black", "#BC3C29FF"))+
   scale_size_manual(values = c(0.3, 0.7))+
@@ -1350,7 +1350,9 @@ P_6.1.3 <- ggplot(carbon_pricing_incidence_6.1, aes(x = factor(Income_Group_5)))
         panel.border = element_rect(size = 0.3))
 
 
-jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/01_Drafts/0_EAERE_2022/Graphics/Distribution_Brazil_%d.jpg", width = 11, height = 10, unit = "cm", res = 400)
+#jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/01_Drafts/0_EAERE_2022/Graphics/Distribution_Brazil_%d.jpg", width = 11, height = 10, unit = "cm", res = 400)
+jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/01_Drafts/5_Thomas_Sterner_Uruguay/Graphics/Distribution_Uruguay_%d.jpg", width = 11, height = 10, unit = "cm", res = 400)
+
 print(P_6.1.1)
 print(P_6.1.2)
 print(P_6.1.3)
@@ -1376,27 +1378,27 @@ carbon_pricing_incidence_6.2.1 <- carbon_pricing_incidence_6.2 %>%
          G = ifelse(most_affected == 0 & access_to_transfers == 1 & poorest_20_percent == 1, hh_weights,0),
          
          H = ifelse(most_affected == 1 & access_to_transfers == 1 & poorest_20_percent == 1, hh_weights,0))%>%
-  summarise("Most Affected"       = sum(A),
-            "The Poorest"         = sum(B),
-            "Access to Transfers" = sum(C),
-            "Most Affected&The Poorest"         = sum(D),
-            "Most Affected&Access to Transfers" = sum(E),
-            "The Poorest&Access to Transfers"   = sum(G),
-            "Most Affected&The Poorest&Access to Transfers" = sum(H))
+  summarise("20% most affected"       = sum(A),
+            "The poorest 20%"         = sum(B),
+            "Access to transfers" = sum(C),
+            "20% most affected&The poorest 20%"         = sum(D),
+            "20% most affected&Access to transfers" = sum(E),
+            "The poorest 20%&Access to transfers"   = sum(G),
+            "20% most affected&The poorest 20%&Access to transfers" = sum(H))
 
 carbon_pricing_incidence_6.2.2 <- c(
-    "Most Affected"                                 = carbon_pricing_incidence_6.2.1$'Most Affected',
-    "The Poorest"                                   = carbon_pricing_incidence_6.2.1$'The Poorest',
-    "Access to Transfers"                           = carbon_pricing_incidence_6.2.1$'Access to Transfers',
-    "Most Affected&The Poorest"                     = carbon_pricing_incidence_6.2.1$'Most Affected&The Poorest',
-    "Most Affected&Access to Transfers"             = carbon_pricing_incidence_6.2.1$'Most Affected&Access to Transfers',
-    "The Poorest&Access to Transfers"               = carbon_pricing_incidence_6.2.1$'The Poorest&Access to Transfers',
-    "The Poorest&Access to Transfers&Most Affected" = carbon_pricing_incidence_6.2.1$'Most Affected&The Poorest&Access to Transfers'
+    "20% most affected"                                 = carbon_pricing_incidence_6.2.1$'20% most affected',
+    "The poorest 20%"                                   = carbon_pricing_incidence_6.2.1$'The poorest 20%',
+    "Access to transfers"                           = carbon_pricing_incidence_6.2.1$'Access to transfers',
+    "20% most affected&The poorest 20%"                     = carbon_pricing_incidence_6.2.1$'20% most affected&The poorest 20%',
+    "20% most affected&Access to transfers"             = carbon_pricing_incidence_6.2.1$'20% most affected&Access to transfers',
+    "The poorest 20%&Access to transfers"               = carbon_pricing_incidence_6.2.1$'The poorest 20%&Access to transfers',
+    "The poorest 20%&Access to transfers&20% most affected" = carbon_pricing_incidence_6.2.1$'20% most affected&The poorest 20%&Access to transfers'
   )
   
   P.venn.3 <- plot(euler(carbon_pricing_incidence_6.2.2, shape = "ellipse"), labels = FALSE,
                  quantities = list(type = "percent", fontsize = 8), fills = list(fill = c("#BC3C29FF", "#FFDC91FF", "#6F99ADFF"), alpha = 0.8),
-                 main = list(label = "Brazil", fontsize = 7),
+                 main = list(label = "Uruguay", fontsize = 7),
                  legend = list(side = "bottom", nrow = 1, ncol = 3, fontsize = 7)
                  )
 
@@ -1410,16 +1412,17 @@ carbon_pricing_incidence_6.2.2 <- c(
     mutate(percent = round(value/total,3))%>%
     mutate(label = paste0(percent*100, "%"))
   
-  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.1$children$tag.quantity.1$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "Most Affected"]
-  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.2$children$tag.quantity.2$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "The Poorest"]
-  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.3$children$tag.quantity.3$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "Access to Transfers"]
-  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.4$children$tag.quantity.4$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "Most Affected&The Poorest"]
-  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.5$children$tag.quantity.5$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "Most Affected&Access to Transfers"]
-  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.6$children$tag.quantity.6$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "The Poorest&Access to Transfers"]
-  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.7$children$tag.quantity.7$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "The Poorest&Access to Transfers&Most Affected"]
+  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.1$children$tag.quantity.1$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "20% most affected"]
+  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.2$children$tag.quantity.2$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "The poorest 20%"]
+  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.3$children$tag.quantity.3$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "Access to transfers"]
+  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.4$children$tag.quantity.4$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "20% most affected&The poorest 20%"]
+  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.5$children$tag.quantity.5$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "20% most affected&Access to transfers"]
+  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.6$children$tag.quantity.6$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "The poorest 20%&Access to transfers"]
+  P.venn.3$children$canvas.grob$children$diagram.grob.1$children$tags$children$tag.number.7$children$tag.quantity.7$label <- carbon_pricing_incidence_6.2.4$label[carbon_pricing_incidence_6.2.4$Type == "The poorest 20%&Access to transfers&20% most affected"]
 
-
-jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/01_Drafts/0_EAERE_2022/Graphics/Venn_Brazil_%d.jpg", width = 11, height = 10, unit = "cm", res = 400)
+jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/01_Drafts/5_Thomas_Sterner_Uruguay/Graphics/Venn_Uruguay_%d.jpg", width = 11, height = 10, unit = "cm", res = 400)
+  
+#jpeg("../1_Carbon_Pricing_Incidence/3_Analyses/1_LAC_2021/01_Drafts/0_EAERE_2022/Graphics/Venn_Brazil_%d.jpg", width = 11, height = 10, unit = "cm", res = 400)
 print(P.venn.3)
 dev.off()
 

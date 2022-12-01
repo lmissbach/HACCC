@@ -16,17 +16,16 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 
 # 1.1     Setup ####
 
-for(Country.Name in c("Bangladesh","India","Indonesia","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey",
-                      #"Bangladesh","Pakistan","Philippines","Thailand","Turkey","Vietnam",
+for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       #"Europe",
-                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Senegal",
+                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Rwanda","Senegal",
                       "South Africa", "Togo", "Uganda",
-                      "Armenia"
+                      "Armenia","Norway"
                       )) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "South Africa"
+Country.Name <- "Tunisia"
 
 print(paste0(Country.Name, " Start"))
 
@@ -158,7 +157,7 @@ if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israe
 
 clean_1 <- nrow(household_information)
 
-if(Country.Name %in% c("India", "Indonesia", "Philippines","Ethiopia", "Kenya","Suriname", "Uganda")){
+if(Country.Name %in% c("India", "Indonesia", "Iraq","Philippines","Ethiopia", "Kenya","Suriname", "Uganda")){
 
   household_information <- household_information %>%
    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -169,7 +168,7 @@ if(Country.Name %in% c("India", "Indonesia", "Philippines","Ethiopia", "Kenya","
 
 clean_2 <- nrow(household_information)
 
-if(Country.Name %in% c()){
+if(Country.Name %in% c("Cambodia")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_expenditures_2$hh_id)
   
@@ -368,7 +367,7 @@ if(Country.Name == "Europe"){
   matching <- read.xlsx("../0_Data/1_Household Data/4_Europe_EU27/3_Matching_Tables/Item_GTAP_Concordance_EU_incl_Artificial.xlsx")
 }
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Pakistan"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Pakistan" | Country.Name == "Iraq"){
   matching <- matching %>%
     mutate_at(vars(-GTAP, -Explanation),~ as.numeric(.))
 }
@@ -413,7 +412,7 @@ rm(matching.check, item_codes)
 
 categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Iraq"){
   categories <- categories %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
@@ -452,7 +451,7 @@ rm(matching.check, item_codes)
 
 fuels <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Fuel_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Iraq"){
   fuels <- fuels %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
@@ -475,7 +474,7 @@ rm(energy)
 
 # 5.1.6   Vector with Carbon Intensities ####
 
-if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives")){
+if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives", "Iraq")){
   carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
 }
 if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest_of_the_Caribbean")}
@@ -483,6 +482,7 @@ if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO
 if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Africa")}
 if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Southeast Asia")}
 if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South Asia")}
+if(Country.Name == "Iraq"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Asia")}
 
 GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 
