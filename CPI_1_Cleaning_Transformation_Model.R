@@ -18,14 +18,12 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 
 for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
-                      #"Europe",
                       "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Rwanda","Senegal",
                       "South Africa", "Togo", "Uganda",
-                      "Armenia","Norway"
-                      )) {
+                      "Armenia","Europe","Norway")) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Tunisia"
+Country.Name <- "Europe"
 
 print(paste0(Country.Name, " Start"))
 
@@ -33,18 +31,23 @@ print(paste0(Country.Name, " Start"))
 
 path_0                  <-list.files("../0_Data/1_Household Data/")[grep(Country.Name, list.files("../0_Data/1_Household Data/"), ignore.case = T)][1]
 
-household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/household_information_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
-if(Country.Name == "Bolivia"){expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character(),item_code = col_character()))}
-clean_0 <- nrow(household_information)
-
-expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
-
-if(!Country.Name %in% c("Chile","Morocco","Kenya"))  {
-  appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
+if(Country.Name != "Europe"){
+  household_information   <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/household_information_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
+  if(Country.Name == "Bolivia"){expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character(),item_code = col_character()))}
+  clean_0 <- nrow(household_information)
+  
+  expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
+  
+  if(!Country.Name %in% c("Chile","Morocco","Kenya"))  {
+    appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
+  }
 }
+
+
 
 if(Country.Name == "Europe"){
   household_information   <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv")
+  clean_0 <- nrow(household_information)
   expenditure_information <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean.csv")
 }
 
@@ -361,7 +364,9 @@ rm(cpis_1, cpis_0, information.ex, cpis, Country_Year, Year_0, custom_match)
 
 # 5.1.2   Matching GTAP Concordance ####
 
-matching <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_GTAP_Concordance_%s.xlsx", path_0, Country.Name))
+if(Country.Name != "Europe"){
+  matching <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_GTAP_Concordance_%s.xlsx", path_0, Country.Name))
+}
 
 if(Country.Name == "Europe"){
   matching <- read.xlsx("../0_Data/1_Household Data/4_Europe_EU27/3_Matching_Tables/Item_GTAP_Concordance_EU_incl_Artificial.xlsx")
@@ -474,31 +479,33 @@ rm(energy)
 
 # 5.1.6   Vector with Carbon Intensities ####
 
-if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives", "Iraq")){
-  carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
+if(Country.Name != "Europe"){
+  if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives", "Iraq")){
+    carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
+  }
+  if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest_of_the_Caribbean")}
+  if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South America")}
+  if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Africa")}
+  if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Southeast Asia")}
+  if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South Asia")}
+  if(Country.Name == "Iraq"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Asia")}
+  
+  GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
+  
+  carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+    select(-Explanation, - Number)%>%
+    mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+    group_by(GTAP)%>%
+    summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+    ungroup()%>%
+    mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+           CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+           CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+           CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD)%>%
+    select(GTAP, starts_with("CO2_t"))
+  
+  rm(carbon_intensities_0, GTAP_code)
 }
-if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest_of_the_Caribbean")}
-if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South America")}
-if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Africa")}
-if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Southeast Asia")}
-if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South Asia")}
-if(Country.Name == "Iraq"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Asia")}
-
-GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
-
-carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
-  select(-Explanation, - Number)%>%
-  mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
-  group_by(GTAP)%>%
-  summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
-  ungroup()%>%
-  mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
-         CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
-         CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
-         CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD)%>%
-  select(GTAP, starts_with("CO2_t"))
-
-rm(carbon_intensities_0, GTAP_code)
 
 if(Country.Name == "Europe"){
   GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE)
@@ -569,17 +576,19 @@ expenditure_information_1 <- left_join(expenditure_information, matching, by = "
 
 # 6.3     Assign Households to Expenditure Bins ####
 
-binning_0 <- expenditure_information_1 %>%
-  group_by(hh_id)%>%
-  mutate(hh_expenditures = sum(expenditures))%>%
-  ungroup()%>%
-  left_join(basic_household_information)%>%
-  mutate(hh_expenditures_pc = hh_expenditures/hh_size)%>%
-  select(hh_id, hh_expenditures, hh_expenditures_pc, hh_weights)%>%
-  filter(!duplicated(hh_id))%>%
-  mutate(Income_Group_5  = as.numeric(binning(hh_expenditures_pc, bins = 5,  method = c("wtd.quantile"), weights = hh_weights)),
-         Income_Group_10 = as.numeric(binning(hh_expenditures_pc, bins = 10, method = c("wtd.quantile"), weights = hh_weights)))%>%
-  select(hh_id, hh_expenditures, hh_expenditures_pc, starts_with("Income"))
+if(Country.Name != "Europe"){
+  binning_0 <- expenditure_information_1 %>%
+    group_by(hh_id)%>%
+    mutate(hh_expenditures = sum(expenditures))%>%
+    ungroup()%>%
+    left_join(basic_household_information)%>%
+    mutate(hh_expenditures_pc = hh_expenditures/hh_size)%>%
+    select(hh_id, hh_expenditures, hh_expenditures_pc, hh_weights)%>%
+    filter(!duplicated(hh_id))%>%
+    mutate(Income_Group_5  = as.numeric(binning(hh_expenditures_pc, bins = 5,  method = c("wtd.quantile"), weights = hh_weights)),
+           Income_Group_10 = as.numeric(binning(hh_expenditures_pc, bins = 10, method = c("wtd.quantile"), weights = hh_weights)))%>%
+    select(hh_id, hh_expenditures, hh_expenditures_pc, starts_with("Income"))
+}
 
 if(Country.Name == "Europe"){
   binning_0 <- expenditure_information_1 %>%
@@ -612,17 +621,36 @@ expenditures_categories_0 <- left_join(expenditure_information, categories)%>%
 
 # 6.5     Calculating Expenditure Shares on detailed Energy Items ####
 
-expenditures_fuels <- left_join(expenditure_information, fuels)%>%
-  filter(!is.na(fuel))%>%
-  group_by(hh_id, fuel)%>%
-  summarise(expenditures = sum(expenditures))%>%
-  ungroup()%>%
-  mutate(expenditures = expenditures*inflation_factor*exchange.rate)%>%
-  pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_USD_", values_fill = 0)
+if(Country.Name != "Europe"){
+  expenditures_fuels <- left_join(expenditure_information, fuels)%>%
+    filter(!is.na(fuel))%>%
+    group_by(hh_id, fuel)%>%
+    summarise(expenditures = sum(expenditures))%>%
+    ungroup()%>%
+    mutate(expenditures = expenditures*inflation_factor*exchange.rate)%>%
+    pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_USD_", values_fill = 0)
+  
+  expenditures_fuels <- distinct(household_information, hh_id)%>%
+    left_join(expenditures_fuels)%>%
+    mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))
+}
 
-expenditures_fuels <- distinct(household_information, hh_id)%>%
-  left_join(expenditures_fuels)%>%
-  mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))
+if(Country.Name == "Europe"){
+  expenditures_fuels <- left_join(expenditure_information, fuels)%>%
+    filter(!is.na(fuel))%>%
+    group_by(hh_id, fuel)%>%
+    summarise(expenditures = sum(expenditures))%>%
+    ungroup()%>%
+    left_join(basic_household_information)%>%
+    left_join(inflation_factor_EU)%>%
+    mutate(expenditures = expenditures*inflation_factor*exchange.rate)%>%
+    select(hh_id, fuel, expenditures)%>%
+    pivot_wider(names_from = "fuel", values_from = "expenditures", names_prefix = "exp_USD_", values_fill = 0)
+  
+  expenditures_fuels <- distinct(household_information, hh_id)%>%
+    left_join(expenditures_fuels)%>%
+    mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))
+}
 
 # 6.6     Summarising Expenditures on the GTAP Level ####
 
@@ -659,7 +687,7 @@ expenditure_information_2 <- expenditure_information_1 %>%
 
 clean_6 <- nrow(distinct(expenditure_information_1, hh_id))
 
-rm(basic_household_information, household_ids)
+rm(household_ids)
 
 # 6.7     Merging Expenditures and Carbon Intensities ####
 
@@ -702,35 +730,72 @@ rm(expenditure_information_1)
 
 # 6.8     Add-On: Sectoral Emissions and additional expenditures ####
 
-household_sectoral_carbon_footprint <- left_join(expenditure_information, matching, by = "item_code")%>%
-  left_join(categories)%>%
-  left_join(fuels)%>%
-  filter(GTAP != "deleted")%>%
-  filter(category != "deleted" & category != "in-kind" & category != "self-produced" & category != "other_binning" & GTAP != "other")%>%
-  mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
-  mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
-                                     ifelse(is.na(category), "NA_1", 
-                                            ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass" | fuel == "Firewood"), "other_energy",
-                                                   ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "transport_fuels",
-                                                          ifelse(category == "energy" & fuel == "Electricity", "Electricity",
-                                                                 ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal"), "cooking_fuels", "NA_2")))))))%>%
-  left_join(carbon_intensities, by = "GTAP")%>%
-  mutate(CO2_s_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national)%>%
-  select(-starts_with("CO2_t_per"))%>%
-  group_by(hh_id, aggregate_category)%>%
-  summarise(CO2_s_t_national      = sum(CO2_s_t_national))%>%
-  ungroup()%>%
-  mutate(exp_s_CO2_national    = CO2_s_t_national*carbon.price)%>%
-  select(-CO2_s_t_national)%>%
-  pivot_wider(names_from = "aggregate_category", values_from = "exp_s_CO2_national", values_fill = 0, names_prefix = "exp_s_")%>%
-  rename(exp_s_Goods = exp_s_goods, exp_s_Services = exp_s_services, exp_s_Food = exp_s_food)
+if(Country.Name != "Europe"){
+  household_sectoral_carbon_footprint <- left_join(expenditure_information, matching, by = "item_code")%>%
+    left_join(categories)%>%
+    left_join(fuels)%>%
+    filter(GTAP != "deleted")%>%
+    filter(category != "deleted" & category != "in-kind" & category != "self-produced" & category != "other_binning" & GTAP != "other")%>%
+    mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
+    mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
+                                       ifelse(is.na(category), "NA_1", 
+                                              ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass" | fuel == "Firewood"), "other_energy",
+                                                     ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "transport_fuels",
+                                                            ifelse(category == "energy" & fuel == "Electricity", "Electricity",
+                                                                   ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal"), "cooking_fuels", "NA_2")))))))%>%
+    left_join(carbon_intensities, by = "GTAP")%>%
+    mutate(CO2_s_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national)%>%
+    select(-starts_with("CO2_t_per"))%>%
+    group_by(hh_id, aggregate_category)%>%
+    summarise(CO2_s_t_national      = sum(CO2_s_t_national))%>%
+    ungroup()%>%
+    mutate(exp_s_CO2_national    = CO2_s_t_national*carbon.price)%>%
+    select(-CO2_s_t_national)%>%
+    pivot_wider(names_from = "aggregate_category", values_from = "exp_s_CO2_national", values_fill = 0, names_prefix = "exp_s_")%>%
+    rename(exp_s_Goods = exp_s_goods, exp_s_Services = exp_s_services, exp_s_Food = exp_s_food)
+  
+  dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled", showWarnings = FALSE)
+  
+  write_csv(household_sectoral_carbon_footprint, 
+            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Sectoral_Burden_%s.csv",  Country.Name))
+  
+  rm(basic_household_information, expenditure_information, matching, exchange.rate, inflation_factor, fuels, categories, household_sectoral_carbon_footprint, carbon_intensities)
+  
+}
 
-dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled", showWarnings = FALSE)
-
-write_csv(household_sectoral_carbon_footprint, 
-          sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Sectoral_Burden_%s.csv",  Country.Name))
-
-rm(expenditure_information, matching, exchange.rate, inflation_factor, fuels, categories, household_sectoral_carbon_footprint, carbon_intensities)
+if(Country.Name == "Europe"){
+  household_sectoral_carbon_footprint <- left_join(expenditure_information, matching, by = "item_code")%>%
+    left_join(categories)%>%
+    left_join(fuels)%>%
+    filter(GTAP != "deleted")%>%
+    filter(category != "deleted" & category != "in-kind" & category != "self-produced" & category != "other_binning" & GTAP != "other")%>%
+    left_join(basic_household_information)%>%
+    left_join(inflation_factor_EU)%>%
+    mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
+    mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
+                                       ifelse(is.na(category), "NA_1", 
+                                              ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass" | fuel == "Firewood"), "other_energy",
+                                                     ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "transport_fuels",
+                                                            ifelse(category == "energy" & fuel == "Electricity", "Electricity",
+                                                                   ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal"), "cooking_fuels", "NA_2")))))))%>%
+    left_join(carbon_intensities, by = "GTAP")%>%
+    mutate(CO2_s_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national)%>%
+    select(-starts_with("CO2_t_per"))%>%
+    group_by(hh_id, aggregate_category)%>%
+    summarise(CO2_s_t_national      = sum(CO2_s_t_national))%>%
+    ungroup()%>%
+    mutate(exp_s_CO2_national    = CO2_s_t_national*carbon.price)%>%
+    select(-CO2_s_t_national)%>%
+    pivot_wider(names_from = "aggregate_category", values_from = "exp_s_CO2_national", values_fill = 0, names_prefix = "exp_s_")%>%
+    rename(exp_s_Goods = exp_s_goods, exp_s_Services = exp_s_services, exp_s_Food = exp_s_food)
+  
+  dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled", showWarnings = FALSE)
+  
+  write_csv(household_sectoral_carbon_footprint, 
+            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Sectoral_Burden_%s.csv",  Country.Name))
+  
+  rm(basic_household_information, expenditure_information, matching, exchange.rate, inflation_factor_EU, fuels, categories, household_sectoral_carbon_footprint, carbon_intensities)
+}
 
 # ____    ####
 # 7       Model / Calculating Carbon Incidence ####
@@ -767,7 +832,6 @@ if(Country.Name != "Europe"){
 
 clean_7 <- nrow(household_information)
 
-rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information, expenditure_information_2, expenditures_fuels)
 
 if(Country.Name == "Europe"){
   NA_ids <- household_information %>%
@@ -782,6 +846,8 @@ if(Country.Name == "Europe"){
   
   rm(carbon_intensities_EU, countries, NA_ids)
 }
+
+rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information, expenditure_information_2, expenditures_fuels)
 
 tracking_removals <- data.frame("Category" = c("Raw file", "Duplicates (HH)", "Duplicates (Exp)", "Duplicates (Ind)", "Duplicates (Agg)", "Expenditures (Agg)", "GTAP (Agg)", "Final"), 
                                 "Number_households" = c(clean_0, clean_1, clean_2, clean_3, clean_4, clean_5, clean_6, clean_7))%>%
