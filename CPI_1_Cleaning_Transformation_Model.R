@@ -23,7 +23,7 @@ for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Israel","Mald
                       "Armenia","Europe","Norway")) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Europe"
+Country.Name <- "Mexico"
 
 print(paste0(Country.Name, " Start"))
 
@@ -321,7 +321,8 @@ cpis_1 <- cpis_0 %>%
                                                                ifelse(Year_0 == 2016, 1/(Year_2015*Year_2016),
                                                                       ifelse(Year_0 == 2017, 1/(Year_2015*Year_2016*Year_2017),
                                                                              ifelse(Year_0 == 2018, 1/(Year_2015*Year_2016*Year_2017*Year_2018), 
-                                                                                    ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0))))))))))
+                                                                                    ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),
+                                                                                           ifelse(Year_0 == 2020, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0)))))))))))
 
 
 inflation_factor <- cpis_1$inflation_factor[cpis_1$Country == Country.Name | cpis_1$ISO == CNTRY]
