@@ -206,7 +206,7 @@ g_10.1 <- g_10a %>%
   select(hh_id,  "6", "7", "8", "9", "11", "13", "14", "16", "17")%>%
   rename(cooker.01 = "6", 
          refrigerator.01 = "7",
-         TV.01 = "8", 
+         tv.01 = "8", 
          radio.01 = "9", 
          mobile.01 = "11", 
          computer.01 = "13", 
@@ -219,7 +219,13 @@ g_10.1 <- g_10a %>%
 write_csv(g_10.1, "../0_Data/1_Household Data/2_Uganda/1_Data_Clean/appliances_0_1_Uganda.csv")
 
 # Codes ####
-
+Province.Code <- distinct(g_1, s1aq1a, s1aq1b)%>%
+  arrange(s1aq1b)%>%
+  group_by(s1aq1a)%>%
+  summarise(s1aq1b = first(s1aq1b))%>%
+  ungroup()%>%
+  rename(province = s1aq1b, Province = s1aq1a)%>%
+  write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Province.Code.csv")
 Education.Code <- stack(attr(g_4$E05, 'labels'))%>%
   rename(edu_hhh = values, Education = ind)%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Education.Code.csv")

@@ -89,8 +89,8 @@ write_csv(household_information, "../0_Data/1_Household Data/2_South Africa/1_Da
 # Assets
 
 assets_v2.1 <- assets_v2 %>%
-  select(UQNO, Q69101RADIO, Q69104TV, Q69105DVD, Q69106FREEZER, Q69107FRIDGE, Q69108STOVE, Q69110DISH, Q69111WASHIN, Q69112DRYER, Q69113VACU, Q69114GEYSER, Q69119DESKTOP, Q69123CELL, Q69124LAND, Q69125INTERNET, Q69126VEHICLE, Q69127MOCYCLE, Q69128BICYCLE, Q69130GENERATOR)%>%
-  rename(hh_id = UQNO, radio.01 = Q69101RADIO, TV.01 = Q69104TV, video.01 = Q69105DVD, freezer.01 = Q69106FREEZER, refrigerator.01 = Q69107FRIDGE, stove.e.01 = Q69108STOVE, dishwasher.01 = Q69110DISH, washing_machine.01 = Q69111WASHIN, dryer.01 = Q69112DRYER, vacuum.01 = Q69113VACU, boiler.01 = Q69114GEYSER, computer.01 = Q69119DESKTOP, mobile.01 = Q69123CELL, telephone.01 = Q69124LAND, internet.access = Q69125INTERNET, car.01 = Q69126VEHICLE, motorcycle.01 = Q69127MOCYCLE, bycicle.01 = Q69128BICYCLE, generator.01 = Q69130GENERATOR)%>%
+  select(UQNO, Q69101RADIO, Q69104TV, Q69105DVD, Q69106FREEZER, Q69107FRIDGE, Q69108STOVE, Q69110DISH, Q69111WASHIN, Q69112DRYER, Q69113VACU, Q69114GEYSER, Q69119DESKTOP, Q69123CELL, Q69125INTERNET, Q69126VEHICLE, Q69127MOCYCLE, Q69128BICYCLE, Q69130GENERATOR)%>%
+  rename(hh_id = UQNO, radio.01 = Q69101RADIO, tv.01 = Q69104TV, video.01 = Q69105DVD, freezer.01 = Q69106FREEZER, refrigerator.01 = Q69107FRIDGE, stove.e.01 = Q69108STOVE, dishwasher.01 = Q69110DISH, washing_machine.01 = Q69111WASHIN, dryer.01 = Q69112DRYER, vacuum.01 = Q69113VACU, boiler.01 = Q69114GEYSER, computer.01 = Q69119DESKTOP, mobile.01 = Q69123CELL, internet.access = Q69125INTERNET, car.01 = Q69126VEHICLE, motorcycle.01 = Q69127MOCYCLE, bicycle.01 = Q69128BICYCLE, generator.01 = Q69130GENERATOR)%>%
   mutate_at(vars(radio.01:generator.01), list(~ ifelse(. == 1,1,0)))
 
 write_csv(assets_v2.1, "../0_Data/1_Household Data/2_South Africa/1_Data_Clean/appliances_0_1_South Africa.csv")
@@ -147,7 +147,7 @@ write_csv(consumption_v5.3, "T:/MSA/papers_internal/work_in_progress/Mi_Homogeni
 # Codes ####
 
 Ethnicity.Code <- data.frame("ethnicity" = c(1,2,3,4,5), 
-                             "Ethnicitiy" = c("Black African", "Coloured", "Indian/Asian", "White", "Other (specify)"))%>%
+                             "Ethnicity" = c("Black African", "Coloured", "Indian/Asian", "White", "Other (specify)"))%>%
   write_csv(., "../0_Data/1_Household Data/2_South Africa/2_Codes/Ethnicity.Code.csv")
 Gender.Code    <- data.frame("sex_hhh" = c(1,2),
                              "Gender"  = c("Male", "Female"))%>%

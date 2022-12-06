@@ -139,7 +139,8 @@ household_information <- data_a.2 %>%
   left_join(data_j1.1)%>%
   left_join(data_n1.1)%>%
   mutate(inc_gov_cash     = ifelse(is.na(inc_gov_cash), 0, inc_gov_cash),
-         inc_gov_monetary = ifelse(is.na(inc_gov_monetary),0,inc_gov_monetary))
+         inc_gov_monetary = ifelse(is.na(inc_gov_monetary),0,inc_gov_monetary))%>%
+  select(-ind_id)
 
 write_csv(household_information, "../0_Data/1_Household Data/2_Liberia/1_Data_Clean/household_information_Liberia.csv")
 
@@ -292,6 +293,7 @@ Ethnicity.Code <- distinct(data_b, hh_b_11)%>%
   write_csv(., "../0_Data/1_Household Data/2_Liberia/2_Codes/Ethnicity.Code.csv")
 Education.Code <- distinct(data_c, hh_c_11)%>%
   arrange(hh_c_11)%>%
+  rename(edu_hhh = hh_c_11)%>%
   mutate(Education = c("No schooling", rep("Primary", 6), rep("Junior High",3), rep("Senior High",3), rep("University",5), "Masters and above", NA))%>%
   write_csv(., "../0_Data/1_Household Data/2_Liberia/2_Codes/Education.Code.csv")
 
