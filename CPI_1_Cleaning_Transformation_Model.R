@@ -23,7 +23,7 @@ for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Israel","Mald
                       "Armenia","Europe","Norway")) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Mexico"
+Country.Name <- "Ecuador"
 
 print(paste0(Country.Name, " Start"))
 
