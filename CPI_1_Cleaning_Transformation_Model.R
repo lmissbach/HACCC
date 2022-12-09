@@ -23,7 +23,7 @@ for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Israel","Mald
                       "Armenia","Europe","Norway")) {
 
 # uncomment for transforming/cleaning single country dataset
-Country.Name <- "Paraguay"
+#Country.Name <- "Mongolia"
 
 print(paste0(Country.Name, " Start"))
 
@@ -486,14 +486,14 @@ rm(energy)
 
 if(Country.Name != "Europe"){
   if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives", "Iraq")){
-    carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = Country.Name)
+    carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = Country.Name)
   }
-  if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest_of_the_Caribbean")}
-  if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South America")}
-  if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Africa")}
-  if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Southeast Asia")}
-  if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of South Asia")}
-  if(Country.Name == "Iraq"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = "Rest of Western Asia")}
+  if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of the Caribbean")}
+  if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of South America")}
+  if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Western Africa")}
+  if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Southeast Asia")}
+  if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of South Asia")}
+  if(Country.Name == "Iraq"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Western Asia")}
   
   GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
   
@@ -506,8 +506,11 @@ if(Country.Name != "Europe"){
     mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
            CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
            CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
-           CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD)%>%
-    select(GTAP, starts_with("CO2_t"))
+           CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+           CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
+           N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
+           FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD)%>%
+    select(GTAP, starts_with("CO2_t"), ends_with("national"))
   
   rm(carbon_intensities_0, GTAP_code)
 }
@@ -518,7 +521,7 @@ if(Country.Name == "Europe"){
   carbon_intensities_EU <- data.frame()
   
   for(i in countries_b){
-    carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_0.xlsx", sheet = i)
+    carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = i)
     carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
       select(-Explanation, - Number)%>%
       mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
@@ -528,7 +531,10 @@ if(Country.Name == "Europe"){
       mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
              CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
              CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
-             CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD)%>%
+             CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+             CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
+             N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
+             FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD)%>%
       select(GTAP, starts_with("CO2_t"))%>%
       mutate(Country = i)
     
@@ -704,14 +710,20 @@ household_carbon_footprint <- left_join(expenditure_information_1, carbon_intens
   mutate(CO2_t_global      = expenditures_USD_2014*CO2_t_per_dollar_global,
          CO2_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national,
          CO2_t_electricity = expenditures_USD_2014*CO2_t_per_dollar_electricity,
-         CO2_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport)%>%
-  select(-starts_with("CO2_t_per"))%>%
+         CO2_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport,
+         CH4_t_national    = expenditures_USD_2014*CH4_t_per_dollar_national,
+         N2O_t_national    = expenditures_USD_2014*N2O_t_per_dollar_national,
+         FGAS_t_national   = expenditures_USD_2014*FGAS_t_per_dollar_national)%>%
+  select(-starts_with("CO2_t_per"), -CH4_t_per_dollar_national, -N2O_t_per_dollar_national, -FGAS_t_per_dollar_national)%>%
   group_by(hh_id)%>%
   summarise(hh_expenditures_USD_2014 = first(hh_expenditures_USD_2014),
             CO2_t_global      = sum(CO2_t_global),    
             CO2_t_national    = sum(CO2_t_national),  
             CO2_t_electricity = sum(CO2_t_electricity),
-            CO2_t_transport   = sum(CO2_t_transport))%>%
+            CO2_t_transport   = sum(CO2_t_transport),
+            CH4_t_national    = sum(CH4_t_national),
+            N2O_t_national    = sum(N2O_t_national),
+            FGAS_t_national   = sum(FGAS_t_national))%>%
   ungroup()
 }
 
@@ -721,14 +733,20 @@ if(Country.Name == "Europe"){
     mutate(CO2_t_global      = expenditures_USD_2014*CO2_t_per_dollar_global,
            CO2_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national,
            CO2_t_electricity = expenditures_USD_2014*CO2_t_per_dollar_electricity,
-           CO2_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport)%>%
-    select(-starts_with("CO2_t_per"))%>%
+           CO2_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport,
+           CH4_t_national    = expenditures_USD_2014*CH4_t_per_dollar_national,
+           N2O_t_national    = expenditures_USD_2014*N2O_t_per_dollar_national,
+           FGAS_t_national   = expenditures_USD_2014*FGAS_t_per_dollar_national)%>%
+    select(-starts_with("CO2_t_per"), -CH4_t_per_dollar_national, -N2O_t_per_dollar_national, -FGAS_t_per_dollar_national)%>%
     group_by(hh_id)%>%
     summarise(hh_expenditures_USD_2014 = first(hh_expenditures_USD_2014),
               CO2_t_global      = sum(CO2_t_global),    
               CO2_t_national    = sum(CO2_t_national),  
               CO2_t_electricity = sum(CO2_t_electricity),
-              CO2_t_transport   = sum(CO2_t_transport))%>%
+              CO2_t_transport   = sum(CO2_t_transport),
+              CH4_t_national    = sum(CH4_t_national),
+              N2O_t_national    = sum(N2O_t_national),
+              FGAS_t_national   = sum(FGAS_t_national))%>%
     ungroup()
 }
 
