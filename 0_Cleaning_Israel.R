@@ -124,7 +124,8 @@ app_0 <- mb %>%
   select(hh_id, ends_with(".01"))
 
 appliances_no_Israel  <- app_0 %>%
-  mutate_at(vars(-hh_id), .funs = list(~ ifelse(. > 0,1,0)))
+  mutate_at(vars(-hh_id), .funs = list(~ ifelse(. > 0,1,0)))%>%
+  mutate(car.01 = ifelse(is.na(car.01),0,car.01))
 
 write_csv(appliances_no_Israel, "../0_Data/1_Household Data/1_Israel/1_Data_Clean/appliances_0_1_Israel.csv")
 

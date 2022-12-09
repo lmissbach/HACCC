@@ -47,11 +47,10 @@ Village.Code <- distinct(g_1.1, Village)%>%
   mutate(village = 1:n())%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Village.Code.csv")
 
-Province.Code <- distinct(g_1.1, Province)%>%
-  arrange(Province)%>%
-  mutate(province = 1:n())%>%
-  write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Province.Code.csv")
-
+# Province.Code <- distinct(g_1.1, Province)%>%
+#   arrange(Province)%>%
+#   mutate(province = 1:n())%>%
+#   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Province.Code.csv")
 
 # weights <- g_1.1 %>%
 #   select(village, hh_weights)%>%
@@ -99,6 +98,7 @@ g_1La.1 <- g_1La %>%
 g_9.1 <- g_9 %>%
   select(hhid, HC07, HC14, HC18, HC19)%>%
   rename(hh_id = hhid, water = HC07, toilet = HC14, lighting_fuel = HC18, cooking_fuel = HC19)%>%
+  remove_all_labels()%>%
   mutate(electricity.access = ifelse(lighting_fuel %in% c(1,2,3,4),1,0))
 
 g_7a.1 <- g_7a %>%
@@ -123,10 +123,15 @@ household_information <- g_1.1 %>%
   left_join(g_4.1)%>%
   left_join(g_1La.1)%>%
   left_join(Village.Code)%>%
-  left_join(Province.Code)%>%
+  #left_join(Province.Code)%>%
   select(-Village, - Province)%>%
   left_join(g_9.1)%>%
-  left_join(g711)
+  left_join(g711)%>%
+  # Assumption for three households
+  mutate(inc_gov_cash       = ifelse(is.na(inc_gov_cash),0,inc_gov_cash),
+         inc_gov_monetary   = ifelse(is.na(inc_gov_monetary),0, inc_gov_monetary))%>%
+  # Remove households with missing information on housing
+  filter(!is.na(electricity.access))
 
 write_csv(household_information, "../0_Data/1_Household Data/2_Uganda/1_Data_Clean/household_information_Uganda.csv")
 
@@ -189,7 +194,8 @@ g_6_total <- g_6b.1 %>%
   group_by(hh_id, item_code)%>%
   summarise(expenditures_year    = sum(expenditures_year),
             expenditures_sp_year = sum(expenditures_sp_year))%>%
-  ungroup()
+  ungroup()%>%
+  filter(hh_id %in% household_information$hh_id)
 
 write_csv(g_6_total, "../0_Data/1_Household Data/2_Uganda/1_Data_Clean/expenditures_items_Uganda.csv")
 
@@ -214,7 +220,8 @@ g_10.1 <- g_10a %>%
          car.01 = "16", 
          motorcycle.01 = "17")%>%
   mutate_at(vars("cooker.01":"motorcycle.01"), 
-            list(~ ifelse(is.na(.) | . == 3,0,1)))
+            list(~ ifelse(is.na(.) | . == 3,0,1)))%>%
+  filter(hh_id %in% household_information$hh_id)
 
 write_csv(g_10.1, "../0_Data/1_Household Data/2_Uganda/1_Data_Clean/appliances_0_1_Uganda.csv")
 

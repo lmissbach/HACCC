@@ -63,8 +63,8 @@ persons_v4.3 <- persons_v4 %>%
   rename(hh_id = UQNO)%>%
   mutate(inc_gov_monetary = ifelse(Q41ASOCGRANT == 1 | Q41B1OLDAGE == 1 | Q41B2DISAB == 1 | Q41B3CHILD == 1 | Q41B4CAREDEP == 1 | Q41B5FOSTER == 1 | Q41B6WARVET == 1 | Q41B7INAID == 1,1,0))%>%
   group_by(hh_id)%>%
-  summarise(inc_gov_monetary = max(inc_gov_monetary),
-            inc_gov_cash     = 0)%>%
+  summarise(inc_gov_monetary_A = max(inc_gov_monetary),
+            inc_gov_cash_A     = 0)%>%
   ungroup()
 
 income_v3.1 <- income_v3 %>%
@@ -80,7 +80,13 @@ income_v3.1 <- income_v3 %>%
 
 household_information <- households_v1.1 %>%
   left_join(persons_v4.2, by = "hh_id")%>%
-  left_join(income_v3.1) # more precise
+  left_join(income_v3.1)%>% # more precise
+  left_join(persons_v4.3)%>%
+  mutate(inc_gov_cash     = ifelse(is.na(inc_gov_cash),     0, inc_gov_cash),
+         inc_gov_monetary = ifelse(is.na(inc_gov_monetary), 0, inc_gov_monetary))%>%
+  mutate(inc_gov_cash     = inc_gov_cash         + inc_gov_cash_A,
+         inc_gov_monetary = inc_gov_monetary + inc_gov_monetary_A)%>%
+  select(-inc_gov_cash_A, -inc_gov_monetary_A)
 
 # write_csv(households_v1.2, "H:/OwnCloud/Action/1_South_Africa_data/Data_Step_1/household_information_South_Africa.csv")
 

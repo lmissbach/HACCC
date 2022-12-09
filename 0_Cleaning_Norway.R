@@ -52,6 +52,8 @@ data_0 <- data_labeled %>%
   rename(hh_id = lopenr, hh_size = antpersh,
          sex_hhh = kjonn1, ind_hhh = knaer1, edu_hhh = utdanning, province = nuts2)%>%
   mutate(hh_weights = 537.8268)%>% # STRONG ASSUMPTION
+  mutate(aggi_13_2012 = ifelse(is.na(aggi_13_2012),0,aggi_13_2012),
+         aggi_16_2012 = ifelse(is.na(aggi_16_2012),0,aggi_16_2012))%>%
   mutate(children         = antbu16,
          adults           = hh_size - children,
          inc_gov_monetary = aggi_13_2012 + aggi_16_2012,

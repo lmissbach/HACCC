@@ -44,8 +44,9 @@ sect_1.1 <- sect1 %>%
 
 sect_1.2 <- sect1 %>%
   filter(s1q01 == 1)%>%
-  select(household_id, individual_id, s1q08, s1q02)%>%
-  rename(hh_id = household_id, religion = s1q08, sex_hhh = s1q02)
+  select(household_id, individual_id, s1q08, s1q02, s1q03a)%>%
+  rename(hh_id = household_id, religion = s1q08, sex_hhh = s1q02, age_hhh = s1q03a)%>%
+  mutate(religion = ifelse(is.na(religion),8,religion))
 
 sect_2.1 <- sect2 %>%
   select(household_id, individual_id, s2q06)%>%
@@ -80,6 +81,7 @@ sec14.1 <- sec14 %>%
   ungroup()
 
 household_information <- cover_0 %>%
+  left_join(sect_1.1)%>%
   left_join(sect_1.2.1)%>%
   left_join(housing)%>%
   left_join(sec14.1)%>%
