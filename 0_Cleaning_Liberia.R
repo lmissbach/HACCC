@@ -116,7 +116,8 @@ data_e.1 <- data_e %>%
 data_j1.1 <- data_j1 %>%
   rename(hh_id = hhid, toilet = hh_j_12, lighting_fuel = hh_j_16, cooking_fuel = hh_j_17, water = hh_j_18)%>%
   mutate(electricity.access = ifelse(hh_j_15 %in% c(2,3,4,5),1,0))%>%
-  select(hh_id, toilet, water, lighting_fuel, cooking_fuel, electricity.access)
+  select(hh_id, toilet, water, lighting_fuel, cooking_fuel, electricity.access)%>%
+  mutate(cooking_fuel = ifelse(is.na(cooking_fuel),6,cooking_fuel))
 
 data_n1.1 <- data_n1 %>%
   rename(hh_id = hhid)%>%

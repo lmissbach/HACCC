@@ -64,7 +64,9 @@ sect_1.2.1 <- left_join(sect_1.2, sect_2.1)%>%
 housing <- sect10a %>%
   select(household_id, s10aq12, s10aq21, s10aq34, s10aq38)%>%
   rename(cooking_fuel = s10aq38, lighting_fuel = s10aq34, toilet = s10aq12, water = s10aq21, hh_id = household_id)%>%
-  mutate(electricity.access = ifelse(lighting_fuel %in% c(1,2,3,4),1,0))
+  mutate(electricity.access = ifelse(lighting_fuel %in% c(1,2,3,4),1,0))%>%
+  mutate(lighting_fuel = ifelse(is.na(lighting_fuel),13,lighting_fuel),
+         cooking_fuel  = ifelse(is.na(cooking_fuel),13, cooking_fuel))
 
 # sec13.1 <- sec13 %>%
 #   rename(hh_id = household_id)%>%

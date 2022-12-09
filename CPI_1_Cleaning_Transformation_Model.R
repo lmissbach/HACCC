@@ -189,7 +189,7 @@ if(Country.Name %in% c("Ghana")){
     filter(!hh_id %in% hh_duplicates_expenditures_3$hh_id)
 }
 
-if(Country.Name == "El Salvador"){
+if(Country.Name == "El Salvador" | Country.Name == "Ecuador"){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
     filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -535,7 +535,7 @@ if(Country.Name == "Europe"){
              CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
              N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
              FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD)%>%
-      select(GTAP, starts_with("CO2_t"))%>%
+      select(GTAP, starts_with("CO2_t"), ends_with("national"))%>%
       mutate(Country = i)
     
     carbon_intensities_EU <- carbon_intensities_EU %>%

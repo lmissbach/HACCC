@@ -99,7 +99,9 @@ g_9.1 <- g_9 %>%
   select(hhid, HC07, HC14, HC18, HC19)%>%
   rename(hh_id = hhid, water = HC07, toilet = HC14, lighting_fuel = HC18, cooking_fuel = HC19)%>%
   remove_all_labels()%>%
-  mutate(electricity.access = ifelse(lighting_fuel %in% c(1,2,3,4),1,0))
+  mutate(electricity.access = ifelse(lighting_fuel %in% c(1,2,3,4),1,0),
+         cooking_fuel = ifelse(cooking_fuel == -999999999, 96, cooking_fuel),
+         lighting_fuel = ifelse(lighting_fuel == -999999999, 96, lighting_fuel))
 
 g_7a.1 <- g_7a %>%
   select(hhid, CB01_7)%>%
@@ -250,6 +252,7 @@ Water.Code <- stack(attr(g_9$HC07, 'labels'))%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Water.Code.csv")
 Lighting.Code <- stack(attr(g_9$HC18, 'labels'))%>%
   rename(lighting_fuel = values, Lighting_Fuel = ind)%>%
+  bind_rows(data.frame(lighting_fuel = 13, Lighting_Fuel = "Other (specify)"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Lighting.Code.csv")
 Cooking.Code <- stack(attr(g_9$HC19, 'labels'))%>%
   rename(cooking_fuel = values, Cooking_Fuel = ind)%>%
