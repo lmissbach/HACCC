@@ -43,8 +43,6 @@ if(Country.Name != "Europe"){
   }
 }
 
-
-
 if(Country.Name == "Europe"){
   household_information   <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv", show_col_types = FALSE)
   clean_0 <- nrow(household_information)
@@ -763,10 +761,10 @@ if(Country.Name != "Europe"){
     mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
     mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
                                        ifelse(is.na(category), "NA_1", 
-                                              ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass" | fuel == "Firewood"), "other_energy",
+                                              ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass"), "other_energy",
                                                      ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "transport_fuels",
                                                             ifelse(category == "energy" & fuel == "Electricity", "Electricity",
-                                                                   ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal"), "cooking_fuels", "NA_2")))))))%>%
+                                                                   ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal" | fuel == "Firewood" | fuel == "Charcoal"), "cooking_fuels", "NA_2")))))))%>%
     left_join(carbon_intensities, by = "GTAP")%>%
     mutate(CO2_s_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national)%>%
     select(-starts_with("CO2_t_per"))%>%
@@ -799,10 +797,10 @@ if(Country.Name == "Europe"){
     mutate(expenditures_USD_2014 = expenditures*inflation_factor*exchange.rate)%>%
     mutate(aggregate_category = ifelse(category == "food" | category == "goods" | category == "services", category, 
                                        ifelse(is.na(category), "NA_1", 
-                                              ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass" | fuel == "Firewood"), "other_energy",
+                                              ifelse(category == "energy" & (is.na(fuel)| fuel == "Biomass"), "other_energy",
                                                      ifelse(category == "energy" & (fuel == "Diesel" | fuel == "Petrol"), "transport_fuels",
                                                             ifelse(category == "energy" & fuel == "Electricity", "Electricity",
-                                                                   ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal"), "cooking_fuels", "NA_2")))))))%>%
+                                                                   ifelse(category == "energy" & (fuel == "Gas" | fuel == "LPG" | fuel == "Kerosene" | fuel == "Coal" | fuel == "Firewood" | fuel == "Charcoal"), "cooking_fuels", "NA_2")))))))%>%
     left_join(carbon_intensities, by = "GTAP")%>%
     mutate(CO2_s_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national)%>%
     select(-starts_with("CO2_t_per"))%>%
@@ -881,7 +879,7 @@ tracking_removals <- data.frame("Category" = c("Raw file", "Duplicates (HH)", "D
 
 colnames(tracking_removals) <- c("Category", paste0("HHs_", CNTRY), paste0("deleted_", CNTRY))
 
-tracking_removals_0 <- left_join(tracking_removals_0, tracking_removals)
+tracking_removals_0 <- left_join(tracking_removals_0, tracking_removals, by = "Category")
 
 rm(tracking_removals, clean_0, clean_1, clean_2, clean_3, clean_4, clean_5, clean_6, clean_7, CNTRY)
 
