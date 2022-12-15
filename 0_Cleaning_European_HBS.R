@@ -94,6 +94,7 @@ data_h1 <- data_h0 %>%
   rename(hh_id = HA04, hh_weights = HA10, district = NUTS1, density = HA09,
          income_year = EUR_HH099, hh_size = HB05, hh_type = HB075, ocu_hhh = HC23)%>%
   arrange(hh_id)%>%
+  mutate_at(vars(HB051, HB052, HB053, HB054, HB056,HB057), list(~ ifelse(is.na(.),0,.)))%>%
   mutate(children = HB051 + HB052 + HB053,
          adults   = HB054 + HB056 + HB057)%>%
   mutate(urban_01 = ifelse(density == 3,0,1))%>% # subject to debate
@@ -105,7 +106,11 @@ data_m1 <- data_m0 %>%
   select(hh_id, sex_hhh, edu_hhh, ocu_hhh, ind_hhh)
 
 data_hm1 <- left_join(data_h1, data_m1)%>%
-  unite(hh_id, c("hh_id", COUNTRY), sep = "_", remove = FALSE)
+  unite(hh_id, c("hh_id", COUNTRY), sep = "_", remove = FALSE)%>%
+  mutate(sex_hhh = ifelse(is.na(sex_hhh),1,sex_hhh),
+         edu_hhh = ifelse(is.na(edu_hhh),9,edu_hhh),
+         ocu_hhh = ifelse(is.na(ocu_hhh),99,ocu_hhh),
+         ind_hhh = ifelse(is.na(ind_hhh),"Z",ind_hhh))
 
 data_c1 <- data_h0 %>%
   rename(hh_id = HA04, hh_weights = HA10)%>%
@@ -354,7 +359,7 @@ EU_e_final <- bind_rows(EU_e_1.2.1,
   select(-code_type, - code_type_sum)
 
 #write_csv(EU_e_final, "K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean.csv")
-#write_csv(EU_h2,      "K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv")
+write_csv(EU_h2,      "K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv")
 rm(EU_e_1.2.1, EU_e_2.3.1, EU_e_3.4.1, EU_e_4.5, EU_e3.9, EU_e3.0)
 
 EU_e_final_add <- EU_e_final %>%
@@ -362,6 +367,161 @@ EU_e_final_add <- EU_e_final %>%
   select(hh_id, item_code, expenditures_year)
 
 # I think it is best to save EU_e_final_add, to load it and to add it to EU_e2 instead of running this process again
+
+# Extension: Correcting for missing Item Codes in Germany ####
+
+household_information <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv")
+
+expenditure_data_clean <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean.csv")
+
+expenditure_shares_GER <- read_excel("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Supplementary Information/X_per_percentil.xlsx",
+                                     sheet = 1)
+expenditure_codes_GER <- read_excel("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Supplementary Information/X_per_percentil.xlsx",
+                                    sheet = 2)
+
+# Create Crosswalk
+
+expenditure_shares_GER_1 <- expenditure_shares_GER %>%
+  select(-X_tot, -X_per_person)%>%
+  pivot_longer(-percentil, names_to = "Item_Name", values_to = "expenditure_share")%>%
+  left_join(expenditure_codes_GER)
+
+# Extract German Data only
+
+expenditure_data_clean_GER <- left_join(expenditure_data_clean, household_information)%>%
+  filter(COUNTRY == "DE")
+
+# sum(expenditure_data_clean_GER$expenditures_year) equals 1810266974
+
+expenditure_data_clean_EU <- left_join(expenditure_data_clean, household_information)%>%
+  filter(COUNTRY != "DE")
+
+rm(expenditure_data_clean, expenditure_shares_GER, expenditure_codes_GER)
+
+# Determine Percentiles
+
+expenditure_data_clean_GER_1 <- expenditure_data_clean_GER %>%
+  group_by(hh_id)%>%
+  summarise(hh_expenditures = sum(expenditures_year),
+            hh_size = first(hh_size),
+            hh_weights = first(hh_weights))%>%
+  ungroup()%>%
+  mutate(hh_expenditures_pc = hh_expenditures/hh_size)%>%
+  mutate(percentil  = as.numeric(binning(hh_expenditures_pc, bins = 100,  method = c("wtd.quantile"), weights = hh_weights)))%>%
+  select(hh_id, percentil)
+
+# Join
+
+expenditure_data_clean_GER_2 <- expenditure_data_clean_GER %>%
+  # Adds Percentile to Household ID
+  left_join(expenditure_data_clean_GER_1)%>%
+  select(hh_id, item_code, expenditures_year, percentil)
+
+# Calculate new expenditure shares
+
+rm(expenditure_data_clean_GER)
+
+# 04X -> 045X
+
+expenditure_data_clean_GER_3.1 <- expenditure_data_clean_GER_2 %>%
+  filter(item_code == "04X")%>%
+  left_join(expenditure_shares_GER_1)%>%
+  mutate(expenditures_new = expenditures_year * expenditure_share)%>%
+  mutate(expenditures_remain = expenditures_year*(1-expenditure_share))
+
+expenditure_data_clean_GER_3.1.1 <- expenditure_data_clean_GER_3.1 %>%
+  select(hh_id, item_code, expenditures_remain)%>%
+  rename(expenditures_year = expenditures_remain)%>%
+  mutate(type = "ED.3.1.1")
+
+expenditure_data_clean_GER_3.1.2 <- expenditure_data_clean_GER_3.1 %>%
+  select(hh_id, item_code_1, expenditures_new)%>%
+  rename(expenditures_year = expenditures_new, item_code = item_code_1)
+
+rm(expenditure_data_clean_GER_3.1)
+
+# 045X -->
+
+expenditure_data_clean_GER_3.2 <- expenditure_data_clean_GER_2 %>%
+  select(-percentil)%>%
+  filter(item_code == "045X")%>%
+  bind_rows(expenditure_data_clean_GER_3.1.2)%>%
+  # only 045X
+  group_by(hh_id, item_code)%>%
+  summarise(expenditures_year = sum(expenditures_year))%>%
+  ungroup()%>%
+  # Adds Percentil
+  left_join(expenditure_data_clean_GER_1)%>%
+  left_join(expenditure_shares_GER_1)%>%
+  mutate(expenditures_new = expenditures_year*expenditure_share)%>%
+  select(hh_id, item_code_1, expenditures_new)%>%
+  rename(item_code = item_code_1, expenditures_year = expenditures_new)%>%
+  mutate(type = "ED.3.2")
+
+rm(expenditure_data_clean_GER_1, expenditure_data_clean_GER_3.1.2)
+
+# 07X -> 0722 
+
+expenditure_data_clean_GER_3.3 <- expenditure_data_clean_GER_2 %>%
+  filter(item_code == "07X")%>%
+  left_join(expenditure_shares_GER_1)%>%
+  mutate(expenditures_new = expenditures_year * expenditure_share)%>%
+  mutate(expenditures_remain = expenditures_year*(1-expenditure_share))
+
+expenditure_data_clean_GER_3.3.1 <- expenditure_data_clean_GER_3.3 %>%
+  select(hh_id, item_code, expenditures_remain)%>%
+  rename(expenditures_year = expenditures_remain)
+
+expenditure_data_clean_GER_3.3.2 <- expenditure_data_clean_GER_3.3 %>%
+  select(hh_id, item_code_1, expenditures_new)%>%
+  rename(expenditures_year = expenditures_new, item_code = item_code_1)
+
+expenditure_data_clean_GER_3.3.3 <- bind_rows(expenditure_data_clean_GER_3.3.1,
+                                              expenditure_data_clean_GER_3.3.2)%>%
+  mutate(Type = "ED.3.3.3")
+
+rm(expenditure_data_clean_GER_3.3.1, expenditure_data_clean_GER_3.3.2, expenditure_data_clean_GER_3.3)
+
+# 073X -->
+
+expenditure_data_clean_GER_3.4 <- expenditure_data_clean_GER_2 %>%
+  filter(item_code == "073X")%>%
+  left_join(expenditure_shares_GER_1)%>%
+  mutate(expenditures_new = expenditures_year*expenditure_share)%>%
+  select(hh_id, item_code_1, expenditures_new)%>%
+  rename(item_code = item_code_1, expenditures_year = expenditures_new)%>%
+  mutate(Type = "ED.3.4")
+
+rm(expenditure_shares_GER_1)
+
+# German Expenditure data
+
+expenditure_data_clean_GER_4 <- expenditure_data_clean_GER_2 %>%
+  filter(item_code != "073X" & item_code != "04X" & item_code != "07X" & item_code != "045X")%>%
+  bind_rows(expenditure_data_clean_GER_3.1.1)%>%
+  bind_rows(expenditure_data_clean_GER_3.2)%>%
+  # Clean
+  bind_rows(expenditure_data_clean_GER_3.3.3)%>%
+  # Rundungsbedingt + 29
+  bind_rows(expenditure_data_clean_GER_3.4)%>%
+  select(-percentil)%>%
+  group_by(hh_id, item_code)%>%
+  summarise(expenditures_year = sum(expenditures_year))%>%
+  ungroup()
+
+rm(expenditure_data_clean_GER_2, expenditure_data_clean_GER_3.1.1, expenditure_data_clean_GER_3.2, expenditure_data_clean_GER_3.3.3,
+   expenditure_data_clean_GER_3.4)
+
+# Join with European, Non-German Expenditure Data
+
+expenditure_data_clean_new <- expenditure_data_clean_EU %>%
+  bind_rows(expenditure_data_clean_GER_4)%>%
+  select(hh_id, item_code, expenditures_year)%>%
+  arrange(hh_id, item_code)
+
+write_csv(expenditure_data_clean_new, "K:/WorkinProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean_Corrected.csv")
+
+rm(expenditure_data_clean_EU, expenditure_data_clean_GER_4, expenditure_data_clean_new)
 
 # Codes ####
 District.Code <- distinct(EU_h1, district)%>%

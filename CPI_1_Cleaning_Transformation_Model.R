@@ -46,7 +46,7 @@ if(Country.Name != "Europe"){
 if(Country.Name == "Europe"){
   household_information   <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv", show_col_types = FALSE)
   clean_0 <- nrow(household_information)
-  expenditure_information <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean.csv", show_col_types = FALSE)
+  expenditure_information <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean_Corrected.csv", show_col_types = FALSE)
 }
 
 if(ncol(expenditure_information)>4){
@@ -858,7 +858,7 @@ if(Country.Name == "Europe"){
     filter(!hh_id %in% final_incidence_information$hh_id)
   
   household_information <- household_information %>%
-    left_join(countries)%>%
+    left_join(countries, by = "COUNTRY")%>%
     filter(!hh_id %in% NA_ids$hh_id)%>%
     select(-COUNTRY, - Country_long)
   
