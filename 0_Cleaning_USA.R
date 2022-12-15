@@ -16,6 +16,7 @@ int_hh_pre  <- read_rds("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/ho
 ##### General reading and formatting, Diary first (3 file types MEMD, EXPD, FMLD), 
 ##### then Interview (3 file types FMLI, MTBI, MEMI) 
 ##### all details found on ( https://www.bls.gov/cex/pumd-getting-started-guide.htm )
+#### for highest accuracy we use data from 2018, second quarter up to 2019 last quarter. this way most households were present for four full quarters 
 
 
 ### DIARY (files used: MEMD - hh-member charact. + income; EXPD - detailed exp; FMLD - summary exp, hh income, hh charact. + weights)
@@ -81,58 +82,88 @@ rm(expd191, expd192, expd193, expd194, fmld191, fmld192, fmld193, fmld194, memd1
 ### Files marked with an "x" are NOT USED, they appeared in the previous survey too and were processed under different standards, so contents slightly differ
 
 # hh level exp., income and characteristics - interview
+fmli182 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/fmli182.dta")%>%
+  mutate(quarter = 182)
+fmli183 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/fmli183.dta")%>%
+  mutate(quarter = 183)
+fmli184 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/fmli184.dta")%>%
+  mutate(quarter = 184)
+fmli191 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/fmli191.dta")%>%
+  mutate(quarter = 191)
 fmli192 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/fmli192.dta")%>%
-  mutate(quarter = 2)
+  mutate(quarter = 192)
 fmli193 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/fmli193.dta")%>%
-  mutate(quarter = 3)
+  mutate(quarter = 193)
 fmli194 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/fmli194.dta")%>%
-  mutate(quarter = 4)
-fmli201 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/fmli201.dta")%>%
-  mutate(quarter = 1)
+  mutate(quarter = 194)
 
-fml_iv <- bind_rows(fmli192, fmli193, fmli194, fmli201)%>% #all are distinct hhs, put them together
+
+fml_iv <- bind_rows(fmli182, fmli183, fmli184, fmli191, fmli192, fmli193, fmli194)%>% #all are distinct hhs, put them together
   select(newid, everything())%>%
-  rename(hh_id = newid)
+  rename(hh_id = newid)%>%
+  mutate(id = gsub('.$', '', hh_id))
+tmp <- unique(gsub('.$', '', fmli191$newid))
+fml_iv <- filter(fml_iv, id %in% tmp)
 
 # tmp    <-fml_iv[1,] %in% c("A", "B", "C", "D", "E", "F", "G", "H", "T", "U", "V", "W") #all cols that are flags
 # fml_iv <- fml_iv[colnames(fml_iv)[!tmp]] #subset dataframe with all cols that are not flags using tmp (line above)
 
 # monthly expenditures - interview
+mtbi182 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/mtbi182.dta")%>%
+  mutate(quarter = 182)
+mtbi183 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/mtbi183.dta")%>%
+  mutate(quarter = 183)
+mtbi184 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/mtbi184.dta")%>%
+  mutate(quarter = 184)
+mtbi191 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/mtbi191.dta")%>%
+  mutate(quarter = 191)
 mtbi192 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/mtbi192.dta")%>%
-  mutate(quarter = 2)
+  mutate(quarter = 192)
 mtbi193 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/mtbi193.dta")%>%
-  mutate(quarter = 3)
+  mutate(quarter = 193)
 mtbi194 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/mtbi194.dta")%>%
-  mutate(quarter = 4)
-mtbi201 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/mtbi201.dta")%>%
-  mutate(quarter = 1)
+  mutate(quarter = 194)
 
-mtb_iv <- rbind(mtbi192, mtbi193, mtbi194, mtbi201)%>% #all are distinct hhs, put them together
+mtb_iv <- rbind(mtbi182, mtbi183, mtbi184, mtbi191, mtbi192, mtbi193, mtbi194)%>% #all are distinct hhs, put them together
   select(newid, everything())%>%
-  rename(hh_id = newid)
+  rename(hh_id = newid)%>%
+  mutate(id = gsub('.$', '', hh_id))
+tmp <- unique(gsub('.$', '', mtbi191$newid))
+mtb_iv <- filter(mtb_iv, id %in% tmp)
 
 # tmp <-mtb_iv[1,] %in% c("A", "B", "C", "D", "E", "F", "G", "H", "T", "U", "V", "W") #all cols that are flags
 # mtb_iv <- mtb_iv[colnames(mtb_iv)[!tmp]] #subset dataframe with all cols that are not flags using tmp (line above)
 
 # hh member income and characteristics - interview
+memi182 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/memi182.dta")%>%
+  mutate(quarter = 182)
+memi183 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/memi183.dta")%>%
+  mutate(quarter = 183)
+memi184 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/memi184.dta")%>%
+  mutate(quarter = 184)
+memi191 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw18/intrvw18/memi191.dta")%>%
+  mutate(quarter = 191)
 memi192 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/memi192.dta")%>%
-  mutate(quarter = 2)
+  mutate(quarter = 192)
 memi193 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/memi193.dta")%>%
-  mutate(quarter = 3)
+  mutate(quarter = 193)
 memi194 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/memi194.dta")%>%
-  mutate(quarter = 4)
-memi201 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/intrvw19/memi201.dta")%>%
-  mutate(quarter = 1)
+  mutate(quarter = 194)
 
-mem_iv <- bind_rows(memi192, memi193, memi194, memi201)%>% #all are distinct hhs, put them together
+mem_iv <- bind_rows(memi182, memi183, memi184, memi191, memi192, memi193, memi194)%>% #all are distinct hhs, put them together
   select(newid, everything())%>%
-  rename(hh_id = newid)
+  rename(hh_id = newid)%>%
+  mutate(id = gsub('.$', '', hh_id))
+tmp <- unique(gsub('.$', '', memi191$newid))
+mem_iv <- filter(mem_iv, id %in% tmp)
 
 # tmp    <- mem_iv[1,] %in% c("A", "B", "C", "D", "E", "F", "G", "H", "T", "U", "V", "W") #all cols that are flags
 # mem_iv <- mem_iv[colnames(mem_iv)[!tmp]] #subset dataframe with all cols that are not flags using tmp (line above)
 
 #rm unnecessary smaller files
-rm(tmp, memi192, memi193, memi194, memi201, mtbi192, mtbi193, mtbi194, mtbi201, fmli192, fmli193, fmli194, fmli201)
+rm(tmp, memi182, memi183, memi184, memi191, memi192, memi193, memi194,
+        mtbi182, mtbi183, mtbi184, mtbi191, mtbi192, mtbi193, mtbi194, 
+        fmli182, fmli183, fmli184, fmli191, fmli192, fmli193, fmli194)
 
 # Transform Data ####
 
@@ -199,18 +230,26 @@ write_csv(household_information, "../0_Data/1_Household Data/3_USA/1_Data_Clean/
 ### EXPENDITURE
 # not all households are in the set for all 4 quarters in which the interviews were conducted
 # -> we normalize the expenditures to yearly expenses for all households, inclduing those with missing interviews
-exp <- mtbi %>%
-  mutate(quarter = strtoi(str_sub(newid, -1)))%>%
-  mutate(id = gsub('.$', '', newid))%>%
+exp <- mtb_iv %>%
+  mutate(individual_quarter = strtoi(str_sub(hh_id, -1)))%>%
+  mutate(id = gsub('.$', '', hh_id))%>%
   group_by(id)%>%
-  mutate(completeness = ifelse(1%in%quarter, 1, 0))%>%
-  mutate(completeness = ifelse(2%in%quarter, completeness + 1, completeness))%>%
-  mutate(completeness = ifelse(3%in%quarter, completeness + 1, completeness))%>%
-  mutate(completeness = ifelse(4%in%quarter, completeness + 1, completeness))%>%
+  mutate(completeness = ifelse(1%in%individual_quarter, 1, 0))%>%
+  mutate(completeness = ifelse(2%in%individual_quarter, completeness + 1, completeness))%>%
+  mutate(completeness = ifelse(3%in%individual_quarter, completeness + 1, completeness))%>%
+  mutate(completeness = ifelse(4%in%individual_quarter, completeness + 1, completeness))%>%
+  ungroup()
+
+exp2 <- exp%>%
   group_by(id, ucc)%>%
   mutate(costsum = sum(cost))%>%
   summarise(cost = (costsum/completeness)*4)%>%
-  distinct(.)
+  ungroup()%>%
+  distinct(.)%>%
+  group_by(id)%>%
+  mutate(exp = sum(cost))%>%
+  ungroup()
+
 
 ### EXPENDITURE-CODES
 # the Hierarchical groupings for all years are found in the stubs.zip file found on the official website 
