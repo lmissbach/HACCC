@@ -1,0 +1,979 @@
+item_code;
+1;Dada Ba (RICE)
+2;Oman Ba
+3;Mandela
+4;Gold Star
+5;Afife
+6;Other local(specify
+10;Jasmine Rice
+11;Basmati Rice
+12;Uncle Ben's Rice (imported)
+13;Lele Rice
+14;Royal Feast
+15;Gino Rice
+16;Royal Aroma
+17;Heaven
+18;Cindy
+19;Bella
+20;Sultana
+21;Mama's Pride
+22;Red Eagle
+23;Other imported rice specify
+27;Guinea corn/sorghum
+28;White maize grains
+29;Yellow maize grains
+30;Millet
+31;Millet flour
+32;Takoradi Flour Mill
+33;GMG
+34;Wheat semolina,suji
+35;Corn dough
+36;Maize
+37;Millet
+38;Rice
+39;Beans
+40;Mixed fruit
+41;Wheat
+42;Other (specify)
+47;Good Morning
+48;Quaker oats
+49;Other oats (specify)
+53;Cassava - Kokonte
+54;Cassava dough
+55;Yellow gari
+56;White gari
+58;Sugar bread
+59;Whole wheat bread
+60;Butter bread
+61;Tea bread
+62;Other bread (specify)
+67;Picadilly biscuit
+68;Kings crackers
+69;Malt and milk
+70;Cream crackers
+71;Short cake
+72;Perks biscuit
+73;Digestive biscuit
+74;Jack and Jill
+75;Wafers
+76;Ginger
+77;Short Bread
+78;Other biscuits (specify)
+83;Indomie or instant noodles
+84;Cornflakes (Kellogg's)
+85;Macaroni
+86;Spaghetti
+87;Maizena
+88;Couscous
+89;Other cereal products (specify)
+95;Beef with bones
+96;Beef without bones (steak)
+97;Cow leg , local
+98;Cow leg imported
+99;Cow face (head)
+100;Cow offals (towel)
+101;Other cow/beef product (specify)
+105;pork meat
+106;pork, ribs
+107;pork, shoulder
+108;pork , fillet
+109;Pork feet
+110;Other pork meat (specify)
+115;mutton mixed cut
+116;Goat , live
+117;Goat meat
+118;Local breed
+119;Poultry farm breed
+120;whole chicken broiler
+121;Chicken parts(thighs)
+122;Chicken parts(wings)
+123;Gizzard
+124;chicken breast without skin
+125;chicken breast with skin and bones
+126;Other chicken product (specify)
+127;Guinea fowl - live
+131;Lele corned Beef
+132;Exeter corned beef
+133;Bella corned beef
+134;Other corned beef (specify)
+139;Beef sausage
+140;Pork sausage
+141;Chicken sausage
+142;Bushmeat (Grasscutter)
+143;Game birds
+144;Other meat (dog, cat, etc.)
+149;Kpala (Starvids)frozen
+150;Shrimps
+151;Snails
+152;Crab
+153;Fish smoked (river)
+154;Fish smoked (sea)
+155;Herrings -smoked
+156;Salmon (smoked)
+157;Fish (fried)
+158;Dried fish - Koobi
+159;Fish (salted) e.g. Kako
+160;Tilapia (fresh and frozon)
+161;Other fish (specify)
+165;Titus
+166;Princess
+167;Obaapa
+168;Gino
+169;Smile
+170;Lele
+171;Vega
+172;Other sardines (specify)
+176;Star kist
+177;Vega
+178;Geisha
+179;Tesco
+180;John West
+181;Other (specify)
+185;African Queen
+186;Geisha
+187;Gino
+188;Ena pa
+189;Obaapa
+190;Delay
+191;Teacher
+192;Other mackerel (specify)
+197;Milk (Fresh)
+198;Nido (Sachet)
+199;Peak (Sachet)
+200;Milgro (Sachet)
+201;Cowbell (Sachet)
+202;Ideal (sachet)
+203;Nunu (sachet)
+204;Loya (sachet)
+205;Miksi (sachet)
+206;Vega (sachet)
+207;Other powdered milk (specify)
+301;Ideal
+302;Peak
+303;Nunu
+304;Vega
+305;Carnation
+306;Other milk (specify)
+401;Peak
+402;Other tinned milk(specify)
+407;Fan Ice
+408;Fan Yoghurt
+409;FanDango
+410;Fan Choco
+411;Other ice cream (specify)
+416;Chicken eggs (fresh, single)
+417;Other eggs
+421;Margarine
+422;Coconut oil
+423;Groundnut oil
+424;Palm oil (red oil)
+425;Vegetable oil (eg. Frytol, Gino, Obaapa)
+426;Shea butter
+427;Palm kernel oil
+428;Other oils (specify)
+432;Coconut (fresh)
+433;Coconut (dried)
+434;Banana
+435;Oranges
+436;Pineapple
+437;Mango
+438;Water melon
+439;Avocado pear
+440;Apples (foreign)
+441;Grapes
+442;Sweet apple
+443;Lime
+444;Cashew
+445;Pawpaw
+446;Other fruits(specify)
+452;Canned or processed fruits
+453;Cocoyam leaves (kontomire) or Alefu
+454;Sweet pepper
+455;Carrot
+456;Garden eggs
+457;Okro (fresh)
+458;Pepper (fresh)
+459;Dried pepper (red)
+460;Powder Pepper
+461;Onions (large)
+462;Shallots
+463;Tomatoes (Fresh)
+464;Other vegetables (specify)
+473;Gino
+474;Obaapa
+475;Pomo
+476;Tam Tam
+477;Lele
+478;Bella
+479;Tasty tom
+480;Other tomato paste (specify)
+485;White beans (cowpea)
+486;Palm nut (fruits)
+487;Groundnuts (shelled)
+488;Groundnut (paste)
+489;Agushie seeds (or milled)
+491;Plantain
+492;Cassava (fresh)
+493;Cocoyam
+494;Yam
+495;Water yam
+496;Taro
+497;Potatoes
+498;Other Tubers (specify)
+503;Cubed sugar
+504;Granulated sugar
+505;Honey
+511;Golden tree
+512;Other cholate
+513;Trident
+514;PK
+515;Bubble gum
+516;Mentos
+517;Other gums
+518;Other confectionery (specify)
+523;Garlic
+524;Ginger
+525;Vinegar
+526;Dawadawa
+527;Curry powder
+528;Chilli powder (black pepper)
+529;Other spices (specify)
+535;Maggi Cube
+536;Royco cube
+537;Onga cube
+538;Onga 3-in-1
+539;Benny
+540;Other condiments (specify)
+545;Anapuna iodated salt
+546;U2 iodated salt
+547;Other salt (specify)
+550;Nescafe
+551;Pure Cocoa Powder (eg. Brown gold)
+552;Tea bags, (eg. Lipton)
+554;Bournvita
+555;Cow bell (coffee, choco etc.)
+556;This way chocolate drink
+557;Country milk
+558;Ideal
+559;Milo
+560;Richoco
+561;Other beverage drinks(specify)
+565;Mineral water (bottled)
+566;Satchet water
+567;Coca Cola /Fanta/Sprite
+568;Pepsi/Mirinda
+569;Alvaro
+570;Other soft drinks(specify)
+575;Beta malt
+576;5 star
+577;Malta Guinness
+578;Malt schweppes
+579;Mighty malt
+580;Magic malt
+581;Giant malt
+582;Lion Malt
+583;Other bottled malt drinks(specify)
+587;Magic malt
+588;Malta Guinness
+589;Volco
+590;Giant malt
+591;Power malt
+592;Mighty malt
+593;Lion Malt
+594;Other canned malt drinks(specify)
+605;Don Simon
+606;Fru Telli
+607;Blue skies
+608;Junior
+609;Pure Heaven
+610;Kalipo
+611;Healthy Live
+612;Ceres
+613;Other fruit drink (specify)
+618;Gin (ALCOHOL)
+619;Whisky
+620;Akpeteshie
+621;Bitters (eg. Alomo, Agya Appiah, HerbAfric etc.)
+622;Schnapps
+623;Other spirits
+629;Palm Wine
+630;Imported Wine
+631;Other local wine(specify)
+635;National beer (star/club)
+636;Dark beer (e.g. Guilder, Guinness)
+637;Beer (Imported)
+638;Traditional beer (Pito)
+645;Cigarette
+646;Tobacco (processed)
+647;Other tobacco products(specify)
+650;Kola Nuts (NARCOTICS END)
+651;Refuse collection
+652;Refuse disposal
+653;Expenditure on Public toilet
+655;Gas for household use not for car
+657;Kerosene
+658;Other fuel and power(specify)
+660;Charcoal
+661;Firewood
+662;Other solid fuel(specify)
+663;Ice block (household cooling and refrigeration only)
+665;Omo (WASHING POWDER)
+666;Ariel
+667;Yazz
+668;Kleesoft
+669;Sunlight powder
+670;Other washing powder(specify)
+675;Sunlight soap
+676;Key soap
+677;Ameen soap
+678;Duck soap
+679;BF
+680;Guardian
+681;Other washing soap(specify)
+687;Lux
+688;Rexona
+689;Medisoft
+690;Geshia
+691;Other bathing soap(specify)
+692;Bleaches
+693;Disinfectants and cleaners
+695;Insecticides-coils
+696;Insecticides-sprays
+697;Matches
+698;Household candles
+699;Brooms
+703;Paper napkins (tissue)
+704;Kitchen paper roll
+705;Toilet bowl cleaner
+706;Shoe polish and brush
+708;Laundry services
+710;Pain killers (paracetamol, APC, etc.)
+711;Antibiotics
+712;Artemether + Lumefantrine
+713;Artesunate ammodiaquin
+714;Other anti-malaria medicine
+715;Sulpha doxine
+716;Ibuprofen
+717;Metronidazole (Original)
+718;Metronidazole (Generic)
+719;Oral rehydration salts
+722;Absorbent cotton wool
+723;Disposable syringe for intramuscular injection
+724;Kiss condom
+725;Other condoms(specify)
+800;Kingdom Kookoo Capsules
+801;Adom tablets
+802;Abgeve syrup
+803;Other traditional drugs(specify)
+807;Adhesive strips
+808;Contraceptive pills
+809;Diapers
+810;Other Medical Products (specify)
+820;Petrol
+821;Diesel
+822;Gas
+823;Other lubricants
+825;Car Washing
+826;Street parking/parking spaces services
+827;Cost of travel by rail
+829;STC (BUS FARES)
+830;VIP
+831;VVIP
+832;Mass transport
+833;Mini bus
+835;Trotro (Intra-city)
+836;Mass transport (Intra-city)
+837;Taxi (intra-city)
+838;Other transport (specify)
+842;One way public transport trip
+844;River crossing (Big ferry)
+845;River crossing (Canoe)
+846;Domestic flight two way
+847;Domestic flight one way
+848;Other purchased transport services
+849;Porters (kayaye, male porters, etc.).
+850;Postage
+851;Other postal services (e.g. DHL)
+853;Prepaid Phone Card
+854;Internet Services at Cyber Cafe
+855;Fixed line
+866;Mobile
+868;Scanning (1 Page)
+869;Printing (1 Page)
+870;Photocopying
+871;Use of Gym facilities
+872;Football game
+873;Cinema/theatre/Video houses
+875;Safaribet
+876;National lotteries
+877;Other lotteries
+880;Crusading Guide
+881;Insight News paper
+882;Other private paper
+885;National Daily Newspaper (Graphic)
+886;National Daily Newspaper (Times)
+887;Other newspaper
+888;Magazine
+889;Graphic Sports
+890;International Weekly Newspaper
+891;Exercise book
+892;Writing pads
+893;Other textbook, story books
+894;Other expenditure on education not Sec2A
+895;2B
+896;HB
+897;Bic
+898;Allwrite
+899;Pelikan
+900;Other pen
+901;Eraser
+902;Sharpener
+903;Other stationery
+905;Tinned Dog Food
+906;Tinned Cat Food
+907;Pizza
+908;Khebabs and other meats
+909;Cooked rice and stew
+910;Fufu and light soup
+911;Other prepared meals (specify)
+915;Cooked rice and stew
+916;Fufu and light soup
+917;Tuo zaafi
+918;Kenkey/Banku with fried fish/sauce
+919;Fried Plantain and beans (red red)
+920;Khebabs
+921;Other prepared meals (specify)
+923;Cost of bed occupancy in hotel/hostel
+925;Men's haircut
+926;Hair wash & styling
+927;Braiding
+928;Manicure & pedicure
+929;Other personal grooming services
+935;Darling
+936;Auntie lizy
+937;Ultra
+938;Other hair
+939;Wigs
+941;Orange
+942;Tango
+943;Rose
+944;Other toilet roll
+949;Pepsodent
+950;Close up
+951;Colgate
+952;Other toothpaste
+960;Blue ice
+961;Sure
+962;Rexona
+963;Fa
+964;Other deodorant
+968;Bic
+969;Lord
+970;Gillette
+971;Other erazor
+975;Queen Elizabeth
+976;Vasline
+977;Other (Specify)
+980;Azura
+981;Dustin powder
+982;Stay powder
+983;Other skin powder
+984;Tampons
+985;Always
+986;Yazz
+987;DELETED
+990;Fee for money transfer
+1001;Cloths: local (super and ordinary)
+2001;Imported (West Africa)
+3001;Imported (Hollande)
+4001;Imported (China)
+5001;Imported (elsewhere)
+7001;Dress material (local - super & ordinary)
+8001;Dress material, imported (West Africa)
+9001;Dress material, imported (Holland)
+10002;Dress material, imported (China)
+10200;Tailoring charges - African type suit
+10300;Tailoring charges - European Style Suit
+10400;Tailoring charges - African dress – (Slit & Kaba)
+10500;Tailoring charges - sleeveless dress
+10600;Tailoring charges - local wear
+10800;Tailoring charges - African type suit
+10900;Tailoring charges - European Style Suit
+11000;Tailoring charges - Simple trousers
+11002;Dress material, imported (elsewhere)
+11100;Tailoring charges - local wear
+11300;Tailoring charges - African type suit
+11400;Tailoring charges - European Style Suit
+11500;Tailoring charges - Lady's African dress - Two piece
+11600;Tailoring charges - Lady's sleeveless dress
+11700;Tailoring charges - local wear
+11900;Tailoring charges - African type suit
+12000;Tailoring charges - European Style Suit
+12100;Tailoring charges - Simple trousers
+12200;Tailoring charges - Lady's African dress - Two piece
+12300;Tailoring charges - Lady's sleeveless dress
+12400;Tailoring charges - local wear
+12600;Dry cleaning - cloth
+12700;Dry cleaning - trousers
+12800;Dry cleaning - dress
+12900;Dry cleaning - Ladies set of two pieces
+13000;Dry cleaning - other material
+13002;Dress material (local - super & ordinary)
+13200;Men (HIRE OF CLOTHING)
+13300;Women
+13600;Sport shoes - brand imitations
+13700;Local Street sandals
+13800;Rubber Street sandals
+13900;Men's Dress Shoes
+14000;Mens' long boots
+14002;Dress material, imported (West Africa)
+14200;Sport shoes – brand imitations
+14300;Local Street sandals (slippers)
+14400;Plastic Street sandals
+14500;Women’s Dress Shoes
+14600;High Heel Shoes
+14800;Sport shoes – brand imitations
+14900;Local Street sandals
+15000;Rubber Street sandals
+15002;Dress material, imported (holland)
+15100;Children’s Dress Shoes
+15200;Children’s long boots
+15400;Men (Second hand footwear)
+15500;Women
+15600;Children
+15800;Shoe Repair – Women’s Street Shoes
+15900;Shoe Repair – Men’s Classic Shoes
+16000;Shoe Repair – Children’s Classic Shoes
+16002;Dress material, imported (China)
+16100;Repair sandal
+16200;Reinforcement Sole
+16300;Replacement of heel for men
+16400;Replacement of heel for women
+16500;Shoe shine service charges
+16800;Payment of rent (Excluding payment in sec7 for household)
+17000;Cement(minor repairs)
+17002;Dress material, imported (elsewhere)
+17100;Iron rods (1/4”) diameter
+17200;Iron rods(3/8”) diameter
+17300;Iron rods(1/2”) diameter
+17400;Iron rods (3/4”) diameter
+17500;Iron rods (5/8”) diameter
+17600;aluminum sheets
+17700;galvanized sheets
+17800;asbestos sheets
+18000;Bricks
+18200;Solid- 6 inches
+18300;Dust/quarry dust hullow -6 inches
+18400;Solid – 5 inches
+18500;Dust/quarry dust hullow – 5 inches
+18600;Solid- 4 inches
+18900;Leyland Emulsion (Paints)
+19000;Leyland oil
+19002;Dress material, (local - super & ordinary)
+19100;Azargloss Emulsion
+19200;Azargloss oil
+19300;Quicklime
+19400;Savannah Emulsion
+19500;Suvinil Emulsion
+19600;Coral Emulsion
+19700;Other paint (specify)
+20000;Sapele (Wood)
+20002;Dress material, imported (West Africa)
+20100;Mahogany
+20200;Wawa
+20300;Ofram
+20400;Odum
+20600;Panel
+20700;Plain
+20800;Sliding Door
+20900;Other (specify)
+21000;Metal
+21002;Dress material, imported (Holland)
+21100;Windows
+21200;Other Materials (specify)
+21300;Labour
+21400;Other Minor Repairs To The Dwelling
+21600;Plumbing Services
+21700;Electricals Services
+21800;Carpentary Services
+21900;Ice block (household cooling and refrigeration only)
+22000;Other water
+22002;Dress material, imported (China)
+22100;Refuse disposal
+22200;Sewage removal
+22300;Toilet
+22500;Electricity (excluding bill in sec7)
+22600;Gas for household use – 14.5Kg
+22700;Gas for household use – 5Kg
+22800;Kerosene
+22900;Other fuel and power
+23000;Charcoal – Maxibag
+23002;Dress material, imported (elsewhere)
+23100;Charcoal – Minibag
+23200;Firewood
+23500;Simple Double Bed
+23600;Simple Single Bed
+23800;Foam Mattress 20 cm-Thick for double bed
+23900;Spring mattress (Single)
+24000;Room furniture
+24200;Kitchen table
+24300;Kitchen chair
+24400;Chest of Drawers (3 pull out drawers)
+24500;Two doors wardrobe
+24600;Plastic Table
+24700;Plastic Chair
+24800;Floor mat (tiles)
+24900;Linoleum
+25000;Wollen carpets
+25002;Kente (Men)
+25100;Vinyl floor covering
+25200;Polypropylene Carpet
+25300;Upholstery of sofa
+25400;Covering the seat of padded chair
+25500;Repairs of tables and chairs
+25600;Other repairs of furniture furnishing and floor coverings
+25800;Bed sheet (cotton) double bed
+25900;Bed sheet (cotton) single bed
+26000;Blanket, polyester - Single
+26002;Kente (women)
+26100;Blanket, polyester - Double
+26200;Towels
+26400;Curtain material
+26500;Furniture material
+26600;Table cloth material
+26700;Tablecloth
+26900;Refrigerator-freezer, 210-245 Liters
+27000;Refrigerator-freezer, low, 165-190 Liters
+27100;Refrigerator with Freezer Compartment
+27300;Washing machine (Front loader)
+27400;Washing machine (Top loader)
+27800;Vacuum cleaner
+28000;Gas stove, with oven
+28002;Suit Men
+28100;Gas stove, 2 burners
+28200;Coalpots
+28400;Microwave Oven
+28500;Generators (household use)
+28600;Other (specify)
+28800;Electric sewing machine
+29000;Electric Kettle
+29002;Suit women
+29200;Steam Iron
+29300;Electric Iron- dry
+29500;Pedestal Fan
+29600;Table Fan (Desk Fan)
+29800;Blenders
+29900;Lanterns, gas lights
+30000;Hand mixer
+30100;Toaster
+30300;Repairs to household appliances
+30400;Repair of washing machine
+30500;Air conditioner repair
+30700;Cups
+30800;Plates
+30900;Dining pots/utensils
+31000;Cutleries
+31002;Women's Blouse
+31100;Aluminium cooking utensils (local)
+31200;Aluminium cooking utensils (lmported)
+31300;Other cooking pots /utensils
+31400;Other glassware, tableware and utensils
+31500;Non-stick frying pan
+31600;Bucket
+31700;Rolling pin
+31800;Jug
+32000;Motor driven lawn mower
+32002;Women's Summer Pants(trousers)
+32100;Water cans
+32200;Water pumps
+32400;Cutlasses
+32500;shovels
+32600;Rakes
+32700;Wheelbarrow
+32900;Incandescent light bulb
+33000;Energy Saving Light Bulb
+33002;Women's Jacket/Blazer
+33100;Fluorescent bulbs
+33300;Torches
+33400;AA Alkaline Batteries
+33600;Padlock
+33800;Brooms
+33900;Mop, with handle
+34000;Other (specify)
+34002;Women’s Polyester Skirt
+34100;Hand drier
+34200;House boys/house maids
+34300;Housekeepers/caretakers
+34400;Baby sitters,day care attendants, nannies etc
+34500;Lawn boys/gardeners
+34600;Security guards
+34900;Digital therapeutical thermometer
+35000;Soft contact lenses
+35002;Women's Denim Skirt(jeans)
+35100;Walking stick
+35200;Automatic blood pressure monitor - upper arm
+35400;Therapeutic appliances & equipment
+35500;Eye specialist (Ophthalmologist): Sight test examination
+35600;Corrective eye-glasses & contact lenses
+35800;Doctors consulting fee:Public hospital
+35900;Urologist: Consultation
+36000;Gynecologist: Consultation
+36002;Women's Nightgown
+36100;Consultation with a pediatrician medical practitioner
+36200;Doctors consulting fee: Private hospital
+36500;Dentist: Extraction of a tooth
+36600;Dentist: Filling
+36700;Cost of private dental services
+36900;Traditional healer
+37002;Women's Bathrobe
+37100;Standard blood test (private)
+37200;Urine test
+37300;Mammogram
+37400;X-rays
+37500;Services of midwives, nurses, etc
+37600;Traditional birth attendant (TBA) services
+37700;Physiotherapist: Complete treatment sessions
+38000;Surgery in public hospitals
+38100;surgery in private hospitals
+38200;Other in patient hospital services
+38400;Purchase of new cars (specify)
+38500;Purchase of new truck
+38600;Purchase of second hand cars (specify)
+38700;Purchase of second hand truck
+38900;Purchase of new motorcycles (specify)
+39000;Purchase of second-hand motorcycle (specify)
+39002;Track Suit
+39200;Purchase of new tricycles
+39300;Purchase of second-hand tricycle
+39500;Purchase of new bicycles
+39600;Purchase of second-hand bicycle
+39800;Animal drawn cart
+40002;Women's Pullover
+40100;Tyre R14 (PARTS OF CAR)
+40200;Tyre R15
+40300;Other tyre rim
+40500;Car Battery - Bosch
+40600;Car Battery - Boliden
+40700;Car Battery - Ganiva
+40800;Car Battery - Visca
+40900;Car Battery - Other
+41000;Spark plug
+41002;Ladies' straight trousers
+41100;Oil filter
+41200;Fuel filter
+41300;Other spare parts (specify)
+41500;Engine oils
+41600;Lubricants
+41800;Wheel alignment
+41900;Services, garage (mechanic)
+42000;Tyre repair
+42002;Raincoat
+42100;Clutch repair
+42200;Brake repair
+42700;Drivers license fees
+42800;Road worthy fees
+42900;Vehicle registration
+43002;Cotton blouse
+43100;International Flight One Way
+43200;International Flight Two Way
+43400;Postal services
+43500;Other communication charges
+43700;Telephones handset
+43800;Corded (specify)
+43900;Cordless (specify)
+44002;Boubou
+44100;Infinix
+44200;Tecno
+44300;Nokia
+44400;Samsung
+44500;Apple Iphone
+44600;LG
+44700;STG
+44800;Sony Experia
+44900;Huawei
+45000;Microsoft (Nokia)
+45002;Two pieces dress
+45100;HTC
+45200;Other mobile phone
+45300;Telefax machines(specify)
+45400;Repair of handset, mobile phones and fax machines
+45700;Portable radio (specify)
+45800;DVD-Player (specify)
+45900;Automobile Radio With CD Player, MP3 Playback
+46000;LCD Television
+46002;Skirt
+46100;LG
+46200;Samsung
+46300;Hisense
+46400;Other LCD Television (specify)
+46500;Parabolic/satelite receivers
+46700;Digital photo camera (specify)
+46800;Video cameras
+47000;Other photographic equipment
+47300;Dell
+47400;HP
+47600;Other desktop computer (specify)
+47800;Dell
+47900;HP
+48000;Compaq
+48002;Boy's two piece dress
+48100;Other desktop computer(specify)
+48300;Dell
+48400;HP
+48500;Toshiba
+48600;Lenovo
+48700;Other laptop(specify)
+48900;Dell
+49000;HP
+49002;Boy's Undershirt (singlet)
+49100;Toshiba
+49200;Other laptop(specify)
+49300;Calculator (scientific)
+49600;Pen drive/external hard drives
+49700;CD/DVD
+49800;Memory chips/SD cards
+50000;Personal Computer Technician Services
+50002;Boy's Shirt, Short Sleeves
+50100;Services of TV Technician
+50200;Repairs of other equipment for data processing
+50400;6-String Basic Acoustic Guitar for Beginner
+50900;Barbie Baby Doll for Girls
+51000;Video game equipment and toys
+51002;Boy's Shirt, long Sleeves
+51200;Pack of 52 playing card game
+51300;Leather Football
+51500;Other major durables for recreation
+51700;Flower,(Natural/artificial)
+51800;Fertilizers for gardening
+51900;Compost for gardening
+52002;Boy's Jogging Suit
+52100;Pets
+52200;Tinned Dog Food
+52300;Tinned Cat Food
+52500;Vaccination of Dog against rabies
+52600;Veterinary service, castration of a cat
+52700;Cost of veterinary products
+52900;Use of Gym facilities
+53000;Football game (Popular stand)
+53002;Boy's Underpants
+53100;Fair and amusement parks (Trade fair, children parks)
+53200;National parks and Zoos
+53300;TV license fees
+53400;Payment for services of private TVs (DSTV, GOTV etc)
+53500;Swimming Admission/ Beaches
+53900;Cinema/theatre/Video houses
+54000;Digital Prints
+54002;Girl’s Underpants
+54100;Film processing and photo printing – Normal Service, 36 prints
+54300;Hiring of spinners
+54400;Color Passport Pictures Set
+54500;Purchase of DVD/VCD movies
+54600;Concert/club and music attendance
+54700;Funeral
+54800;Weddings/Outdooring
+54900;Cultural festivals donations
+55002;Girl's Dress
+55100;Football betting eg Safaribet
+55300;Longman
+55400;Cambridge
+55600;English Textbook(jss)
+55700;Mathematics Textbook(jss)
+55800;English Textbook(shs)
+55900;Mathematics Textbook(shs)
+56002;Babies’ Bodysuit
+56100;Greeting cards
+56200;Calendars
+56300;Diaries
+56500;Exercise book (20 sheets)
+56600;Note book (hard cover)
+56700;Other stationery and drawing materials (specify)
+56900;Excursions local
+57000;Pilgrimage local
+57100;Excursion/Pilgrimage abroad
+57200;Other packaged holidays
+57400;Pre-primary expenses (public & private)
+57500;Primary expenses (public & private)
+57600;JHS expenses (public & private)
+57700;SHS and Post-secondary (public & private)
+57800;Tertiary expenses (public & private)
+57900;Graduation fees
+58000;Fees for gown(Graduation)
+58002;Trousers
+58100;Examination fees
+58200;Graduation fees excluding gown
+58400;Apprenticeship fees (eg, Seamstress, carpentry, hairdresser)
+58500;Examination fees (Adult literacy courses)
+58800;Cost of bed occupancy per day (health facilities)
+58900;Hostels private
+59000;Hostels public
+59002;Shirts
+59200;Hotel, Capital City – 2 Star Bed and Breakfast
+59300;Budget Hotel, Capital City – No Star Bed Only
+59400;Simple Traditional Hotel
+59500;Hostel dormitory
+59800;Electric Shaving Machine
+59900;Jewellery, clocks and watches
+60000;Wrist watch (engine watch) specify
+60002;Men's T-shirt
+60100;Wrist watch (battery) (specify)
+60200;Wrist watch (digital watch) (specify)
+60300;Wall clock (specify)
+60400;Analogue Travel alarm, quartz
+60500;Wedding type ring
+60600;Engagement ring
+60700;Necklace (Chain),Gold
+60800;Other accessories (specify)
+60900;Repairs of jewellery, clocks and watches
+61002;Men's Shirt - Open front (long sleeves or short sleeves)
+61100;Foldable umbrella
+61200;Suitcase, with trolley system
+61300;Synthetic racksack (carrier bag)
+61500;Walking-stick synthetic umbrella with plastic handle
+61600;Leather wallet
+61700;Tablet computer
+61800;MS Office Home or Student version software (specify)
+61900;Antivirus software (specify)
+62000;Other (specify)
+62002;Jeans jacket
+62200;Gifts and tips
+62300;Payment at churches and social clubs
+62500;Premium for life insurance
+62900;Premium for health insurance
+63002;Dress coat
+63100;Motor vehicle insurance (third party)private saloon car
+63400;Charges for money orders, bankers drafts
+63700;Legal service,( will fees)
+63800;Agent fees (house agents)
+63900;Photocopy charge per A4 sheet (black and white)
+64000;Newspaper advertisement, (funeral)
+64002;Shirt short sleeves
+65002;Branded T-Shirt
+66002;Wax Design Shirt
+68002;Shorts men
+69002;Shorts women
+71002;Sports shirt men
+72002;Sports shirt women
+73002;Jeans (men)
+74002;Jeans ( women)
+75002;Underwear women
+76002;Underwear men
+77002;Underwear children
+79002;Men (Second hand clothing=
+80002;Women
+81002;Children
+83002;Men (Uniform)
+84002;Women
+85002;Children
+87002;Men
+88002;Women
+89002;Children
+93002;Other articles of clothing and clothing accessories
+94002;Handkerchief (women)
+95002;Scarf (women)
+96002;Handkerchief (men)
+97002;Men’s Belt (leather or synthetic)
+98002;Men's Socks
+99002;Polyester tie
+100000;Rent
+200000;Repair
+300000;Ely

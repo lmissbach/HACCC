@@ -16,7 +16,7 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 
 # 1.1     Setup ####
 
-for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey",
+for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Iraq","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Rwanda","Senegal",
                       "South Africa", "Togo", "Uganda",

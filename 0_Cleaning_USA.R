@@ -178,19 +178,21 @@ rm(tmp, memi182, memi183, memi184, memi191, memi192, memi193, memi194,
 
 # Household information
 #collect relevant data from most convenient sources, link them through newid
-
 mem_iv_1 <- mem_iv %>%
   filter(cu_code == 1)%>% # reference person
+  filter(grepl("1$", hh_id))%>%
   rename(age_hhh = age, sex_hhh = sex, ind_hhh = occucode, edu_hhh = educa,
          ethnicity = membrace, ethnicity_2.1 = asian, ethnicity_2 = hispanic)%>%
-  select(hh_id, age_hhh, sex_hhh, ind_hhh, edu_hhh, ethnicity, ethnicity_2.1, ethnicity_2)%>%
+  select(hh_id = id, age_hhh, sex_hhh, ind_hhh, edu_hhh, ethnicity, ethnicity_2.1, ethnicity_2)%>%
   mutate(ethnicity     = ifelse(ethnicity == 4 | ethnicity == 6, as.numeric(ethnicity_2.1)+10, ethnicity))%>%
-  select(-ethnicity_2.1)
+  select(-ethnicity_2.1)%>%
+  distinct()
 
 mem_iv_2 <- mem_iv %>%
   mutate(adults   = ifelse(age > 15,1,0),
          children = ifelse(age < 16,1,0))%>%
-  select(hh_id, adults, children, socrrx)%>%
+  filter(grepl("1$", hh_id))%>%
+  select(hh_id = id, adults, children, socrrx)%>%
   mutate(socrrx = ifelse(is.na(socrrx),0, socrrx))%>%
   group_by(hh_id)%>%
   summarise(adults           = sum(adults),
@@ -198,12 +200,14 @@ mem_iv_2 <- mem_iv %>%
             hh_size          = n(),
             inc_gov_monetary = sum(socrrx),
             inc_gov_cash     = 0)%>%
-  ungroup()
+  ungroup()%>%
+  distinct()
 
 fml_iv_1 <- fml_iv %>%
+  filter(grepl("1$", hh_id))%>%
   mutate(urban_01 = ifelse(bls_urbn == 1,1,0))%>%
   rename(province = division, district = state, hh_weights = finlwt21)%>%
-  select(hh_id, urban_01, province, district, hh_weights)%>%
+  select(hh_id = id, urban_01, province, district, hh_weights)%>%
   mutate(hh_weights = hh_weights/4)
 
 household_information <- mem_iv_1 %>%
@@ -229,10 +233,9 @@ write_csv(household_information, "../0_Data/1_Household Data/3_USA/1_Data_Clean/
 
 ### EXPENDITURE
 # not all households are in the set for all 4 quarters in which the interviews were conducted
-# -> we normalize the expenditures to yearly expenses for all households, inclduing those with missing interviews
+# -> we normalize the expenditures to yearly expenses for all households, including those with missing interviews
 exp <- mtb_iv %>%
   mutate(individual_quarter = strtoi(str_sub(hh_id, -1)))%>%
-  mutate(id = gsub('.$', '', hh_id))%>%
   group_by(id)%>%
   mutate(completeness = ifelse(1%in%individual_quarter, 1, 0))%>%
   mutate(completeness = ifelse(2%in%individual_quarter, completeness + 1, completeness))%>%
@@ -256,15 +259,21 @@ exp2 <- exp%>%
 # https://www.bls.gov/cex/pumd_doc.htm
 # it contains all UCC codes and their description for each year of both interviews and diaries
 # load the interview-files for 2019 and 2020, extract codes from exp and then match codes to descriptions
-ucc_codes_raw <- read.xlsx(paste0(path, "/3_USA/9_Documentation/ce_source_integrate.xlsx"), startRow = 4, sheet = 1)
+ucc_codes_raw <- read.xlsx("../0_Data/1_Household Data/3_USA/9_Documentation/ce_source_integrate.xlsx", startRow = 4, sheet = 1)
 ucc_codes <- ucc_codes_raw%>%
   filter(!is.na(y19))%>%
   select(description = Description, ucc = UCC)
-exp_codes <- exp[,2]%>%
+exp_codes <- exp2[,2]%>%
   distinct(.)%>%
-  left_join(., ucc_codes)
+  left_join(., ucc_codes)%>%
+  distinct()
+
+exp_codes_diary <- exp_diary[,6]%>%
+  distinct(.)%>%
+  left_join(., ucc_codes)%>%
+  distinct()
   
-apa <- read_dta(paste0(path, "/3_USA/1_Data_Raw/intrvw19/expn19/apa19.dta"))
+apa <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/intrvw19/expn19/apa19.dta")
 
 # Code Intermezzo
 
