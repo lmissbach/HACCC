@@ -29,26 +29,26 @@ options(scipen=999)
 # data_12    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/AG_12.dta")
 # data_13    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/ALLHH_A_weighted.dta")
 
-data_a    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_A&FILT.dta")
-data_b    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_B.dta")
-data_c    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_C.dta")
-data_d    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_D.dta")
-data_e    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_E.dta")
-data_f    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_F.dta")
+data_a    <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_A&FILT.dta")
+data_b    <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_B.dta")
+data_c    <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_C.dta")
+data_d    <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_D.dta")
+data_e    <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_E.dta")
+data_f    <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_F.dta")
 # data_g    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_G.dta")
 # data_h    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_H.dta")
 # data_i1   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_I1.dta")
 # data_i2   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_I2.dta")
-data_j1   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_J1.dta")
-data_j2   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_J2.dta")
-data_k1   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_K1.dta")
+data_j1   <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_J1.dta")
+data_j2   <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_J2.dta")
+data_k1   <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_K1.dta")
 # data_k2   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_K2.dta")
-data_l1a  <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_L1A.dta")
-data_l1b  <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_L1B.dta")
-data_l2   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_L2.dta")
-data_m    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_M.dta")
-data_n1   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_N1.dta")
-data_n2   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_N2.dta")
+data_l1a  <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_L1A.dta")
+data_l1b  <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_L1B.dta")
+data_l2   <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_L2.dta")
+data_m    <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_M.dta")
+data_n1   <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_N1.dta")
+data_n2   <- read_dta("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_N2.dta")
 # data_n3   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_N3.dta")
 # data_o    <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_O.dta")
 # data_p1   <- read_data("../0_Data/1_Household Data/2_Liberia/1_Data_Raw/HH_P1.dta")
@@ -87,7 +87,9 @@ data_a.2 <- data_a.1 %>%
 data_b.1 <- data_b %>%
   filter(hh_b_07 == 1)%>%
   select(hhid, hh_b_02, hh_b_11, ind_id)%>%
-  rename(hh_id = hhid, sex_hhh = hh_b_02, ethnicity = hh_b_11)
+  rename(hh_id = hhid, sex_hhh = hh_b_02, ethnicity = hh_b_11)%>%
+  arrange(ind_id)%>%
+  distinct(hh_id, .keep_all = TRUE)
   
 data_b.2 <- data_b %>%
   mutate(adults   = ifelse(hh_b_06 > 15,1,0),

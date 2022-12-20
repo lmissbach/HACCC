@@ -253,17 +253,21 @@ expenditure_information <- expenditure_information_4 %>%
 
 expenditure_information_4.1 <- expenditure_information_4 %>%
   group_by(hh_id) %>%
-  mutate(total_expenditures = sum(expenditures)) %>%
+  summarise(total_expenditures = sum(expenditures),
+            hh_weights         = first(hh_weights)) %>%
   ungroup() %>%
   mutate(outlier_95 = wtd.quantile(total_expenditures, weights = hh_weights, probs = 0.95),
-         outlier_99 = wtd.quantile(total_expenditures, weights = hh_weights, probs = 0.99))
+         outlier_99 = wtd.quantile(total_expenditures, weights = hh_weights, probs = 0.99),
+         mean_total = wtd.mean(total_expenditures,     weights = hh_weights),
+         sd_total   = sqrt(wtd.var(total_expenditures, weights = hh_weights)))%>%
+  mutate(z_score = (total_expenditures-mean_total)/sd_total)
 
 expenditure_outlier <- expenditure_information_4.1 %>%
-  filter(total_expenditures >= outlier_99)%>%
+  filter(z_score > 5)%>%
   select(hh_id)%>%
   distinct()
 
-if(Country.Name == ""){
+if(Country.Name %in% c("Ghana", "Colombia", "Malawi")){
 # if you would like to delete those outliers, please do the following
 
 household_information <- household_information %>%
