@@ -192,7 +192,7 @@ District.Code <- stack(attr(data_0.3$marz, 'labels'))%>%
 Heating.Code <- stack(attr(data_0.3$c16_1, 'labels'))%>%
   rename(heating_fuel = values, Heating_Fuel = ind)%>%
   write_csv(., "../0_Data/1_Household Data/4_Armenia/2_Codes/Heating.Code.csv")
-Water.Code <- stack(attr(data_0.3$marz, 'labels'))%>%
+Water.Code <- stack(attr(data_0.3$c13, 'labels'))%>%
   rename(water = values, Water = ind)%>%
   write_csv(., "../0_Data/1_Household Data/4_Armenia/2_Codes/Water.Code.csv")
 Gender.Code <- stack(attr(data_0.4$a1_1, 'labels'))%>%

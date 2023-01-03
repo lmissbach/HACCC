@@ -267,8 +267,9 @@ expenditure_outlier <- expenditure_information_4.1 %>%
   select(hh_id)%>%
   distinct()
 
-if(Country.Name %in% c("Ghana", "Colombia", "Malawi")){
-# if you would like to delete those outliers, please do the following
+# Deleting outliers for some countries
+
+if(Country.Name %in% c("Ghana", "Colombia", "Malawi", "Cambodia", "Nicaragua")){
 
 household_information <- household_information %>%
   filter(!hh_id %in% expenditure_outlier$hh_id)

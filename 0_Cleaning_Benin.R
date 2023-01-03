@@ -424,9 +424,11 @@ Water.Code.B <- stack(attr(data_11.1$s11q27b, 'labels'))%>%
 Water.Code <- expand_grid(WaterA = Water.Code.A$values, WaterB = Water.Code.B$values)%>%
   left_join(Water.Code.A, by = c("WaterA" = "values"))%>%
   left_join(Water.Code.B, by = c("WaterB" = "values"))%>%
+  mutate(WTR = ifelse(WaterB %in% c(1,2,3,4,7,8,14,16), "Basic",
+                      ifelse(WaterB %in% c(5,6,9,10,11,12,13,15), "Limited", "Unknown")))%>%
   unite(water, c(WaterA, WaterB), sep = "W")%>%
-  unite(WTR, c(NameA, NameB), sep = ", ", remove = TRUE)%>%
-  select(water, WTR)%>%
+  unite(Water, c(NameA, NameB), sep = ", ", remove = TRUE)%>%
+  select(water, Water, WTR)%>%
   filter(water %in% data_11.1.1$water)
 
 write_csv(Water.Code, "../0_Data/1_Household Data/2_Benin/2_Codes/Water.Code.csv")

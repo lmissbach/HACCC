@@ -207,8 +207,7 @@ fml_iv_1 <- fml_iv %>%
   filter(grepl("1$", hh_id))%>%
   mutate(urban_01 = ifelse(bls_urbn == 1,1,0))%>%
   rename(province = division, district = state, hh_weights = finlwt21)%>%
-  select(hh_id = id, urban_01, province, district, hh_weights)%>%
-  mutate(hh_weights = hh_weights/4)
+  select(hh_id = id, urban_01, province, district, hh_weights)
 
 household_information <- mem_iv_1 %>%
   left_join(mem_iv_2)%>%
@@ -252,6 +251,7 @@ exp2 <- exp%>%
   group_by(id)%>%
   mutate(exp = sum(cost))%>%
   ungroup()
+
 
 
 ### EXPENDITURE-CODES
