@@ -19,7 +19,8 @@ household_1 <- hogar_0 %>%
   select(hh_id, hh_weights, urban_01, province, cooking_fuel, lighting_fuel, toilet, water)%>%
   mutate(electricity.access = ifelse(lighting_fuel == 0 | lighting_fuel == 5,0,1))%>%
   remove_all_labels()%>%
-  zap_formats()
+  zap_formats()%>%
+  mutate(toilet = ifelse(is.na(toilet),6,toilet))
 
 # Persons information
 

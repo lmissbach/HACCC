@@ -63,7 +63,8 @@ data_02.1 <- data_02 %>%
 data_02.2 <- data_02 %>%
   rename(hh_id = questionnaire_no, age_hhh = q1_4_flap, sex_hhh = q1_3, ethnicity = q1_9, language = q1_10, edu_hhh = q2_7, ind_hhh = q4_12)%>%
   filter(q1_2 == 1)%>%
-  select(hh_id, age_hhh, sex_hhh, ethnicity, language, edu_hhh, ind_hhh)
+  select(hh_id, age_hhh, sex_hhh, ethnicity, language, edu_hhh, ind_hhh)%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),20,edu_hhh))
 
 household_information <- data_02.1 %>%
   left_join(data_02.2)%>%

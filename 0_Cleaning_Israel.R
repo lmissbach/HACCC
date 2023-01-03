@@ -55,8 +55,8 @@ prat_1 <- prat %>%
 
 
 
-Education.Code <- data.frame(edu_hhh   = c(seq(1,9,1)),
-                             Education = c("Elementary School / Junior High", "High School Diploma", "High School Diploma", "High School Graduation", "Bachelor", "Master", "PhD", "Another Certificate", "Unknown"))%>%
+Education.Code <- data.frame(edu_hhh   = c(seq(1,9,1),99),
+                             Education = c("Elementary School / Junior High", "High School Diploma", "High School Diploma", "High School Graduation", "Bachelor", "Master", "PhD", "Another Certificate", "Unknown", "Unknown"))%>%
   write_csv(., "../0_Data/1_Household Data/1_Israel/2_Codes/Education.Code.csv")
 Industry.Code <- data.frame(ind_hhh  = c("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","X"),
                             Industry = c("Agriculture, Forestry, Fishing", "Mining", "Industry", "Energy", "Water, Waste", "Construction", "Wholesale, Retail, Trade", "Transportation", "Accomodation", "Information", "Financial Services", "Real Estate", "Science", "Management", "Public Administration", "Education", "Health", "Art, Entertainment", "Other Services", "Household Employment", "NGO", "Unknown"))%>%

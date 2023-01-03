@@ -44,9 +44,9 @@ Heating.Code <- stack(attr(hogares_1$heating_fuel, 'labels'))%>%
 Water.Code <- stack(attr(hogares_1$water, 'labels'))%>%
   rename(water = values, Water = ind)%>%
   write_csv(., "../0_Data/1_Household Data/3_Uruguay/2_Codes/Water.Code.csv")
-Toilet.A.Code <- stack(attr(hogares_1$toilet.a, 'labels'))%>%
+Toilet.A.Code <- stack(attr(hogares_0$D15, 'labels'))%>%
   rename(A1 = values, A2 = ind)
-Toilet.B.Code <- stack(attr(hogares_1$toilet.b, 'labels'))%>%
+Toilet.B.Code <- stack(attr(hogares_0$D16, 'labels'))%>%
   rename(B1 = values, B2 = ind)
 Toilet.Code   <- expand_grid(Toilet.A.Code, Toilet.B.Code)%>%
   unite(toilet, c(A1,B1), sep = "")%>%

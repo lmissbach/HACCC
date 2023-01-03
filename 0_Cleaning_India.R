@@ -69,7 +69,8 @@ level_41 <- level_4 %>%
   select(HHID, Education, adults, children)%>%
   rename(hh_id = HHID, edu_hhh = Education)%>%
   remove_all_labels()%>%
-  mutate(edu_hhh = as.numeric(edu_hhh))
+  mutate(edu_hhh = as.numeric(edu_hhh))%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),14,edu_hhh))
 
 Level_1234 <- left_join(Level_123, level_41, by = "hh_id")
 

@@ -42,7 +42,9 @@ h1.1 <- h1 %>%
   rename(water = j01_dr, toilet = j10, lighting_fuel = j17, cooking_fuel = j18, electricity.access = j20)%>%
   mutate(electricity.access = ifelse(is.na(electricity.access),0,electricity.access),
          lighting_fuel      = ifelse(is.na(lighting_fuel),96, lighting_fuel),
-         cooking_fuel       = ifelse(is.na(cooking_fuel),96,cooking_fuel))%>%
+         cooking_fuel       = ifelse(is.na(cooking_fuel),96,cooking_fuel),
+         toilet             = ifelse(is.na(toilet),96, toilet),
+         water              = ifelse(is.na(water),96,water))%>%
   mutate(electricity.access = ifelse(electricity.access == 1 | lighting_fuel == 1 | lighting_fuel == 2 | lighting_fuel == 3,1,0))
 
 h2.1 <- h2 %>%

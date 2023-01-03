@@ -81,7 +81,8 @@ data_04.1 <- data_04 %>%
   rename(toilet = toilet.y)%>%
   mutate(cooking_fuel  = ifelse(is.na(cooking_fuel),4,  cooking_fuel),
          lighting_fuel = ifelse(is.na(lighting_fuel),8, lighting_fuel),
-         heating_fuel  = ifelse(is.na(heating_fuel),13, heating_fuel))
+         heating_fuel  = ifelse(is.na(heating_fuel),13, heating_fuel),
+         water         = ifelse(is.na(water),        9, water))
 
 data_05.1 <- data_05%>%
   rename(hh_id = questid, edu_hhh = q0503)%>%

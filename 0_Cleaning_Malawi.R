@@ -80,7 +80,8 @@ data_c.1 <- data_c %>%
   left_join(data_b.3)%>%
   filter(!is.na(hh_b04))%>%
   rename(edu_hhh = hh_c09)%>%
-  select(hh_id, edu_hhh)
+  select(hh_id, edu_hhh)%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),1,edu_hhh))
 
 data_e.1 <- data_e %>%
   rename(hh_id = case_id, ind_hhh = hh_e20b)%>%

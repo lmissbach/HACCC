@@ -32,7 +32,8 @@ data_1.1 <- data_1 %>%
          cooking_fuel = q13_13, toilet = q13_14, water = q13_15, lighting_fuel = q13_17)%>%
   mutate(urban_01 = ifelse(province == 1,1,0))%>% # can be contested
   select(hh_id, hh_weights, province, district, village, urban_01, cooking_fuel, lighting_fuel, toilet, water)%>%
-  mutate(lighting_fuel = ifelse(is.na(lighting_fuel),9,lighting_fuel))
+  mutate(lighting_fuel = ifelse(is.na(lighting_fuel),9,lighting_fuel))%>%
+  mutate(water = ifelse(is.na(water),8,water))
 
 data_2.1 <- data_2 %>%
   rename(hh_id = hhid)%>%
@@ -53,7 +54,8 @@ data_2.2 <- data_2 %>%
          ethnicity   = ifelse(is.na(ethnicity),   9, ethnicity),
          nationality = ifelse(is.na(nationality), 7, nationality),
          religion    = ifelse(is.na(religion),   12, religion),
-         sex_hhh     = ifelse(is.na(sex_hhh),     1, sex_hhh))
+         sex_hhh     = ifelse(is.na(sex_hhh),     1, sex_hhh),
+         edu_hhh     = ifelse(is.na(edu_hhh),     7, edu_hhh))
 
 data_2.3 <- data_2 %>%
   rename(hh_id = hhid)%>%

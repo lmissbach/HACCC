@@ -404,7 +404,8 @@ household_information <- left_join(data_hogares_1, data_personas_1)%>%
   left_join(data_personas_2)%>%
   left_join(data_personas_3)%>%
   remove_all_labels()%>%
-  zap_formats()
+  zap_formats()%>%
+  mutate(cooking_fuel = ifelse(cooking_fuel == "",7,cooking_fuel))
 
 write_csv(household_information, "../0_Data/1_Household Data/3_Colombia/1_Data_Clean/household_information_Colombia.csv")
 

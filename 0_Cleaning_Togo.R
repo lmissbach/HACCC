@@ -171,7 +171,8 @@ household_information <- data_0.5.1 %>%
   left_join(data_5.1.1)%>%
   left_join(data_15.1.1)%>%
   remove_all_labels()%>%
-  mutate(inc_gov_monetary = ifelse(is.na(inc_gov_monetary),0, inc_gov_monetary))
+  mutate(inc_gov_monetary = ifelse(is.na(inc_gov_monetary),0, inc_gov_monetary))%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),0,edu_hhh))
 
 write_csv(household_information, "../0_Data/1_Household Data/2_Togo/1_Data_Clean/household_information_Togo.csv")
 

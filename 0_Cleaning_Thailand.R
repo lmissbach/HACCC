@@ -42,7 +42,8 @@ rec_01.1 <- rec_01 %>%
   mutate(adults              = hh_size - children)%>%
   mutate(urban_01 = ifelse(urban == 1,1,0))%>%
   select(hh_id, hh_size, hh_weights, adults, children, urban_01, province, district, edu_hhh)%>%
-  remove_all_labels()
+  remove_all_labels()%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),980,edu_hhh))
 
 rec_02.1 <- rec_02 %>%
   select(NEW_HH_N, HM01, HM05, HM06, HM38)%>%
