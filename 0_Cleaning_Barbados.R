@@ -190,6 +190,7 @@ Province.Code <- stack(attr(data_01.1$province, 'labels'))%>%
   write_csv(., "../0_Data/1_Household Data/3_Barbados/2_Codes/Province.Code.csv")
 District.Code <- distinct(data_01P, psu, lat_cen, long_cen)%>%
   rename(district = psu)%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/3_Barbados/2_Codes/District.Code.csv")
 Water.Code <- stack(attr(data_01P$q13_15, 'labels'))%>%
   rename(water = values, Water = ind)%>%

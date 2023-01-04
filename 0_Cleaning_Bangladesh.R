@@ -235,7 +235,7 @@ Province.Code <- distinct(rt001, region)%>%
 
 District.Code <- distinct(rt001, district)%>%
   arrange(district)%>%
-  mutate(District = c())%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/1_Bangladesh/2_Codes/District.Code.csv")
 
 Religion.Code <- distinct(rt002, s01a_q05)%>%
