@@ -38,10 +38,10 @@ rec_01.1 <- rec_01 %>%
   rename(hh_id = NEW_HH_N,
          province = REG, district = CWT,
          edu_hhh = C04, urban = AREA, hh_size = A04_1, hh_weights = A52, children = C05,
-         sex_hhh = C01, )%>%
+         sex_hhh = C01)%>%
   mutate(adults              = hh_size - children)%>%
   mutate(urban_01 = ifelse(urban == 1,1,0))%>%
-  select(hh_id, hh_size, hh_weights, adults, children, urban_01, province, district, edu_hhh)%>%
+  select(hh_id, hh_size, hh_weights, adults, children, urban_01, province, district, edu_hhh, sex_hhh)%>%
   remove_all_labels()%>%
   mutate(edu_hhh = ifelse(is.na(edu_hhh),980,edu_hhh))
 

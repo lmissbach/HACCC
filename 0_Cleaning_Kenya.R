@@ -49,7 +49,7 @@ h1.1 <- h1 %>%
 
 h2.1 <- h2 %>%
   unite("hh_id", c("clid", "hhid"), sep = "0")%>%
-  select(hh_id, b03, b04, b05_yy, b14, c10_l)%>% # starts_with("c13"), starts_with("e13"), starts_with("e15"), starts_with("h04"))
+  select(hh_id, b03, b04, b05_yy, b14, c10_l, c02)%>% # starts_with("c13"), starts_with("e13"), starts_with("e15"), starts_with("h04"))
   rename(sex_hhh = b04, age = b05_yy, religion = b14, edu_hhh = c10_l)
 
 h2.11 <- h2.1 %>%
@@ -63,7 +63,8 @@ h2.11 <- h2.1 %>%
 
 h2.12 <- h2.1 %>%
   filter(b03 == 1)%>%
-  select(hh_id, sex_hhh, religion, edu_hhh)
+  select(hh_id, sex_hhh, religion, edu_hhh)%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh), 99, edu_hhh))
 
 h1.3 <- h1 %>%
   unite("hh_id", c("clid", "hhid"), sep = "0")%>%
@@ -217,7 +218,8 @@ Cooking.Code <- stack(attr(h1$j18, 'labels'))%>%
   rename(cooking = values, Cooking_Fuel = ind)%>%
   write_csv(., "../0_Data/1_Household Data/2_Kenya/2_Codes/Cooking.Code.csv")
 Education.Code <- stack(attr(h2$c10_l, 'labels'))%>%
-  rename(education = values, Education = ind)%>%
+  rename(edu_hhh = values, Education = ind)%>%
+  bind_rows(data.frame(edu_hhh = 99, Education = "None"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Kenya/2_Codes/Education.Code.csv")
 Gender.Code <- stack(attr(h2$b04, 'labels'))%>%
   rename(gender = values, Gender = ind)%>%

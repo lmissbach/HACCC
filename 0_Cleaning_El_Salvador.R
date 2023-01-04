@@ -17,7 +17,7 @@ data_01 <- data_0 %>%
          hhh = r103, sex_hhh = r104, age_hhh = r106, alfabetism = r202a, edu_hhh = r217a, edu_hhh_b = r219,
          lighting_fuel = r311, water = r312, toilet = r319, gas_subsidy = r325a1, ely_subsidy = r325a2, cooking_fuel = r326, ind_hhh_b = r414,
          ind_hhh_a = r416)%>% # ind_hhha = CIIU Rev. 4
-  select(hh_id, urban_01, region, province, district, hh_weights, hh_size, hhh, sex_hhh, age_hhh, alfabetism, edu_hhh, edu_hhh_b,
+  select(hh_id, urban_01, region, province, district, hh_weights, hh_size, hhh, sex_hhh, age_hhh, alfabetism, edu_hhh, edu_hhh_b,r215,
          lighting_fuel, water, toilet, cooking_fuel, ind_hhh_a, ind_hhh_b, gas_subsidy, ely_subsidy)%>%
   mutate(toilet = ifelse(is.na(toilet),11,toilet))
 
@@ -41,6 +41,8 @@ data_013 <- data_01 %>%
   rename(ind_hhh = ind_hhh_a)%>%
   filter(hhh == 1)%>%
   select(-hhh)%>%
+  mutate(edu_hhh_b = ifelse(is.na(edu_hhh_b),1,edu_hhh_b),
+         edu_hhh   = ifelse(is.na(edu_hhh),8,edu_hhh))%>%
   unite(edu_hhh, c(edu_hhh, edu_hhh_b), sep = "00")
 
 # Codes

@@ -50,7 +50,8 @@ sect_1.2 <- sect1 %>%
 
 sect_2.1 <- sect2 %>%
   select(household_id, individual_id, s2q06)%>%
-  rename(edu_hhh = s2q06, hh_id = household_id)
+  rename(edu_hhh = s2q06, hh_id = household_id)%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),93,edu_hhh))
 
 sect4.1 <- sect4 %>%
   rename(hh_id = household_id, ind_hhh = s4q34d)%>%
@@ -176,6 +177,7 @@ Province.Code <- stack(attr(cover$saq01, 'labels'))%>%
 District.Code <- distinct(cover, saq03)%>%
   arrange(saq03)%>%
   rename(district = saq03)%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/2_Ethiopia/2_Codes/District.Code.csv")
 Religion.Code <- stack(attr(sect1$s1q08, 'labels'))%>%
   rename(religion = values, Religion = ind)%>%

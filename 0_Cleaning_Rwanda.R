@@ -65,7 +65,8 @@ data_0.1 <- data_0 %>%
 data_1.1 <- data_1 %>%
   rename(hh_id = hhid, sex_hhh = s1q1, nationality = s1q6, edu_hhh = s4aq2)%>%
   filter(s1q2 == 1)%>%
-  select(hh_id, sex_hhh, nationality, edu_hhh)
+  select(hh_id, sex_hhh, nationality, edu_hhh)%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),1,edu_hhh))
 
 data_1.2 <- data_1 %>%
   rename(hh_id = hhid)%>%

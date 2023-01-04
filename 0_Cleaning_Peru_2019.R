@@ -393,6 +393,7 @@ Toilet.Code <- stack(attr(Enaho_01_0$p111a, 'labels'))%>%
 District.Code <- distinct(Enaho_01_0, ubigeo)%>%
   arrange(ubigeo)%>%
   rename(district = ubigeo)%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/3_Peru/2_Codes/District.Code.csv")
 Village.Code <- distinct(Enaho_01_0, nomccpp, longitud, latitud)%>%
   arrange(nomccpp, longitud, latitud)%>%

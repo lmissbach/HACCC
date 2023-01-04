@@ -76,6 +76,7 @@ Province.Code <- distinct(data_01, CIUDAD_AUTO)%>%
   arrange(CIUDAD_AUTO)%>%
   rename(Province = CIUDAD_AUTO)%>%
   mutate(province = 1:n())%>%
+  mutate(Province = ifelse(Province == " ", "No ciudad", Province))%>%
   write_csv(., "../0_Data/1_Household Data/3_Ecuador/2_Codes/Province.Code.csv")
 
 District.Code <- distinct(data_01, PROVINCIA)%>%

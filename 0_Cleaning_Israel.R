@@ -88,6 +88,7 @@ Province.Code.1 <- Province.Code %>%
 District.Code <- read_excel("R:/MSA/datasets/Household Microdata/Israel/Data_2017_2018/H20181021/Yshv_code.xls", sheet = "Tabelle1")%>%
   rename(district = region, District = Region)%>%
   arrange(district)%>%
+  mutate(district = ifelse(district == "0","0000",district))%>%
   write_csv(., "../0_Data/1_Household Data/1_Israel/2_Codes/District.Code.csv")
 
 # 1.3 Income ####

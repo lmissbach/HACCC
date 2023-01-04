@@ -207,6 +207,7 @@ District.Code <- stack(attr(data_1$s01q03, 'labels'))%>%
   rename(district = values, District = ind)%>%
   separate(District, c("drop", "District"), sep = "/")%>%
   select(-drop)%>%
+  bind_rows(data.frame(district = c(210,211,2007), District = c("210", "211","2007")))%>%
   write_csv(., "../0_Data/1_Household Data/1_Cambodia/2_Codes/District.Code.csv")
 Gender.Code <- stack(attr(data_2$s02q03, 'labels'))%>%
   rename(sex_hhh = values, Gender = ind)%>%

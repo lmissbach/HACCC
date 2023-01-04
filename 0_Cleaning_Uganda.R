@@ -83,10 +83,12 @@ g_2.1 <- g_2 %>%
 
 g_4.1 <- g_4 %>%
   select(hhid, pid, E05)%>%
-  left_join(select(g_2, hhid, pid, R03))%>%
+  left_join(select(g_2, hhid, pid, R03, R02))%>%
   filter(R03 == 1)%>%
-  rename(hh_id = hhid, edu_hhh = E05)%>%
-  select(hh_id, edu_hhh)
+  rename(hh_id = hhid, edu_hhh = E05, sex_hhh = R02)%>%
+  select(hh_id, edu_hhh, sex_hhh)%>%
+  mutate(sex_hhh = ifelse(is.na(sex_hhh),1,sex_hhh),
+         edu_hhh = ifelse(is.na(edu_hhh) | edu_hhh < 0,99,edu_hhh))
 
 g_1La.1 <- g_1La %>%
   select(hhid, pid, B4_oneDigit)%>%
@@ -133,7 +135,9 @@ household_information <- g_1.1 %>%
   mutate(inc_gov_cash       = ifelse(is.na(inc_gov_cash),0,inc_gov_cash),
          inc_gov_monetary   = ifelse(is.na(inc_gov_monetary),0, inc_gov_monetary))%>%
   # Remove households with missing information on housing
-  filter(!is.na(electricity.access))
+  filter(!is.na(electricity.access))%>%
+  mutate(sex_hhh = ifelse(is.na(sex_hhh),1,sex_hhh))%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh) | edu_hhh < 0,99,edu_hhh))
 
 write_csv(household_information, "../0_Data/1_Household Data/2_Uganda/1_Data_Clean/household_information_Uganda.csv")
 
@@ -237,6 +241,7 @@ Province.Code <- distinct(g_1, s1aq1a, s1aq1b)%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Province.Code.csv")
 Education.Code <- stack(attr(g_4$E05, 'labels'))%>%
   rename(edu_hhh = values, Education = ind)%>%
+  bind_rows(data.frame(edu_hhh = 99, Education = "None"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Education.Code.csv")
 Industry.Code <- stack(attr(g_1La$B4_oneDigit, 'labels'))%>%
   rename(ind_hhh = values, Industry = ind)%>%

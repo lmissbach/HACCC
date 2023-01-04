@@ -70,7 +70,8 @@ data_2.1 <- data_2 %>%
   rename(hh_id = hhid, edu_hhh = s02q08)%>%
   left_join(select(rename(data_1,hh_id = hhid), hh_id, indiv, s01q03))%>%
   filter(s01q03 == 1)%>%
-  select(hh_id, edu_hhh)
+  select(hh_id, edu_hhh)%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),1,edu_hhh))
 
 data_4.1.1 <- data_4.1 %>%
   rename(hh_id = hhid)%>%

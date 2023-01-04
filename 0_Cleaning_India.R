@@ -52,7 +52,7 @@ Level_123 <- left_join(Level_12, level_3, by = "hh_id")%>%
   mutate(electricity.access = ifelse(lighting_fuel == 5 | cooking_fuel == 8, 1, 0))# Attention: Imputed
 
 level_4 <- Level4_68%>%
-  select(HHID, Person_sr_no,Age, Relation, Education)
+  select(HHID, Person_sr_no,Age, Relation, Education, Sex)
 
 level_4$Age[is.na(level_4$Age)] <- 0
 
@@ -66,8 +66,8 @@ level_4 <- level_4%>%
 
 level_41 <- level_4 %>%
   filter(Relation == 1)%>%
-  select(HHID, Education, adults, children)%>%
-  rename(hh_id = HHID, edu_hhh = Education)%>%
+  select(HHID, Education, adults, children, Sex)%>%
+  rename(hh_id = HHID, edu_hhh = Education, sex_hhh = Sex)%>%
   remove_all_labels()%>%
   mutate(edu_hhh = as.numeric(edu_hhh))%>%
   mutate(edu_hhh = ifelse(is.na(edu_hhh),14,edu_hhh))
@@ -158,6 +158,8 @@ Ethnicity.Code <- data.frame("ethnicity" = c(1,2,3,9),
                              "Ethnicity" = c("Scheduled Tribes", "Scheduled Castes", "Other Backward Castes", "Others"))%>%
   write_csv(., "../0_Data/1_Household Data/1_India/2_Codes/Ethnicity.Code.csv")
 Province.Code <- distinct(level_1, province)%>%
+  mutate(Province = province)%>%
   write_csv(., "../0_Data/1_Household Data/1_India/2_Codes/Province.Code.csv")
 Distrct.Code  <- distinct(level_1, district)%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/1_India/2_Codes/District.Code.csv")

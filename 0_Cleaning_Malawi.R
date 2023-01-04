@@ -163,11 +163,11 @@ data_f.3 <- data_f %>%
          hh_f25, hh_f26a, hh_f26b,
          hh_f32, hh_f33a, hh_f33b,
          hh_f35)%>%
-  mutate(hh_f_electricity = ifelse(hh_f26b == 3, hh_f25*365*hh_f26a,
-                                   ifelse(hh_f26b == 4, hh_f25*52*hh_f26a,
-                                          ifelse(hh_f26b == 5, hh_f25*12*hh_f26a,0))))%>%
-  mutate(hh_f_telephone = hh_f32*12,
-         hh_f_cell_phone = hh_f35*12)%>%
+  mutate(hh_f_electricity = ifelse(hh_f26b == 3, hh_f25*365/hh_f26a,
+                                   ifelse(hh_f26b == 4, hh_f25*52/hh_f26a,
+                                          ifelse(hh_f26b == 5, hh_f25*12/hh_f26a,0))))%>%
+  mutate(hh_f_telephone  = ifelse(hh_f33b == 5 & hh_f33a != 0, hh_f32*12,0))%>%
+  mutate(hh_f_cell_phone = hh_f35*12)%>%
   select(hh_id, hh_f_electricity, hh_f_telephone, hh_f_cell_phone)%>%
   pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures_year")%>%
   filter(expenditures_year > 0 & !is.na(expenditures_year))%>%

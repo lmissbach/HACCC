@@ -139,7 +139,7 @@ write_csv(pak_07.1, "../0_Data/1_Household Data/1_Pakistan/1_Data_Clean/applianc
 District.Code <- distinct(pak_0, stratum)%>%
   arrange(stratum)%>%
   rename(district = stratum)%>%
-  mutate(District = c())%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/1_Pakistan/2_Codes/District.Code.csv")
 Province.Code <- stack(attr(pak_0$province, 'labels'))%>%
   rename(province = values, Province = ind)%>%

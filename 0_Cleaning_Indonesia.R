@@ -273,5 +273,5 @@ Province.Code <- count(kor_a_0, R101)%>%
 District.Code <- count(kor_a_0, R102)%>%
   select(-n)%>%
   rename(district = R102)%>%
-  mutate(District = c())%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/1_Indonesia/2_Codes/District.Code.csv")

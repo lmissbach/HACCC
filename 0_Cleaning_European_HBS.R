@@ -526,7 +526,7 @@ rm(expenditure_data_clean_EU, expenditure_data_clean_GER_4, expenditure_data_cle
 # Codes ####
 District.Code <- distinct(EU_h1, district)%>%
   arrange(district)%>%
-  mutate(District = c())%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/4_Europe_EU27/2_Codes/District.Code.csv")
 Occupation.Code <- distinct(EU_h1, ocu_hhh)%>%
   arrange(ocu_hhh)

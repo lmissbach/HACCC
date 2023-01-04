@@ -27,16 +27,18 @@ sec_0.1 <- sec_0 %>%
   rename(hh_id = hid)
 
 sec_1.1 <- sec_1 %>%
-  select(hid, phid, s1q3, s1q5y, s1q10, s1q13, loc2, WTA_S, region)%>%
-  rename(province = region, hh_id = hid, household.head = s1q3, age = s1q5y, religion = s1q10, ethnicity = s1q13, urban = loc2, hh_weights = WTA_S)%>%
+  select(hid, phid, s1q2, s1q3, s1q5y, s1q10, s1q13, loc2, WTA_S, region)%>%
+  rename(province = region, hh_id = hid, household.head = s1q3, age = s1q5y, religion = s1q10, 
+         ethnicity = s1q13, urban = loc2, hh_weights = WTA_S, sex_hhh = s1q2)%>%
   mutate(urban_01 = ifelse(urban == 1,1,0))%>%
   select(-urban)
 
 sec_1.2 <- sec_1.1 %>%
-  select(hh_id, phid, household.head, ethnicity, religion)%>%
+  select(hh_id, phid, household.head, ethnicity, religion, sex_hhh)%>%
   filter(household.head == 1)%>%
   rename(household.head.ID = phid)%>%
-  select(-household.head)
+  select(-household.head)%>%
+  mutate(ethnicity = ifelse(is.na(ethnicity), 95, ethnicity))
 
 sec_1.3 <- sec_1.1 %>%
   select(hh_id, phid, age)%>%
@@ -57,13 +59,15 @@ sec_1.4 <- sec_1.1 %>%
 
 sec_2.1 <- sec_2%>%
   select(phid, s2aq3)%>%
-  rename(edu_hhh = s2aq3, household.head.ID = phid)
+  rename(edu_hhh = s2aq3, household.head.ID = phid)%>%
+  mutate(edu_hhh = ifelse(is.na(edu_hhh),0,edu_hhh))
 
 sec_7.1 <- sec_7 %>%
   select(hid, s7dq1a1, s7dq11a, s7dq13b, s7dq19, s7dq26a)%>% # , starts_with("s7dq20")
   rename(hh_id = hid, water = s7dq1a1, electricity.access = s7dq11a, lighting_fuel = s7dq13b, cooking_fuel = s7dq19, 
          toilet = s7dq26a)%>%
-  mutate(electricity.access = ifelse(electricity.access %in% c(1,2,3,4,5,6,7),1,0))
+  mutate(electricity.access = ifelse(electricity.access %in% c(1,2,3,4,5,6,7),1,0),
+         lighting_fuel      = ifelse(is.na(lighting_fuel),8,lighting_fuel))
 
 sec_4.1 <- sec_4 %>%
   select(phid, s4aq34b)%>%
@@ -272,15 +276,21 @@ write_csv(sec_12.4, "../0_Data/1_Household Data/2_Ghana/1_Data_Clean/appliances_
 
 Education.Code <- stack(attr(sec_2$s2aq3, 'labels'))%>%
   rename(edu_hhh = values, Education = ind)%>%
+  bind_rows(data.frame(edu_hhh = 14, Education = "Unknown"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Ghana/2_Codes/Education.Code.csv")
-Ethnicity.Code <- stack(attr(sec_1$s1q10, 'labels'))%>%
+Religion.Code <- stack(attr(sec_1$s1q10, 'labels'))%>%
+  rename(religion = values, Religion = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/2_Ghana/2_Codes/Religion.Code.csv")
+Ethnicity.Code <- stack(attr(sec_1$s1q13, 'labels'))%>%
   rename(ethnicity = values, Ethnicity = ind)%>%
+  bind_rows(data.frame(ethnicity = 95, Ethnicity = "Unknown"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Ghana/2_Codes/Ethnicity.Code.csv")
 Water.Code <- stack(attr(sec_7$s7dq1a1, 'labels'))%>%
   rename(water = values, Water = ind)%>%
   write_csv(., "../0_Data/1_Household Data/2_Ghana/2_Codes/Water.Code.csv")
 Lighting.Code <- stack(attr(sec_7$s7dq13b, 'labels'))%>%
   rename(lighting_fuel = values, Lighting_Fuel = ind)%>%
+  bind_rows(data.frame(lighting_fuel = 8, Lighting_Fuel = "Electricity"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Ghana/2_Codes/Lighting.Code.csv")
 Cooking.Code <- stack(attr(sec_7$s7dq19, 'labels'))%>%
   rename(cooking_fuel = values, Cooking_Fuel = ind)%>%
@@ -293,7 +303,7 @@ Industry.Code <- stack(attr(sec_4$s4aq34b, 'labels'))%>%
   write_csv(., "../0_Data/1_Household Data/2_Ghana/2_Codes/Industry.Code.csv")
 District.Code <- distinct(sec_0, district)%>%
   arrange(district)%>%
-  mutate(District = c())%>%
+  mutate(District = district)%>%
   write_csv(., "../0_Data/1_Household Data/2_Ghana/2_Codes/District.Code.csv")
 Province.Code <- stack(attr(sec_1$region, 'labels'))%>%
   rename(province = values, Province = ind)%>%

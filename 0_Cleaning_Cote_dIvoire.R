@@ -72,7 +72,8 @@ data_1.1.1 <- data_1.1 %>%
   filter(s01q02 == 1)%>%
   rename(sex_hhh = s01q01, religion = s01q14, nationality = s01q15, ethnicity = s01q16, id_code = s01q00a)%>%
   mutate(age_hhh = ifelse(!is.na(s01q04a), s01q04a, 2019-s01q03c))%>%
-  select(hh_id, id_code, age_hhh, sex_hhh, ethnicity, nationality, religion)
+  select(hh_id, id_code, age_hhh, sex_hhh, ethnicity, nationality, religion)%>%
+  mutate(ethnicity = ifelse(is.na(ethnicity),71, ethnicity))
 
 data_1.1.2 <- data_1.1 %>%
   unite(hh_id, c("grappe", "menage"), remove = FALSE, sep = "00")%>%
@@ -162,6 +163,7 @@ household_information <- data_0.5.1 %>%
   left_join(data_2.1.1)%>%
   left_join(data_11.1.1)%>%
   left_join(data_5.1.1)%>%
+  left_join(data_4.1.1)%>%
   left_join(data_15.1.1)%>%
   remove_all_labels()
 
@@ -404,6 +406,7 @@ Province.Code <- stack(attr(data_0.5$s00q01, 'labels'))%>%
   write_csv(., "../0_Data/1_Household Data/2_Cote dIvoire/2_Codes/Province.Code.csv")
 District.Code <- stack(attr(data_0.5$s00q02, 'labels'))%>%
   rename(district = values, District = ind)%>%
+  bind_rows(data.frame(district = 100, District = "Unknown"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Cote dIvoire/2_Codes/District.Code.csv")
 Gender.Code <- stack(attr(data_1.1$s01q01, 'labels'))%>%
   rename(sex_hhh = values, Gender = ind)%>%
@@ -438,3 +441,7 @@ Water.Code <- expand_grid(WaterA = Water.Code.A$values, WaterB = Water.Code.B$va
   filter(water %in% data_11.1.1$water)
 
 write_csv(Water.Code, "../0_Data/1_Household Data/2_Cote dIvoire/2_Codes/Water.Code.csv")
+
+Industry.Code <- stack(attr(data_4.1$s04q30c, 'labels'))%>%
+  rename(ind_hhh = values, Industry = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/2_Cote dIvoire/2_Codes/Industry.Code.csv")

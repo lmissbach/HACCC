@@ -167,6 +167,7 @@ household_information <- data_0.5.1 %>%
   left_join(data_1.1.2)%>%
   select(-grappe)%>%
   left_join(data_2.1.1)%>%
+  left_join(data_4.1.1)%>%
   left_join(data_11.1.1)%>%
   left_join(data_5.1.1)%>%
   left_join(data_15.1.1)%>%
@@ -418,6 +419,7 @@ Province.Code <- stack(attr(data_0.5$s00q01, 'labels'))%>%
   write_csv(., "../0_Data/1_Household Data/2_Togo/2_Codes/Province.Code.csv")
 District.Code <- stack(attr(data_0.5$s00q02, 'labels'))%>%
   rename(district = values, District = ind)%>%
+  bind_rows(data.frame(district = 606, District = "Unknown"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Togo/2_Codes/District.Code.csv")
 Gender.Code <- stack(attr(data_1.1$s01q01, 'labels'))%>%
   rename(sex_hhh = values, Gender = ind)%>%
@@ -452,4 +454,8 @@ Water.Code <- expand_grid(WaterA = Water.Code.A$values, WaterB = Water.Code.B$va
   filter(water %in% data_11.1.1$water)
 
 write_csv(Water.Code, "../0_Data/1_Household Data/2_Togo/2_Codes/Water.Code.csv")
+
+Industry.Code <- stack(attr(data_4.1$s04q30c, 'labels'))%>%
+  rename(ind_hhh = values, Industry = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/2_Togo/2_Codes/Industry.Code.csv")
 
