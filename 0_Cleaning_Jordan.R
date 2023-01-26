@@ -20,10 +20,10 @@ individual_0 <- read_dta("../0_Data/1_Household Data/2_Jordan/1_Data_Raw/Jordan1
 
 household_1 <- household_0 %>%
   rename(hh_id = caseser, hh_weights = hweight, province = area, district = reg,
-         cooking_fuel = scook, water = wat, toilet = toif, inc_gov_monetary = transf)%>%
+         cooking_fuel = scook, water = wat, toilet = toif, inc_gov_monetary = transf, ethnicity = nathd_d)%>%
   mutate(urban_01           = ifelse(rururb == 0,0,1),
          inc_gov_cash       = 0)%>%
-  select(hh_id, hh_weights, province, district, urban_01, cooking_fuel, water, toilet,
+  select(hh_id, hh_weights, province, district, urban_01, cooking_fuel, water, toilet, ethnicity,
          inc_gov_cash, inc_gov_monetary)
 
 individual_1 <- individual_0 %>%
@@ -158,3 +158,7 @@ Industry.Code <- stack(attr(individual_0$pind, 'labels'))%>%
   rename(ind_hhh = values, Industry = ind)%>%
   filter(ind_hhh %in% individual_1$ind_hhh)%>%
   write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/Industry.Code.csv")
+
+Ethnicity.Code <- stack(attr(household_0$nathd_d, 'labels'))%>%
+  rename(ethnicity = values, Ethnicity = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/Ethnicity.Code.csv")

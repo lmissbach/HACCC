@@ -99,7 +99,7 @@ appliances_0 <- household_0 %>%
          washing_machine.01 = wash, dishwasher.01 = dshwsh, ac.01 = cond, fan.01 = fan, heater.01 = heater)%>%
   select(hh_id, ends_with(".01"))
 
-write_csv(appliances_0, "../0_Data/1_Household Data/2_Egypt/1_Data_Clean/appliances_0_1_Egpyt.csv")
+write_csv(appliances_0, "../0_Data/1_Household Data/2_Egypt/1_Data_Clean/appliances_0_1_Egypt.csv")
 
 # Codes
 Lighting.Code <- stack(attr(household_0$slight, 'labels'))%>%
