@@ -19,12 +19,12 @@ individual_0 <- read_dta("../0_Data/1_Household Data/2_Egypt/1_Data_Raw/Egypt17-
 # Transform data
 
 household_1 <- household_0 %>%
-  rename(hh_id = caseser, hh_weight = hweight, province = area, district = reg,
+  rename(hh_id = caseser, hh_weights = hweight, province = area, district = reg,
          hh_size_a = hnum, lighting_fuel = slight, cooking_fuel = scook, water = wat, toilet = toif, inc_gov_monetary = transf)%>%
   mutate(urban_01           = ifelse(rururb == 0,0,1),
          electricity.access = ifelse(elect == 0,0,1),
          inc_gov_cash       = 0)%>%
-  select(hh_id, hh_weight, province, district, urban_01, lighting_fuel, cooking_fuel, electricity.access, cooking_fuel, lighting_fuel, 
+  select(hh_id, hh_weights, province, district, urban_01, lighting_fuel, cooking_fuel, electricity.access, water, toilet, 
          inc_gov_cash, inc_gov_monetary)
 
 individual_1 <- individual_0 %>%
@@ -44,7 +44,10 @@ individual_2 <- individual_0 %>%
 
 household_information <- household_1 %>%
   left_join(individual_1)%>%
-  left_join(individual_2)
+  left_join(individual_2)%>%
+  # Documentation is inaccessible and inconclusive
+  # Scaling up such that it fits aggregate population in 2017
+  mutate(hh_weights = hh_weights*1956.15)
 
 write_csv(household_information, "../0_Data/1_Household Data/2_Egypt/1_Data_Clean/household_information_Egypt.csv")
 
