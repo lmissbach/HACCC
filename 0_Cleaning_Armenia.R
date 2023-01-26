@@ -107,7 +107,7 @@ data_3.1 <- data_3 %>%
   mutate(item_code = item_code*1000)
 
 data_4.1 <- data_4 %>%
-  rename(hh_id = recno, item_code = x4_1, expenditures = x4_5)%>%
+  rename(hh_id = recno, item_code = x4_1, expenditures = x4_3drm)%>%
   group_by(hh_id, item_code)%>%
   summarise(expenditures = sum(expenditures))%>%
   ungroup()%>%

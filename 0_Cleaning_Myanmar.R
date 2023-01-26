@@ -61,9 +61,9 @@ data_02.1 <- data_02 %>%
   distinct()
 
 data_02.2 <- data_02 %>%
-  rename(hh_id = questionnaire_no, age_hhh = q1_4_flap, sex_hhh = q1_3, ethnicity = q1_9, language = q1_10, edu_hhh = q2_7, ind_hhh = q4_12)%>%
+  rename(hh_id = questionnaire_no, age_hhh = q1_4_flap, sex_hhh = q1_3, religion = q1_9, language = q1_10, edu_hhh = q2_7, ind_hhh = q4_12)%>%
   filter(q1_2 == 1)%>%
-  select(hh_id, age_hhh, sex_hhh, ethnicity, language, edu_hhh, ind_hhh)%>%
+  select(hh_id, age_hhh, sex_hhh, religion, language, edu_hhh, ind_hhh)%>%
   mutate(edu_hhh = ifelse(is.na(edu_hhh),20,edu_hhh))
 
 household_information <- data_02.1 %>%
@@ -305,9 +305,9 @@ Education.Code <- stack(attr(data_02$q2_7, 'labels'))%>%
 Language.Code <- stack(attr(data_02$q1_10, 'labels'))%>%
   rename(language = values, Language = ind)%>%
   write_csv(., "../0_Data/1_Household Data/1_Myanmar/2_Codes/Language.Code.csv")
-Ethnicity.Code <- stack(attr(data_02$q1_9, 'labels'))%>%
-  rename(ethnicity = values, Ethnicity = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/1_Myanmar/2_Codes/Ethnicity.Code.csv")
+Religion.Code <- stack(attr(data_02$q1_9, 'labels'))%>%
+  rename(religion = values, Religion = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/1_Myanmar/2_Codes/Religion.Code.csv")
 Gender.Code <- stack(attr(data_02$q1_3, 'labels'))%>%
   rename(sex_hhh = values, Gender = ind)%>%
   write_csv(., "../0_Data/1_Household Data/1_Myanmar/2_Codes/Gender.Code.csv")
