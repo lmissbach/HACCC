@@ -22,7 +22,8 @@ household_1 <- household_0 %>%
   rename(hh_id = caseser, hh_weights = hweight, province = area, district = reg,
          cooking_fuel = scook, water = wat, toilet = toif, inc_gov_monetary = transf, ethnicity = nathd_d)%>%
   mutate(urban_01           = ifelse(rururb == 0,0,1),
-         inc_gov_cash       = 0)%>%
+         inc_gov_cash       = 0,
+         inc_gov_monetary   = ifelse(is.na(inc_gov_monetary),0,inc_gov_monetary))%>%
   select(hh_id, hh_weights, province, district, urban_01, cooking_fuel, water, toilet, ethnicity,
          inc_gov_cash, inc_gov_monetary)
 
@@ -43,8 +44,7 @@ individual_2 <- individual_0 %>%
 
 household_information <- household_1 %>%
   left_join(individual_1)%>%
-  left_join(individual_2)%>%
-  mutate(test = hh_weights*hh_size)
+  left_join(individual_2)
 
 write_csv(household_information, "../0_Data/1_Household Data/2_Jordan/1_Data_Clean/household_information_Jordan.csv")
 
@@ -131,10 +131,12 @@ Cooking.Code <- stack(attr(household_0$scook, 'labels'))%>%
 
 Toilet.Code <- stack(attr(household_0$toif, 'labels'))%>%
   rename(toilet = values, Toilet = ind)%>%
+  bind_cols(TLT = c("Basic", "Limited", "No Service"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/Toilet.Code.csv")
 
 Water.Code <- stack(attr(household_0$wat, 'labels'))%>%
   rename(water = values, Water = ind)%>%
+  bind_cols(WTR = c("Basic", "Basic", "Limited", "Limited", "Limited"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/Water.Code.csv")
 
 District.Code <- stack(attr(household_0$reg, 'labels'))%>%
@@ -148,6 +150,7 @@ Province.Code <- stack(attr(household_0$area, 'labels'))%>%
 Education.Code <- stack(attr(individual_0$peduc_d, 'labels'))%>%
   rename(edu_hhh = values, Education = ind)%>%
   filter(edu_hhh %in% individual_1$edu_hhh)%>%
+  mutate(ISCED = c(1,1,1,2,2,3,3,4,5,6,7,8))%>%
   write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/Education.Code.csv")
 
 Gender.Code <- stack(attr(individual_0$psex, 'labels'))%>%

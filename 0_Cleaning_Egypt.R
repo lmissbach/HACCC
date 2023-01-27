@@ -23,14 +23,16 @@ household_1 <- household_0 %>%
          hh_size_a = hnum, lighting_fuel = slight, cooking_fuel = scook, water = wat, toilet = toif, inc_gov_monetary = transf)%>%
   mutate(urban_01           = ifelse(rururb == 0,0,1),
          electricity.access = ifelse(elect == 0,0,1),
-         inc_gov_cash       = 0)%>%
+         inc_gov_cash       = 0,
+         inc_gov_monetary   = ifelse(is.na(inc_gov_monetary),0,inc_gov_monetary))%>%
   select(hh_id, hh_weights, province, district, urban_01, lighting_fuel, cooking_fuel, electricity.access, water, toilet, 
          inc_gov_cash, inc_gov_monetary)
 
 individual_1 <- individual_0 %>%
   rename(sex_hhh = psex, age_hhh = page, edu_hhh = peduc_d, ind_hhh = pind, hh_id = caseser)%>%
   filter(prel == 1)%>%
-  select(hh_id, age_hhh, sex_hhh, edu_hhh, ind_hhh)
+  select(hh_id, age_hhh, sex_hhh, edu_hhh, ind_hhh)%>%
+  mutate(age_hhh = ifelse(is.na(age_hhh),18,age_hhh))
 
 individual_2 <- individual_0 %>%
   rename(hh_id = caseser)%>%
@@ -112,10 +114,12 @@ Cooking.Code <- stack(attr(household_0$scook, 'labels'))%>%
 
 Toilet.Code <- stack(attr(household_0$toif, 'labels'))%>%
   rename(toilet = values, Toilet = ind)%>%
+  bind_cols(TLT = c("Basic", "Limited", "No Service"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Egypt/2_Codes/Toilet.Code.csv")
 
 Water.Code <- stack(attr(household_0$wat, 'labels'))%>%
   rename(water = values, Water = ind)%>%
+  bind_cols(WTR = c("Basic", "Basic", "Limited", "Limited", "Limited"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Egypt/2_Codes/Water.Code.csv")
 
 District.Code <- stack(attr(household_0$reg, 'labels'))%>%
@@ -129,6 +133,7 @@ Province.Code <- stack(attr(household_0$area, 'labels'))%>%
 Education.Code <- stack(attr(individual_0$peduc_d, 'labels'))%>%
   rename(edu_hhh = values, Education = ind)%>%
   filter(edu_hhh %in% individual_1$edu_hhh)%>%
+  mutate(ISCED = c(0,0,1,1,1,2,3,3,4,6,7))%>%
   write_csv(., "../0_Data/1_Household Data/2_Egypt/2_Codes/Education.Code.csv")
 
 Gender.Code <- stack(attr(individual_0$psex, 'labels'))%>%
