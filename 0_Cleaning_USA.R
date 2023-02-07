@@ -375,7 +375,7 @@ exp_diary_1 <- exp_diary %>%
 
 # State / District / urban/rural / edu_hhh / ethnicity
 
-information_diary_1.1 <- distinct(exp_diary_1.1, province, district, urban_01, edu_hhh, ethnicity, hh_size)%>%
+information_diary_1.1 <- distinct(exp_diary_1, province, district, urban_01, edu_hhh, ethnicity, hh_size)%>%
   mutate(groupA = paste0("A", 1:n()))
 
 exp_diary_1.1 <- exp_diary_1 %>%
@@ -516,6 +516,67 @@ Item.Codes.Joint <- bind_rows(Item.Codes, Item.Codes.Diary)%>%
   arrange(item_code)
 
 # write.xlsx(Item.Codes.Joint, "../0_Data/1_Household Data/3_USA/3_Matching_Tables/Item_Codes_Description_USA.xlsx")
+
+# Matching Tables 
+
+GTAP_0 <- read.xlsx("../0_Data/1_Household Data/3_USA/3_Matching_Tables/BUA-Seminar/Item_GTAP_Concordance_USA_Interview.xlsx")%>%
+  select(GTAP, Explanation)%>%
+  mutate(number = 1:n())
+
+GTAP_1 <- read.xlsx("../0_Data/1_Household Data/3_USA/3_Matching_Tables/BUA-Seminar/Item_GTAP_Concordance_USA_Interview.xlsx")%>%
+  select (-Explanation) %>%
+  pivot_longer(-GTAP, names_to = "drop", values_to = "item_code")%>%
+  filter(!is.na(item_code))%>%
+  select(GTAP, item_code)%>%
+  mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+  rename(GTAP_A = GTAP)
+
+GTAP_2 <- read.xlsx("../0_Data/1_Household Data/3_USA/3_Matching_Tables/BUA-Seminar/Item_GTAP_Concordance_USA.xlsx")%>%
+  select (-Explanation) %>%
+  pivot_longer(-GTAP, names_to = "drop", values_to = "item_code")%>%
+  filter(!is.na(item_code))%>%
+  select(GTAP, item_code)%>%
+  mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+  rename(GTAP_B = GTAP)
+
+Item.Codes.Matching <- Item.Codes.Joint %>%
+  left_join(GTAP_1)%>%
+  left_join(GTAP_2)%>%
+  mutate(GTAP = ifelse(!is.na(GTAP_A), GTAP_A, GTAP_B))%>%
+  left_join(GTAP_0, by = "GTAP")%>%
+  arrange(number)
+
+# write.xlsx(Item.Codes.Matching, "../0_Data/1_Household Data/3_USA/3_Matching_Tables/BUA-Seminar/Item_GTAP_Concordance_USA_Check.xlsx")
+
+Item.Codes.Matching.New <- read.xlsx("../0_Data/1_Household Data/3_USA/3_Matching_Tables/BUA-Seminar/Item_GTAP_Concordance_USA_Check.xlsx")
+
+# GTAP-Matching
+
+Item.Codes.Matching.1 <- Item.Codes.Matching.New %>%
+  select(GTAP_final, item_code)%>%
+  distinct()%>%
+  group_by(GTAP_final)%>%
+  mutate(number = 1:n())%>%
+  ungroup()%>%
+  pivot_wider(values_from = "item_code", names_from = "number", values_fill = NA)%>%
+  full_join(GTAP_0, by = c("GTAP_final" = "GTAP"))%>%
+  select(GTAP_final, Explanation, everything())%>%
+  arrange(number)%>%
+  select(-number)
+
+write.xlsx(Item.Codes.Matching.1, "../0_Data/1_Household Data/3_USA/3_Matching_Tables/Item_GTAP_Concordance_USA.xlsx")
+
+Item.Codes.Matching.2 <- Item.Codes.Matching.New %>%
+  select(item_code, Categories)%>%
+  distinct()%>%
+  group_by(Categories)%>%
+  mutate(number = 1:n())%>%
+  ungroup()%>%
+  pivot_wider(values_from = "item_code", names_from = "number", values_fill = NA)%>%
+  select(Categories, everything())
+
+write.xlsx(Item.Codes.Matching.2, "../0_Data/1_Household Data/3_USA/3_Matching_Tables/Item_Categories_Concordance_USA.xlsx")
+
 
 # Code Intermezzo
 
