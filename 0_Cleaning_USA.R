@@ -15,20 +15,31 @@ options(scipen=999)
 ###        files not used: dtbt -  detailed income; dtid - income imputaions iterations)
 
 #information on household members characteristics + income - diary
-# memd191 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd191.dta")%>%
-#   mutate(quarter = 1)
-# memd192 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd192.dta")%>%
-#   mutate(quarter = 2)
-# memd193 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd193.dta")%>%
-#   mutate(quarter = 3)
-# memd194 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd194.dta")%>%
-#   mutate(quarter = 4)
-# 
-# # Information on diary members
-# 
-# household_members_diary <- bind_rows(memd191, memd192, memd193, memd194)%>%
-#   select(newid, everything())%>%
-#   rename(hh_id = newid)
+
+memd181 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary18/memd181.dta")%>%
+  mutate(quarter = 181)
+memd182 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary18/memd182.dta")%>%
+  mutate(quarter = 182)
+memd183 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary18/memd183.dta")%>%
+  mutate(quarter = 183)
+memd184 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary18/memd184.dta")%>%
+  mutate(quarter = 184)
+memd191 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd191.dta")%>%
+ mutate(quarter = 191)
+memd192 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd192.dta")%>%
+ mutate(quarter = 192)
+memd193 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd193.dta")%>%
+ mutate(quarter = 193)
+memd194 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/memd194.dta")%>%
+ mutate(quarter = 194)
+
+# Information on diary members
+
+household_members_diary <- bind_rows(memd181, memd182, memd183, memd184,
+                                     memd191, memd192, memd193, memd194)%>%
+ select(newid, everything())%>%
+ rename(hh_id = newid)%>%
+  mutate(id = gsub('.$', '', hh_id))
 
 # detailed exp data - diary
 expd181 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary18/expd181.dta")%>%
@@ -40,17 +51,18 @@ expd183 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary18/expd183
 expd184 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary18/expd184.dta")%>%
   mutate(quarter = 184)
 expd191 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/expd191.dta")%>%
-  mutate(quarter = 1)
+  mutate(quarter = 191)
 expd192 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/expd192.dta")%>%
-  mutate(quarter = 2)
+  mutate(quarter = 192)
 expd193 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/expd193.dta")%>%
-  mutate(quarter = 3)
+  mutate(quarter = 193)
 expd194 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/expd194.dta")%>%
-  mutate(quarter = 4)
+  mutate(quarter = 194)
 
 # Detailed expenditure data (diary)
 
-exp_diary <- bind_rows(expd191, expd192, expd193, expd194)%>% #all are distinct hhs, put them together
+exp_diary <- bind_rows(expd181, expd182, expd183, expd184,
+                       expd191, expd192, expd193, expd194)%>% #all are distinct hhs, put them together
   select(newid, everything())%>%
   rename(hh_id = newid)%>%
   mutate(id = gsub('.$', '', hh_id))
@@ -75,7 +87,8 @@ fmld194 <- read_dta("../0_Data/1_Household Data/3_USA/1_Data_Raw/diary19/fmld194
 
 # Summary diary
 
-fml_diary <- bind_rows(fmld191, fmld192, fmld193, fmld194)%>% #all are distinct hhs, put them together
+fml_diary <- bind_rows(fmld181, fmld182, fmld183, fmld184,
+                       fmld191, fmld192, fmld193, fmld194)%>% #all are distinct hhs, put them together
   select(newid, everything())%>%
   rename(hh_id = newid)%>%
   mutate(id = gsub('.$', '', hh_id))
@@ -84,7 +97,9 @@ fml_diary <- bind_rows(fmld191, fmld192, fmld193, fmld194)%>% #all are distinct 
 rm(expd181, expd182, expd183, expd184,
    expd191, expd192, expd193, expd194, 
    fmld181, fmld182, fmld183, fmld184,
-   fmld191, fmld192, fmld193, fmld194, memd191, memd192,memd193, memd194)
+   fmld191, fmld192, fmld193, fmld194, 
+   memd181, memd182, memd183, memd184,
+   memd191, memd192,memd193, memd194)
 
 # INTERVIEW (files used: FMLI - hh exp., income & charact; 
 #                        MTBI - monthly exp.; 
@@ -288,89 +303,191 @@ expenditure_information <- mtb_iv %>%
   ungroup()%>%
   rename(hh_id_0 = id, item_code = ucc)%>%
   arrange(hh_id_0, item_code)%>%
-  rename(hh_id = hh_id_0)
+  rename(hh_id = hh_id_0)%>%
+  # Delete 790210 because it does not really help us
+  filter(item_code != 790210)
 
-write_csv(expenditure_information, "../0_Data/1_Household Data/3_USA/1_Data_Clean/expenditures_items_USA.csv")
+expenditure_information_1 <- expenditure_information %>%
+  filter(!item_code %in% c(790210, 790240, 190903,190904))
+
+expenditure_information_2 <- expenditure_information %>%
+  filter(item_code %in% c(790240, 190903,190904))%>%
+  group_by(hh_id)%>%
+  summarise(expenditures_year_food = sum(expenditures_year))%>%
+  ungroup()%>%
+  left_join(select(household_information, hh_id, urban_01, province, district, edu_hhh, hh_size, ethnicity))
 
 # Decompose total food expenditures by expenditure shares for households based on socio-demographic characteristics
 
-fml_diary_0 <- fml_diary %>%
+households_used_diary <- fml_diary %>%
   select(hh_id, id, quarter)%>%
-  group_by(id)%>%
-  mutate(number = n())%>%
-  ungroup()
+  filter(quarter == 191 | quarter == 192 | quarter == 193 | quarter == 194)
 
-households_used <- fml_iv_1 %>%
-  select(hh_id, id, quarter, number, quarter_20191.1)%>%
-  filter(quarter_20191.1 == 1)%>%
-  arrange(id, quarter)
-
-fml_iv_2 <- fml_iv_1 %>%
-  # equivalent to filtering households_used$hh_id
-  filter(quarter_20191.1 == 1)%>%
-  arrange(id, quarter)%>%
+fml_diary_2 <- fml_diary %>%
+  filter(hh_id %in% households_used_diary$hh_id)%>%
   mutate(urban_01 = ifelse(bls_urbn == 1,1,0))%>%
   rename(province = division, district = state, hh_weights = finlwt21)%>%
-  select(hh_id_0 = id, urban_01, province, district, hh_weights, hh_id)%>%
-  group_by(hh_id_0)%>%
-  mutate(number_cons = 1:n(),
-         number      = n(),
-         hh_weights  = sum(hh_weights))%>%
-  ungroup()%>%
-  # Weights adjustment
-  mutate(hh_weights = hh_weights/number)
+  select(hh_id_0 = id, urban_01, province, district, hh_weights, hh_id)
 
-fml_iv_2.1 <- fml_iv_2 %>%
-  filter(province != "")%>%
-  distinct(hh_id_0, province)
-
-fml_iv_2.2 <- fml_iv_2 %>%
-  filter(district != "")%>%
-  distinct(hh_id_0, district)
-
-mem_iv_1 <- mem_iv %>%
-  filter(hh_id %in% households_used$hh_id)%>%
-  filter(cu_code == 1)%>%
-  rename(age_hhh = age, sex_hhh = sex, ind_hhh = occucode, edu_hhh = educa,
+mem_diary_1 <- household_members_diary %>%
+  filter(hh_id %in% households_used_diary$hh_id)%>%
+  filter(cu_code1 == 1)%>%
+  rename(age_hhh = age, sex_hhh = sex, ind_hhh = occuearn, edu_hhh = educa,
          ethnicity = membrace, ethnicity_2.1 = asian, ethnicity_2 = hispanic)%>%
-  filter(quarter == "191")%>%
-  select(hh_id_0 = id, sex_hhh, age_hhh, ind_hhh, edu_hhh, ethnicity, ethnicity_2.1, ethnicity_2)%>%
+  select(hh_id_0 = id, hh_id, sex_hhh, age_hhh, ind_hhh, edu_hhh, ethnicity, ethnicity_2.1, ethnicity_2)%>%
   mutate(ethnicity     = ifelse(ethnicity == 4 | ethnicity == 6, as.numeric(ethnicity_2.1)+10, ethnicity))%>%
   select(-ethnicity_2.1)
 
-mem_iv_2 <- mem_iv %>%
-  filter(hh_id %in% households_used$hh_id)%>%
-  select(hh_id_0 = id, hh_id, quarter, socrrx)%>%
-  mutate(socrrx = ifelse(is.na(socrrx),0, socrrx))%>%
-  group_by(hh_id_0)%>%
-  summarise(inc_gov_monetary = sum(socrrx),
-            inc_gov_cash     = 0)%>%
-  ungroup()
-
-mem_iv_3 <- mem_iv %>%
-  filter(hh_id %in% households_used$hh_id)%>%
+mem_diary_2 <- household_members_diary %>%
+  filter(hh_id %in% households_used_diary$hh_id)%>%
   mutate(adults   = ifelse(age > 15,1,0),
          children = ifelse(age < 16,1,0))%>%
-  filter(quarter == "191")%>%
   rename(hh_id_0 = id)%>%
-  group_by(hh_id_0)%>%
+  group_by(hh_id_0, hh_id)%>%
   summarise(adults           = sum(adults),
             children         = sum(children),
             hh_size          = n())%>%
   ungroup()
 
-household_information <- distinct(fml_iv_2, hh_id_0, urban_01, hh_weights)%>%
-  left_join(fml_iv_2.1)%>%
-  left_join(fml_iv_2.2)%>%
-  left_join(mem_iv_1)%>%
-  left_join(mem_iv_2)%>%
-  left_join(mem_iv_3)%>%
-  mutate_at(vars(-hh_id_0), list(~ ifelse(. == "", NA,.)))%>%
-  # Only now
-  rename(hh_id = hh_id_0)
+household_information_diary <- fml_diary_2 %>%
+  left_join(mem_diary_1)%>%
+  left_join(mem_diary_2)%>%
+  mutate_at(vars(-hh_id_0), list(~ ifelse(. == "", NA,.)))
 
-write_csv(household_information, "../0_Data/1_Household Data/3_USA/1_Data_Clean/household_information_USA.csv")
+exp_diary_1 <- exp_diary %>%
+  filter(quarter %in% c(191,192,193,194))%>%
+  rename(item_code = ucc, expenditures_year = cost)%>%
+  mutate(expenditures_year = expenditures_year*52)%>%
+  select(hh_id, item_code, expenditures_year)%>%
+  arrange(hh_id, item_code)%>%
+  filter(item_code >= 100110 & item_code <=200534)%>%
+  group_by(hh_id, item_code)%>%
+  summarise(expenditures_year = sum(expenditures_year))%>%
+  ungroup()%>%
+  pivot_wider(names_from = "item_code", values_from = "expenditures_year", values_fill = 0)%>%
+  pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures_year")%>%
+  group_by(hh_id)%>%
+  mutate(food_expenditures = sum(expenditures_year))%>%
+  ungroup()%>%
+  mutate(food_share = expenditures_year/food_expenditures)%>%
+  select(hh_id, item_code, food_share)%>%
+  left_join(household_information_diary)
 
+# State / District / urban/rural / edu_hhh / ethnicity
+
+information_diary_1.1 <- distinct(exp_diary_1.1, province, district, urban_01, edu_hhh, ethnicity, hh_size)%>%
+  mutate(groupA = paste0("A", 1:n()))
+
+exp_diary_1.1 <- exp_diary_1 %>%
+  group_by(province, district, urban_01, edu_hhh, ethnicity, hh_size, item_code)%>%
+  summarise(food_share_A = wtd.mean(food_share, hh_weights))%>%
+  ungroup()%>%
+  left_join(information_diary_1.1)%>%
+  select(groupA, item_code, food_share_A)
+
+information_diary_1.2 <- distinct(exp_diary_1, province, district, urban_01, edu_hhh, ethnicity)%>%
+  mutate(groupB = paste0("B", 1:n()))
+
+exp_diary_1.2 <- exp_diary_1 %>%
+  group_by(province, district, urban_01, edu_hhh, ethnicity, item_code)%>%
+  summarise(food_share_B = wtd.mean(food_share, hh_weights))%>%
+  ungroup()%>%
+  left_join(information_diary_1.2)%>%
+  select(groupB, item_code, food_share_B)
+
+information_diary_1.3 <- distinct(exp_diary_1, province, district, urban_01, edu_hhh)%>%
+  mutate(groupC = paste0("C", 1:n()))
+
+exp_diary_1.3 <- exp_diary_1 %>%
+  group_by(province, district, urban_01, edu_hhh, item_code)%>%
+  summarise(food_share_C = wtd.mean(food_share, hh_weights))%>%
+  ungroup()%>%
+  left_join(information_diary_1.3)%>%
+  select(groupC, item_code, food_share_C)
+
+information_diary_1.4 <- distinct(exp_diary_1, province, district, urban_01)%>%
+  mutate(groupD = paste0("D", 1:n()))
+
+exp_diary_1.4 <- exp_diary_1 %>%
+  group_by(province, district, urban_01, item_code)%>%
+  summarise(food_share_D = wtd.mean(food_share, hh_weights))%>%
+  ungroup()%>%
+  left_join(information_diary_1.4)%>%
+  select(groupD, item_code, food_share_D)
+
+expenditure_information_2.1 <- expenditure_information_2 %>%
+  left_join(information_diary_1.1)%>%
+  left_join(information_diary_1.2)%>%
+  left_join(information_diary_1.3)%>%
+  left_join(information_diary_1.4)
+
+expenditure_information_2.1.1 <- expenditure_information_2.1 %>%
+  filter(!is.na(groupA))%>%
+  select(hh_id, expenditures_year_food, groupA)
+
+expenditure_information_2.1.2 <- expenditure_information_2.1 %>%
+  filter(is.na(groupA) & !is.na(groupB))%>%
+  select(hh_id, expenditures_year_food, groupB)
+
+expenditure_information_2.1.3 <- expenditure_information_2.1 %>%
+  filter(is.na(groupA) & is.na(groupB) & !is.na(groupC))%>%
+  select(hh_id, expenditures_year_food, groupC)
+
+expenditure_information_2.1.4 <- expenditure_information_2.1 %>%
+  filter(is.na(groupA) & is.na(groupB) & is.na(groupC))%>%
+  select(hh_id, expenditures_year_food, groupD)
+
+# Now: new dataframes with food expenditures
+
+Item.Codes <- distinct(exp_diary, ucc)%>%
+  rename(item_code = ucc)
+
+expenditure_information_3.1 <- expand_grid(hh_id = expenditure_information_2.1.1$hh_id, item_code = Item.Codes$item_code)%>%
+  distinct()%>%
+  left_join(expenditure_information_2.1.1, by = "hh_id")%>%
+  left_join(exp_diary_1.1)%>%
+  filter(!is.na(food_share_A))%>%
+  mutate(expenditures_year = food_share_A*expenditures_year_food)%>%
+  select(hh_id, item_code, expenditures_year)%>%
+  arrange(hh_id, item_code)
+
+expenditure_information_3.2 <- expand_grid(hh_id = expenditure_information_2.1.2$hh_id, item_code = Item.Codes$item_code)%>%
+  distinct()%>%
+  left_join(expenditure_information_2.1.2, by = "hh_id")%>%
+  left_join(exp_diary_1.2)%>%
+  filter(!is.na(food_share_B))%>%
+  mutate(expenditures_year = food_share_B*expenditures_year_food)%>%
+  select(hh_id, item_code, expenditures_year)%>%
+  arrange(hh_id, item_code)
+
+expenditure_information_3.3 <- expand_grid(hh_id = expenditure_information_2.1.3$hh_id, item_code = Item.Codes$item_code)%>%
+  distinct()%>%
+  left_join(expenditure_information_2.1.3, by = "hh_id")%>%
+  left_join(exp_diary_1.3)%>%
+  filter(!is.na(food_share_C))%>%
+  mutate(expenditures_year = food_share_C*expenditures_year_food)%>%
+  select(hh_id, item_code, expenditures_year)%>%
+  arrange(hh_id, item_code)
+
+expenditure_information_3.4 <- expand_grid(hh_id = expenditure_information_2.1.4$hh_id, item_code = Item.Codes$item_code)%>%
+  distinct()%>%
+  left_join(expenditure_information_2.1.4, by = "hh_id")%>%
+  left_join(exp_diary_1.4)%>%
+  filter(!is.na(food_share_D))%>%
+  mutate(expenditures_year = food_share_D*expenditures_year_food)%>%
+  select(hh_id, item_code, expenditures_year)%>%
+  arrange(hh_id, item_code)
+
+expenditure_information_3.5 <- bind_rows(expenditure_information_3.1, 
+                                         expenditure_information_3.2,
+                                         expenditure_information_3.3,
+                                         expenditure_information_3.4)%>%
+  filter(expenditures_year > 0)
+
+expenditure_information_4 <- bind_rows(expenditure_information_1, expenditure_information_3.5)%>%
+  arrange(hh_id, item_code)
+
+write_csv(expenditure_information_4, "../0_Data/1_Household Data/3_USA/1_Data_Clean/expenditures_items_USA.csv")
 
 ### EXPENDITURE-CODES ####
 # the Hierarchical groupings for all years are found in the stubs.zip file found on the official website 
@@ -386,9 +503,19 @@ ucc_codes <- ucc_codes_raw%>%
 Item.Codes <- distinct(expenditure_information, item_code)%>%
   arrange(item_code)%>%
   left_join(ucc_codes)%>%
-  distinct()
+  distinct()%>%
+  mutate(Type = "Interview")
 
-# write.xlsx(Item.Codes, "../0_Data/1_Household Data/3_USA/3_Matching_Tables/Item_Codes_Description_USA.xlsx")
+Item.Codes.Diary <- distinct(exp_diary_1, item_code)%>%
+  arrange(item_code)%>%
+  left_join(ucc_codes)%>%
+  distinct()%>%
+  mutate(Type = "Diary")
+
+Item.Codes.Joint <- bind_rows(Item.Codes, Item.Codes.Diary)%>%
+  arrange(item_code)
+
+# write.xlsx(Item.Codes.Joint, "../0_Data/1_Household Data/3_USA/3_Matching_Tables/Item_Codes_Description_USA.xlsx")
 
 # Code Intermezzo
 
