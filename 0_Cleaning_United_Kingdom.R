@@ -21,6 +21,9 @@ for(i in c(1:1917)){
   Variable.Description <- bind_rows(Variable.Description, var_0)
 }
 
+Variable.Description <- Variable.Description %>%
+  arrange(Variable)
+
 # write.xlsx(Variable.Description, "../0_Data/1_Household Data/4_United_Kingdom/9_Documentation/Variable.Description_HH.xlsx")
 
 Variable.Description_P <- data.frame()
@@ -30,6 +33,9 @@ for(i in c(1:291)){
                       "Label"    = attr(derived_per[[i]], 'label'))
   Variable.Description_P <- bind_rows(Variable.Description_P, var_0)
 }
+
+Variable.Description_P <- Variable.Description_P %>%
+  arrange(Variable)
 
 # write.xlsx(Variable.Description_P, "../0_Data/1_Household Data/4_United_Kingdom/9_Documentation/Variable.Description_PER.xlsx")
 
@@ -55,7 +61,7 @@ household_information_1 <- derived_hh %>%
 
 household_information_2 <- derived_per %>%
   rename(hh_id = case, sex_hhh = A004, ethnicity = a012p)%>%
-  filter(A002 == 1)%>%
+  filter(A002 == 0)%>%
   select(hh_id, sex_hhh, ethnicity)
 
 household_information_3 <- derived_hh %>%
@@ -69,17 +75,50 @@ household_information <- left_join(household_information_1, household_informatio
   left_join(household_information_3)%>%
   write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/1_Data_Clean/household_information_United_Kingdom.csv")
   
+
+# Codes ####
+
+Heating.Code <- data.frame(heating_fuel = c(seq(1,8,1), Heating_Fuel = c("Electric central heating",
+                                                                         "Gas central heating",
+                                                                         "Oil central heating",
+                                                                         "Solid fuel central heating",
+                                                                         "Solid fuel or oil central heating",
+                                                                         "Calor gas central heating",
+                                                                         "Other gas central heating", 
+                                                                         "Unknown")))%>%
+  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Heating.Code.csv")
+Province.Code <- stack(attr(derived_hh$Gorx, 'labels'))%>%
+  rename(province = values, Province = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Province.Code.csv")
+Gender.Code <- stack(attr(derived_per$A004, 'labels'))%>%
+  rename(sex_hh = values, Gender = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Gender.Code.csv")
+Ethnicity.Code <- stack(attr(derived_per$a012p, 'labels'))%>%
+  rename(ethnicity = values, Ethnicity = ind)%>%
+  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Ethnicity.Code.csv")
+
+# Appliances ####
+
+appliance_0_1 <- derived_hh %>%
+  rename(hh_id = case, washing_machine.01 = A108, car.01 = A149, refrigerator.01 = A164, computer.01 = A1661, tv.01 = A1711,
+         dryer.01 = A167, microwave.01 = A168)%>%
+  mutate(washing_machine.01 = ifelse(washing_machine.01 == 1,1,0),
+         car.01             = ifelse(car.01 > 0,1,0),
+         refrigerator.01    = ifelse(refrigerator.01 == 1,1,0))%>%
+  mutate_at(vars(computer.01:microwave.01), list(~ ifelse(. == 1,1,0)))%>%
+  select(hh_id, ends_with(".01"))%>%
+  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/1_Data_Clean/appliances_0_1_United_Kingdom.csv")
+
 # Expenditures ####
 
-
 #clean up item code file
-codes_long <- read.xlsx("./4_United_Kingdom/9_Documentation/8686_volume_d_expenditure_codes_201819.xlsx", sheet=3)
-  
+codes_long <- read.xlsx("../0_Data/1_Household Data/4_United_Kingdom/9_Documentation/8686_volume_d_expenditure_codes_201819.xlsx", sheet=3)
+
 codes <- codes_long%>%
   select(code=COIPLUS.Code, description = COIPLUS.Description)%>%
   distinct(.)
 
-write.xlsx(codes,"./4_United_Kingdom/9_Documentation/Item_Codes.xlsx")
+# write.xlsx(codes,"./4_United_Kingdom/9_Documentation/Item_Codes.xlsx")
 
 #other codes
 
@@ -182,35 +221,3 @@ vars <- full_join(var_1, var_2, by = "code")
 #   select(item_code = code, item_name = description)%>%
 #   write.xlsx(., "4_United_Kingdom/3_Matching_Tables/Item_Codes_Description2_United_Kingdom.xlsx")
 
-# Codes ####
-
-Heating.Code <- data.frame(heating_fuel = c(seq(1,8,1), Heating_Fuel = c("Electric central heating",
-                                                                         "Gas central heating",
-                                                                         "Oil central heating",
-                                                                         "Solid fuel central heating",
-                                                                         "Solid fuel or oil central heating",
-                                                                         "Calor gas central heating",
-                                                                         "Other gas central heating", 
-                                                                         "Unknown")))%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Heating.Code.csv")
-Province.Code <- stack(attr(derived_hh$Gorx, 'labels'))%>%
-  rename(province = values, Province = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Province.Code.csv")
-Gender.Code <- stack(attr(derived_per$A004, 'labels'))%>%
-  rename(sex_hh = values, Gender = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Gender.Code.csv")
-Ethnicity.Code <- stack(attr(derived_per$a012p, 'labels'))%>%
-  rename(ethnicity = values, Ethnicity = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Ethnicity.Code.csv")
-
-# Appliances ####
-
-appliance_0_1 <- derived_hh %>%
-  rename(hh_id = case, washing_machine.01 = A108, car.01 = A149, refrigerator.01 = A164, computer.01 = A1661, tv.01 = A1711,
-         dryer.01 = A167, microwave.01 = A168)%>%
-  mutate(washing_machine.01 = ifelse(washing_machine.01 == 1,1,0),
-         car.01             = ifelse(car.01 > 0,1,0),
-         refrigerator.01    = ifelse(refrigerator.01 == 1,1,0))%>%
-  mutate_at(vars(computer.01:microwave.01), list(~ ifelse(. == 1,1,0)))%>%
-  select(hh_id, ends_with(".01"))%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/1_Data_Clean/appliances_0_1_United_Kingdom.csv")
