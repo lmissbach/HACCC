@@ -485,7 +485,8 @@ expenditure_information_3.5 <- bind_rows(expenditure_information_3.1,
   filter(expenditures_year > 0)
 
 expenditure_information_4 <- bind_rows(expenditure_information_1, expenditure_information_3.5)%>%
-  arrange(hh_id, item_code)
+  arrange(hh_id, item_code)%>%
+  filter(!item_code %in% c(820101,820102,830101,830102,830201,830202,830203,8350100,860100,860200,860301,860302))
 
 write_csv(expenditure_information_4, "../0_Data/1_Household Data/3_USA/1_Data_Clean/expenditures_items_USA.csv")
 

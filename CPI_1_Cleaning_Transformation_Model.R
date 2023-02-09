@@ -20,7 +20,7 @@ for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Iraq","Israel
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Rwanda","Senegal",
                       "South Africa", "Togo", "Uganda",
-                      "Armenia","Europe","Norway","Egypt","Jordan")) {
+                      "Armenia","Europe","Norway","Egypt","Jordan","USA","Canada")) {
 
 # uncomment for transforming/cleaning single country dataset
 #Country.Name <- "Mongolia"
@@ -38,7 +38,7 @@ if(Country.Name != "Europe"){
   
   expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
   
-  if(!Country.Name %in% c("Chile","Morocco","Kenya", "Pakistan"))  {
+  if(!Country.Name %in% c("Chile","Morocco","Kenya", "Pakistan", "USA"))  {
     appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
   }
 }
@@ -187,7 +187,7 @@ if(Country.Name %in% c("Ghana")){
     filter(!hh_id %in% hh_duplicates_expenditures_3$hh_id)
 }
 
-if(Country.Name == "El Salvador" | Country.Name == "Ecuador"){
+if(Country.Name == "El Salvador" | Country.Name == "Ecuador" | Country.Name == "Vietnam"){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
     filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -269,7 +269,7 @@ expenditure_outlier <- expenditure_information_4.1 %>%
 
 # Deleting outliers for some countries
 
-if(Country.Name %in% c("Ghana", "Colombia", "Cambodia", "Nicaragua", "Liberia", "Malawi", "Iraq", "Pakistan")){
+if(Country.Name %in% c("Ghana", "Colombia", "Cambodia", "Nicaragua", "Liberia", "Malawi", "Iraq", "Pakistan", "Vietnam", "USA")){
 
 household_information <- household_information %>%
   filter(!hh_id %in% expenditure_outlier$hh_id)
@@ -565,7 +565,7 @@ expenditure_information <- left_join(expenditure_information, household_ids, by 
   select(hh_id_new, everything(), -hh_id)%>%
   rename(hh_id = hh_id_new)
 
-if(!Country.Name %in% c("Europe", "Chile", "Morocco", "Kenya", "Pakistan")){
+if(!Country.Name %in% c("Europe", "Chile", "Morocco", "Kenya", "Pakistan", "USA")){
 appliances_1 <- left_join(appliances_0, household_ids)%>%
   select(hh_id_new, everything(), - hh_id)%>%
   rename(hh_id = hh_id_new)

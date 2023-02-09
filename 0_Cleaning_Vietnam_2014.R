@@ -397,9 +397,10 @@ Toilet.Code <- stack(attr(data_7$m7c21, 'labels'))%>%
                     "Barrel/pot", "Fishing bridge", "Others", "None"))%>%
   mutate(TLT = c("Basic", "Basic", "Basic", "Basic", "Limited", "Limited", "Limited", "No Service"))%>%
   select(-ind)%>%
-  write_csv(., "../0_Data/1_Household Data/1_Vietnam/2_Codes/Water.Code.csv")
+  write_csv(., "../0_Data/1_Household Data/1_Vietnam/2_Codes/Toilet.Code.csv")
 
 Lighting.Code <- stack(attr(data_7$m7c22, 'labels'))%>%
   rename(lighting_fuel = values)%>%
   mutate(Lighting_Fuel = c("Electricity", "Battery or generator", "Gas, oil lmaps of various kinds", "Others"))%>%
+  select(-ind)%>%
   write_csv(., "../0_Data/1_Household Data/1_Vietnam/2_Codes/Lighting.Code.csv")
