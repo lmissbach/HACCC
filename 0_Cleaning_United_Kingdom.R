@@ -6,8 +6,8 @@ options(scipen=999)
 
 # Authors: P. Blechschmidt, L. Missbach
 
-raw_per     <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_rawper_ukanon_final.dta")
-raw_hh      <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_rawhh_ukanon.dta")
+# raw_per     <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_rawper_ukanon_final.dta")
+# raw_hh      <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_rawhh_ukanon.dta")
 derived_hh  <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_dvhh_ukanon.dta")
 derived_per <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_dvper_ukanon201819.dta")
 exp         <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_dv_set89_ukanon.dta")
@@ -73,7 +73,7 @@ household_information_3 <- derived_hh %>%
 
 household_information <- left_join(household_information_1, household_information_2)%>%
   left_join(household_information_3)%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/1_Data_Clean/household_information_United_Kingdom.csv")
+  write_csv(., "../0_Data/1_Household Data/4_United Kingdom/1_Data_Clean/household_information_United Kingdom.csv")
   
 
 # Codes ####
@@ -86,16 +86,16 @@ Heating.Code <- data.frame(heating_fuel = c(seq(1,8,1), Heating_Fuel = c("Electr
                                                                          "Calor gas central heating",
                                                                          "Other gas central heating", 
                                                                          "Unknown")))%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Heating.Code.csv")
+  write_csv(., "../0_Data/1_Household Data/4_United Kingdom/2_Codes/Heating.Code.csv")
 Province.Code <- stack(attr(derived_hh$Gorx, 'labels'))%>%
   rename(province = values, Province = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Province.Code.csv")
+  write_csv(., "../0_Data/1_Household Data/4_United Kingdom/2_Codes/Province.Code.csv")
 Gender.Code <- stack(attr(derived_per$A004, 'labels'))%>%
   rename(sex_hh = values, Gender = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Gender.Code.csv")
+  write_csv(., "../0_Data/1_Household Data/4_United Kingdom/2_Codes/Gender.Code.csv")
 Ethnicity.Code <- stack(attr(derived_per$a012p, 'labels'))%>%
   rename(ethnicity = values, Ethnicity = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/2_Codes/Ethnicity.Code.csv")
+  write_csv(., "../0_Data/1_Household Data/4_United Kingdom/2_Codes/Ethnicity.Code.csv")
 
 # Appliances ####
 
@@ -107,7 +107,7 @@ appliance_0_1 <- derived_hh %>%
          refrigerator.01    = ifelse(refrigerator.01 == 1,1,0))%>%
   mutate_at(vars(computer.01:microwave.01), list(~ ifelse(. == 1,1,0)))%>%
   select(hh_id, ends_with(".01"))%>%
-  write_csv(., "../0_Data/1_Household Data/4_United_Kingdom/1_Data_Clean/appliances_0_1_United_Kingdom.csv")
+  write_csv(., "../0_Data/1_Household Data/4_United Kingdom/1_Data_Clean/appliances_0_1_United Kingdom.csv")
 
 # Expenditures ####
 
@@ -119,6 +119,101 @@ codes <- codes_long%>%
   distinct(.)
 
 # write.xlsx(codes,"./4_United_Kingdom/9_Documentation/Item_Codes.xlsx")
+
+# Final expenditure dataframe comprises several "B-Variables" and "CXXXXt-Variables"
+
+# B-Variables 
+
+expenditure_information_1 <- derived_hh %>%
+  select(case, starts_with("B"))%>%
+  select(case, order(colnames(.)))%>%
+  rename(hh_id = case)%>%
+  select(hh_id, B010, B017, B018, B050, B053p, B056p, B060, B102, B104:B110, B160:B167, B170, B175,
+         B181:B195b, B199, B216:B227, B229, B2291, B231, B233, B237:B244, B245, B248:B252, B260,
+         B270:B280, B480:B490)%>%
+  # remove sub-categories
+  select(-B160,-B164,-B270, -B480, -B481)
+
+expenditure_information_1.1 <- expenditure_information_1 %>%
+  pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures_year")%>%
+  filter(expenditures_year > 0)%>%
+  # Weekly basis
+  mutate(expenditures_year = expenditures_year*52)
+
+# C-Variables
+
+expenditure_information_2 <- derived_hh %>%
+  select(case, starts_with("C") & ends_with("t"))%>%
+  rename(hh_id = case)%>%
+  select(-Ctpcnt, -Ctrbpcnt, -Ctspcnt, -Ctwtpcnt)
+
+expenditure_information_2.1 <- expenditure_information_2 %>%
+  pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures_year")%>%
+  # Weekly basis
+  mutate(expenditures_year = expenditures_year*52)%>%
+  mutate(item_code = str_replace(item_code, "t",""))%>%
+  mutate(item_code_COICOP = str_replace(item_code, "C",""))
+
+# Check if SET89 == derived_hh
+
+# exp_1 <- exp %>%
+#   rename(hh_id = case, item_code_COICOP = COI_PLUS, expenditures_year = pdamount)%>%
+#   mutate(expenditures_year = expenditures_year*52)%>%
+#   group_by(hh_id, item_code_COICOP)%>%
+#   summarise(expenditures_year_exp_1 = sum(expenditures_year))%>%
+#   ungroup()%>%
+#   mutate(item_code_COICOP = str_replace_all(item_code_COICOP, "\\.",""))
+# 
+# test_expenditures <- full_join(expenditure_information_2.1, exp_1, by = c("hh_id", "item_code_COICOP"))%>%
+#   mutate(expenditures_year_exp_1 = ifelse(is.na(expenditures_year_exp_1),0,expenditures_year_exp_1))%>%
+#   mutate(test_0 = expenditures_year_exp_1 - expenditures_year)%>%
+#   mutate(test = ifelse(expenditures_year_exp_1 != expenditures_year,1,0))%>%
+#   filter(test == 1 | is.na(test))%>%
+#   filter(test_0 > 0.00005 | test_0 < - 0.00005 | is.na(test_0))
+# 
+# item_codes <- count(test_expenditures, item_code_COICOP)%>%
+#   group_by(n)%>%
+#   mutate(number = n())%>%
+#   ungroup()%>%
+#   filter(number != 2)
+# 
+# test_expenditures_2 <- test_expenditures %>%
+#   filter(item_code_COICOP %in% item_codes$item_code_COICOP)%>%
+#   filter(!item_code_COICOP %in% c("K5221", "205221", "K5111", "205111", "B1114", "111114", "121111", "C1111", "201316", "K1316",
+#                                   "B112B", "1111211", "K1411", "201411", "101113", "A1113", "123111", "C3111", "943110", "9431A",
+#                                   "205113", "K5113", "205316", "K5316", "943114", "9431E", "K5213", "205213", "943113", "9431D",
+#                                   "203111", "205212", "K3111", "K5212", "943111", "9431B", "201314", "K1314", "127114", "C7114",
+#                                   "112114", "B2114", "125213", "C5213", "123223", "C3223", "125413", "C5413", "102113", "A2113",
+#                                   "203112", "K3112", "104113", "A4113", "C6212", "126212", "K5215", "205215", "C4112", "124112",
+#                                   "1111114", "B111E", "123112", "C3112", "105113", "A5113", "124111", "C4111", "204112", "205115",
+#                                   "K4112", "K5115", "K5116", "205116", "C7111", "127111"))%>%
+#   arrange(hh_id, item_code_COICOP)%>%
+#   mutate(test_2 = ifelse(expenditures_year %in% .$expenditures_year_exp_1, 1,0))%>%
+#   filter(test_2 == 1 | is.na(expenditures_year))%>%
+#   group_by(hh_id)%>%
+#   mutate(number = n())%>%
+#   ungroup()%>%
+#   filter(number != 1)
+
+# Hardly any difference
+
+# Will work with C-Variables for now
+
+expenditure_information_3 <- bind_rows(expenditure_information_1.1, expenditure_information_2.1)%>%
+  arrange(hh_id, desc(expenditures_year))%>%
+  # apparently, expenditures from questionnaire are not actually covered by item codes
+  filter(expenditures_year > 0)%>%
+  select(hh_id, item_code, expenditures_year)
+
+write_csv(expenditure_information_3, "../0_Data/1_Household Data/4_United Kingdom/1_Data_Clean/expenditures_items_United Kingdom.csv")    
+
+# Item Code Description 
+
+Item.Code.Description <- Variable.Description %>%
+  filter(Variable %in% colnames(expenditure_information_1) | Variable %in% colnames(expenditure_information_2))%>%
+  rename(item_code = "Variable", item_name = "Label")
+
+write.xlsx(Item.Code.Description, "../0_Data/1_Household Data/4_United Kingdom/3_Matching_Tables/Item_Codes_Description_United Kingdom.xlsx")
 
 #other codes
 
