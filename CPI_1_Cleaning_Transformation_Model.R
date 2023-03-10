@@ -20,7 +20,7 @@ for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Iraq","Israel
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Rwanda","Senegal",
                       "South Africa", "Togo", "Uganda",
-                      "Armenia","Europe","Norway","Egypt","Jordan","USA","Canada")) {
+                      "Armenia","Europe","Norway","Egypt","Jordan","USA","Canada", "United Kingdom", "Georgia")) {
 
 # uncomment for transforming/cleaning single country dataset
 #Country.Name <- "Mongolia"
@@ -148,7 +148,7 @@ hh_negative_expenditures_4 <- expenditure_information_4 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel", "South Africa", "Pakistan")){
+if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel", "South Africa", "Pakistan", "Georgia")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)
   
@@ -179,7 +179,7 @@ if(Country.Name %in% c("Cambodia")){
 
 clean_3 <- nrow(household_information)
 
-if(Country.Name %in% c("Ghana")){
+if(Country.Name %in% c("Ghana", "United Kingdom")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_expenditures_3$hh_id)
   
@@ -269,7 +269,8 @@ expenditure_outlier <- expenditure_information_4.1 %>%
 
 # Deleting outliers for some countries
 
-if(Country.Name %in% c("Ghana", "Colombia", "Cambodia", "Nicaragua", "Liberia", "Malawi", "Iraq", "Pakistan", "Vietnam", "USA")){
+if(Country.Name %in% c("Ghana", "Colombia", "Cambodia", "Nicaragua", "Liberia", "Malawi", "Iraq", "Pakistan", "Vietnam","United Kingdom","USA",
+                       "Georgia")){
 
 household_information <- household_information %>%
   filter(!hh_id %in% expenditure_outlier$hh_id)
