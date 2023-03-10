@@ -8,10 +8,10 @@ options(scipen=999)
 
 # raw_per     <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_rawper_ukanon_final.dta")
 # raw_hh      <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_rawhh_ukanon.dta")
-derived_hh  <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_dvhh_ukanon.dta")
-derived_per <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_dvper_ukanon201819.dta")
-exp         <-  read_dta("../0_Data/1_Household Data/4_United_Kingdom/1_Data_Raw/2018_dv_set89_ukanon.dta")
-codes       <- read.xlsx("../0_Data/1_Household Data/4_United_Kingdom/9_Documentation/Item_Codes.xlsx")
+derived_hh  <-  read_dta("../0_Data/1_Household Data/4_United Kingdom/1_Data_Raw/2018_dvhh_ukanon.dta")
+derived_per <-  read_dta("../0_Data/1_Household Data/4_United Kingdom/1_Data_Raw/2018_dvper_ukanon201819.dta")
+exp         <-  read_dta("../0_Data/1_Household Data/4_United Kingdom/1_Data_Raw/2018_dv_set89_ukanon.dta")
+codes       <- read.xlsx("../0_Data/1_Household Data/4_United Kingdom/9_Documentation/Item_Codes.xlsx")
 
 Variable.Description <- data.frame()
 
@@ -45,7 +45,8 @@ household_information_1 <- derived_hh %>%
   rename(hh_id = case, hh_size = A049, province = Gorx, hh_weights = weighta)%>%
   mutate_at(vars(starts_with("URGrid")), list(~ ifelse(is.na(.),3,.)))%>%
   mutate(urban_01 = ifelse(URGridEWp == 1 | URGridSCp == 1,1,
-                           ifelse(URGridEWp == 2 | URGridSCp == 2,0,NA)))%>%
+                           # Northern Ireland == 3 , assumed to be urban
+                           ifelse(URGridEWp == 2 | URGridSCp == 2,0,1)))%>%
   mutate(children = A040 + A041 + A042, 
          adults   = A043 + A044 + A045 + A046 + A047)%>%
   select(hh_id, hh_size, adults, children, urban_01, province, hh_weights, A150:A156)%>%
@@ -211,9 +212,11 @@ write_csv(expenditure_information_3, "../0_Data/1_Household Data/4_United Kingdo
 
 Item.Code.Description <- Variable.Description %>%
   filter(Variable %in% colnames(expenditure_information_1) | Variable %in% colnames(expenditure_information_2))%>%
-  rename(item_code = "Variable", item_name = "Label")
+  rename(item_code = "Variable", item_name = "Label")%>%
+  mutate(item_name = str_replace(item_name, "- children and adults", ""))%>%
+  mutate(item_code = str_replace(item_code, "t", ""))
 
-write.xlsx(Item.Code.Description, "../0_Data/1_Household Data/4_United Kingdom/3_Matching_Tables/Item_Codes_Description_United Kingdom.xlsx")
+# write.xlsx(Item.Code.Description, "../0_Data/1_Household Data/4_United Kingdom/3_Matching_Tables/Item_Codes_Description_United Kingdom.xlsx")
 
 #other codes
 
