@@ -92,7 +92,7 @@ expenditure_information_2.3 <- expenditure_information_2 %>%
   bind_rows(expenditure_information_2.2)%>%
   arrange(hh_id, item_code)
 
-write_csv(expenditure_information_2, "../0_Data/1_Household Data/2_Egypt/1_Data_Clean/expenditures_items_Egypt.csv")
+write_csv(expenditure_information_2.3, "../0_Data/1_Household Data/2_Egypt/1_Data_Clean/expenditures_items_Egypt.csv")
 
 # Appliance data
 
