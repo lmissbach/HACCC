@@ -20,7 +20,7 @@ for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Iraq","Israel
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                       "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Rwanda","Senegal",
                       "South Africa", "Togo", "Uganda",
-                      "Armenia","Europe","Norway","Egypt","Jordan","USA","Canada", "United Kingdom", "Georgia")) {
+                      "Armenia","Europe","Norway","Egypt","Jordan","USA","Canada", "United Kingdom", "Georgia", "Austria", "Taiwan")) {
 
 # uncomment for transforming/cleaning single country dataset
 #Country.Name <- "Mongolia"
@@ -381,7 +381,7 @@ if(Country.Name == "Europe"){
   matching <- read.xlsx("../0_Data/1_Household Data/4_Europe_EU27/3_Matching_Tables/Item_GTAP_Concordance_EU_incl_Artificial.xlsx")
 }
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Pakistan" | Country.Name == "Iraq"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Pakistan" | Country.Name == "Iraq" | Country.Name == "Taiwan"){
   matching <- matching %>%
     mutate_at(vars(-GTAP, -Explanation),~ as.numeric(.))
 }
@@ -426,7 +426,7 @@ rm(matching.check, item_codes)
 
 categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Iraq"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Iraq" | Country.Name == "Taiwan"){
   categories <- categories %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
@@ -465,7 +465,7 @@ rm(matching.check, item_codes)
 
 fuels <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Fuel_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Iraq"){
+if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Iraq" | Country.Name == "Taiwan"){
   fuels <- fuels %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
