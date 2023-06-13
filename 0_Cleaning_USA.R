@@ -246,8 +246,8 @@ mem_iv_1 <- mem_iv %>%
          ethnicity = membrace, ethnicity_2.1 = asian, ethnicity_2 = hispanic)%>%
   filter(quarter == "191")%>%
   select(hh_id_0 = id, sex_hhh, age_hhh, ind_hhh, edu_hhh, ethnicity, ethnicity_2.1, ethnicity_2)%>%
-  mutate(ethnicity     = ifelse(ethnicity == 4 | ethnicity == 6, as.numeric(ethnicity_2.1)+10, ethnicity))%>%
-  select(-ethnicity_2.1)
+  mutate(ethnicity_new     = ifelse((ethnicity == 4 | ethnicity == 6) & ethnicity_2.1 != "", as.numeric(ethnicity_2.1)+10, ethnicity))%>%
+  select(-ethnicity_2.1, -ethnicity_2)
 
 mem_iv_2 <- mem_iv %>%
   filter(hh_id %in% households_used$hh_id)%>%
@@ -278,7 +278,9 @@ household_information <- distinct(fml_iv_2, hh_id_0, urban_01, hh_weights)%>%
   left_join(mem_iv_3)%>%
   mutate_at(vars(-hh_id_0), list(~ ifelse(. == "", NA,.)))%>%
   # Only now
-  rename(hh_id = hh_id_0)
+  rename(hh_id = hh_id_0)%>%
+  mutate(district = ifelse(is.na(district),"00",district),
+         province = ifelse(is.na(province), "0",province))
 
 write_csv(household_information, "../0_Data/1_Household Data/3_USA/1_Data_Clean/household_information_USA.csv")
 
@@ -612,13 +614,15 @@ Ethnicity.Code.2 <- distinct(mem_iv, hispanic)%>%
 Province.Code <- distinct(fml_iv, division)%>%
   arrange(division)%>%
   rename(province = division)%>%
-  mutate(Province = c(NA, "New England","Middle Atlantic","East North Central","West North Central","South Atlantic","East South Central",
+  mutate(province = ifelse(province == "","0",province))%>%
+  mutate(Province = c("Unknown", "New England","Middle Atlantic","East North Central","West North Central","South Atlantic","East South Central",
   "West South Central","Mountain","Pacific"))%>%
   write_csv(., "../0_Data/1_Household Data/3_USA/2_Codes/Province.Code.csv")
 District.Code <- distinct(fml_iv, state)%>%
   arrange(state)%>%
   rename(district = state)%>%
-  mutate(District = c(NA, "Alabama","Alaska","Arizona","California","Colorado","Connecticut","Delaware","District of Columbia","Florida","Georgia",
+  mutate(district = ifelse(district == "","00",district))%>%
+  mutate(District = c("Unknown", "Alabama","Alaska","Arizona","California","Colorado","Connecticut","Delaware","District of Columbia","Florida","Georgia",
                       "Hawaii","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana",
                       "Maryland","Massachuse","Michigan","Minnesota","Mississippi","Missouri","Nebraska","Nevada","New Hampshire","New Jersey",
                       "New York","North Carolina","Ohio","Oklahoma","Oregon","Pennsylvania","South Carolina","Tennessee","Texas","Utah","Virginia",

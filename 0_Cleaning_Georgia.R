@@ -70,7 +70,8 @@ data_5.1 <- data_5 %>%
 
 data_9.1 <- data_9 %>%
   rename(hh_id = UID, inc_gov_monetary = PensStipDaxm)%>%
-  select(hh_id, inc_gov_monetary)
+  select(hh_id, inc_gov_monetary)%>%
+  mutate(inc_gov_cash = 0)
 
 household_information <- data_5.1 %>%
   left_join(data_10.1)%>%
@@ -95,7 +96,11 @@ appliances_0_1 <- data_15 %>%
   pivot_wider(names_from = "Subject", values_from = "Value", values_fill = 0)%>%
   rename(refrigerator.01 = "1", washing_machine.01 = "2", radio.01 = "3", tv.01 = "4", computer.01 = "12", motorcycle.01 = "14",
          car.01 = "15", car.01b = "17", stove.01 = "22", mobile.01 = "23", ac.01 = "26", heater.01 = "28")%>%
-  filter(hh_id %in% household_information$hh_id)%>%
+  filter(hh_id %in% household_information$hh_id)
+
+appliances_0.1.1 <- distinct(household_information, hh_id)%>%
+  left_join(appliances_0_1)%>%
+  mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))%>%
   write_csv(., "../0_Data/1_Household Data/4_Georgia/1_Data_Clean/appliances_0_1_Georgia.csv")
 
 # Expenditure information ####
