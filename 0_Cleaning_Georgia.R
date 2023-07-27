@@ -96,7 +96,9 @@ appliances_0_1 <- data_15 %>%
   pivot_wider(names_from = "Subject", values_from = "Value", values_fill = 0)%>%
   rename(refrigerator.01 = "1", washing_machine.01 = "2", radio.01 = "3", tv.01 = "4", computer.01 = "12", motorcycle.01 = "14",
          car.01 = "15", car.01b = "17", stove.01 = "22", mobile.01 = "23", ac.01 = "26", heater.01 = "28")%>%
-  filter(hh_id %in% household_information$hh_id)
+  filter(hh_id %in% household_information$hh_id)%>%
+  mutate(car.01 = ifelse(car.01 == 1 | car.01b == 1,1,0))%>%
+  select(-car.01b)
 
 appliances_0.1.1 <- distinct(household_information, hh_id)%>%
   left_join(appliances_0_1)%>%

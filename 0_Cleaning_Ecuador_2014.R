@@ -24,7 +24,8 @@ data_01.1 <- data_01 %>%
   mutate(urban_01 = ifelse(AREA_5000 == "Urbano",1,0))%>%
   select(hh_id, hh_weights, urban_01, Province, District, Village, electricity.access,
          Cooking_Fuel, Lighting_Fuel, Water, Toilet)%>%
-  mutate(Cooking_Fuel = ifelse(Cooking_Fuel == " ", "Otro, cual", Cooking_Fuel))
+  mutate(Cooking_Fuel = ifelse(Cooking_Fuel == " ", "Otro, cual", Cooking_Fuel))%>%
+  mutate(Province = ifelse(Province == " ", "No ciudad", Province)) 
 
 data_02.1 <- data_02 %>%
   rename(hh_id = IDENTIF_HOG, Education = PE47, Sex_hhh = SEXO, ind_hhh = PA16, Ethnicity = PD18)%>%
@@ -95,7 +96,7 @@ Cooking.Code <- distinct(data_01, VI13)%>%
   arrange(VI13)%>%
   rename(Cooking_Fuel = VI13)%>%
   mutate(cooking_fuel = 0:(n()-1))%>%
-  mutate(CF = c(NA, "Electricity", "LPG", "Firewood", "Other"))%>%
+  mutate(CF = c("Other", "Electricity", "LPG", "Firewood", "Other"))%>%
   write_csv(., "../0_Data/1_Household Data/3_Ecuador/2_Codes/Cooking.Code.csv")
 
 Lighting.Code <- distinct(data_01, VI26)%>%

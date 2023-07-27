@@ -16,8 +16,8 @@ data_0.1 <- data_0 %>%
   rename(hh_id = id, ind_hhh = a4, age_hhh = a6, sex_hhh = a7, hh_size = a8, edu_hhh = a11, adults = a12,
          water = c4, hh_weights = a20)%>%
   mutate(children = hh_size - adults)%>%
-  select(hh_id, hh_size, hh_weights, adults, children, water, ind_hhh, age_hhh, sex_hhh, water, itm430)%>%
-  mutate(inc_gov_monetary = itm430,
+  select(hh_id, hh_size, hh_weights, adults, children, water, ind_hhh, age_hhh, sex_hhh, edu_hhh, water, itm430)%>%
+  mutate(inc_gov_monetary = ifelse(!is.na(itm430), itm430,0),
          inc_gov_cash     = 0)%>%
   select(-itm430)%>%
   write_csv(., "../0_Data/1_Household Data/1_Taiwan/1_Data_Clean/household_information_Taiwan.csv")

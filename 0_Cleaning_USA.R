@@ -247,7 +247,8 @@ mem_iv_1 <- mem_iv %>%
   filter(quarter == "191")%>%
   select(hh_id_0 = id, sex_hhh, age_hhh, ind_hhh, edu_hhh, ethnicity, ethnicity_2.1, ethnicity_2)%>%
   mutate(ethnicity_new     = ifelse((ethnicity == 4 | ethnicity == 6) & ethnicity_2.1 != "", as.numeric(ethnicity_2.1)+10, ethnicity))%>%
-  select(-ethnicity_2.1, -ethnicity_2)
+  select(-ethnicity_2.1, -ethnicity_2, -ethnicity)%>%
+  rename(ethnicity = ethnicity_new)
 
 mem_iv_2 <- mem_iv %>%
   filter(hh_id %in% households_used$hh_id)%>%
@@ -602,9 +603,9 @@ Education.Code <- distinct(mem_iv, educa)%>%
 Ethnicity.Code <- distinct(mem_iv_1, ethnicity)%>%
   mutate(ethnicity = as.numeric(ethnicity))%>%
   arrange(ethnicity)%>%
-  mutate(Ethnicity = c("White", "Black", "Native American", "Pacific Islander", 
+  mutate(Ethnicity = c("White", "Black", "Native American", "Asian", "Pacific Islander", "Multi-race", 
                        "Asian or Multi-race - Chinese","Asian or Multi-race - Filipino", "Asian or Multi-race - Japanese",
-                       "Asian or Multi-race - Korean", "Asian or Multi-race - Vietnamese", "Asian or Multi-race - Asian Indian", "Asian or Multi-race - Other", NA))%>%
+                       "Asian or Multi-race - Korean", "Asian or Multi-race - Vietnamese", "Asian or Multi-race - Asian Indian", "Asian or Multi-race - Other"))%>%
   write_csv(., "../0_Data/1_Household Data/3_USA/2_Codes/Ethnicity.Code.csv")
 Ethnicity.Code.2 <- distinct(mem_iv, hispanic)%>%
   arrange(hispanic)%>%
