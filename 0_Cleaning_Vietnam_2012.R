@@ -1,8 +1,10 @@
 if(!require("pacman")) install.packages("pacman")
 
-p_load("countrycode", "haven", "Hmisc", "openxlsx", "rattle", "scales", "tidyverse", "vietnameseConverter")
+p_load("countrycode", "haven", "Hmisc", "openxlsx", "rattle", "scales", "sjlabelled","tidyverse", "vietnameseConverter")
 
 options(scipen=999)
+
+# Author: L. Missbach (missbach@mcc-berlin.net)
 
 # Loading Data ####
 
@@ -57,7 +59,6 @@ data_82   <- read_dta("../../HH Surveys Paper/Vietnam_analysis/Data/Data_2012/Mu
 data_0   <- read_dta("../../HH Surveys Paper/Vietnam_analysis/Data/Data_2012/ttchung.dta")
 data_w   <- read_dta("../../HH Surveys Paper/Vietnam_analysis/Data/Data_2012/wt2012new.dta")
 data_e   <- read_dta("../../HH Surveys Paper/Vietnam_analysis/Data/Data_2012/hhexpe12_2.dta")
-
 
 # Shaping Data ####
 
@@ -136,20 +137,18 @@ write_csv(household_information, "../0_Data/1_Household Data/1_Vietnam/1_Data_Cl
 
 # Expenditures ####
 
-# 2014
-
-data_2b.1 <- data_2b %>%
+data_2b.1 <- data_2 %>%
   unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  select(hh_id, m2xc11a:m2xc11i)%>%
-  rename("38" = "m2xc11a", 
-         "39" = "m2xc11b", 
-         "40" = "m2xc11c", 
-         "41" = "m2xc11d", 
-         "42" = "m2xc11e", 
-         "43" = "m2xc11f", 
-         "44" = "m2xc11g", 
-         "45" = "m2xc11h", 
-         "46" = "m2xc11i")%>%
+  select(hh_id, m2c11a:m2c11i)%>%
+  rename("38" = "m2c11a", 
+         "39" = "m2c11b", 
+         "40" = "m2c11c", 
+         "41" = "m2c11d", 
+         "42" = "m2c11e", 
+         "43" = "m2c11f", 
+         "44" = "m2c11g", 
+         "45" = "m2c11h", 
+         "46" = "m2c11i")%>%
   pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures_year")%>%
   filter(!is.na(expenditures_year) & expenditures_year > 0)%>%
   mutate(item_code = as.numeric(item_code))%>%
@@ -197,7 +196,7 @@ data_5a1.1 <- data_5a1 %>%
 
 data_5a2.1 <- data_5a2 %>%
   unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  rename(item_code = m5a2ma, expenditures_year = m5a2c4b, expenditures_sp_year = m5a2c5b)%>%
+  rename(item_code = m5a2ma, expenditures_year = m5a2c3b, expenditures_sp_year = m5a2c4b)%>%
   mutate(expenditures_year    = ifelse(is.na(expenditures_year),0,expenditures_year*12),
          expenditures_sp_year = ifelse(is.na(expenditures_sp_year),0,expenditures_sp_year*12))%>%
   group_by(hh_id, item_code)%>%
@@ -229,17 +228,27 @@ data_5b2.1 <- data_5b2 %>%
 
 data_5b3.1 <- data_5b3 %>%
   unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  rename(item_code = m5b3ma, expenditures_year = m5b3c2)%>%
+  rename("400" = "m5b3c2_1",
+         "401" = "m5b3c2_2",
+         "402" = "m5b3c2_3",
+         "403" = "m5b3c2_4",
+         "404" = "m5b3c2_5",
+         "405" = "m5b3c2_6",
+         "406" = "m5b3c2_7",
+         "407" = "m5b3c2_8",
+         "408" = "m5b3c2_9")%>%
+  pivot_longer(-hh_id, names_to = "item_code", values_to = "expenditures_year")%>%
   select(hh_id, item_code, expenditures_year)%>%
   mutate(expenditures_sp_year = 0)%>%
   remove_all_labels()%>%
-  mutate(Type = "5B3")
+  mutate(Type = "5B3")%>%
+  mutate(item_code = as.numeric(item_code))
 
 data_6b.2 <- data_6b %>%
   unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  select(hh_id, m6bma, m6bc5)%>%
-  filter(!is.na(m6bc5))%>%
-  rename(item_code = m6bma, expenditures_year = m6bc5)%>%
+  select(hh_id, m6c2, m6c5)%>%
+  filter(!is.na(m6c5))%>%
+  rename(item_code = m6c2, expenditures_year = m6c5)%>%
   group_by(hh_id, item_code)%>%
   summarise(expenditures_year = sum(expenditures_year))%>%
   ungroup()%>%
@@ -266,7 +275,7 @@ Item.Codes <- expenditures_items %>%
   ungroup()%>%
   select(-number, -number_b)
 
-write.xlsx(Item.Codes, "../0_Data/1_Household Data/1_Vietnam/3_Matching_Tables/Item_Code_Description_Vietnam_Raw.xlsx")
+write.xlsx(Item.Codes, "../0_Data/1_Household Data/1_Vietnam/3_Matching_Tables/Item_Code_Description_Vietnam_Raw_2012.xlsx")
 
 expenditures_items_1 <- expenditures_items %>%
   group_by(hh_id, item_code)%>%
@@ -276,98 +285,35 @@ expenditures_items_1 <- expenditures_items %>%
 
 write_csv(expenditures_items_1, "../0_Data/1_Household Data/1_Vietnam/1_Data_Clean/expenditures_items_Vietnam.csv")
 
+# Appliances ####
 
-# 2012
-
-# Other things from old code
-
-muc7_2 <- muc7 %>%
+data_6b.1 <- data_6b %>%
   unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  select(hh_id, m7c8, m7c14, m7c20, m7c24, m7c26)%>%
-  remove_all_labels()
+  select(hh_id, m6c2, m6c3)%>%
+  mutate(m6c3 = ifelse(m6c3 > 0,1,m6c3))%>%
+  distinct()%>%
+  pivot_wider(names_from = m6c2, values_from = m6c3, values_fill = 0)%>%
+  select(hh_id, sort(names(.)))%>%
+  rename(car.01 = '1', 
+         motorcycle.01 = '2',   
+         mobile.01 = '12', 
+         TV.01a = '15', TV.01b = '16', 
+         computer.01 = '20', 
+         refrigerator.01 = '22', 
+         ac.01 = '23', 
+         washing_machine.01 = '24', 
+         fan.01 = '25', 
+         gas.cookers.01 = '27', electric.cookers.01 = '28', 
+         vacuum.01 = '33', microwave.01 = '34')%>%
+  select(hh_id, ends_with(".01"), TV.01a, TV.01b)%>%
+  right_join(distinct(household_information, hh_id))%>%
+  mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))%>%
+  arrange(hh_id)%>%
+  mutate(tv.01     = ifelse(TV.01a > 0 | TV.01b > 0,1,0),
+         stove.01  = ifelse(gas.cookers.01 > 0 | electric.cookers.01 > 0,1,0))%>%
+  select(-gas.cookers.01, -electric.cookers.01, -TV.01a, -TV.01b)
 
-colnames(muc7_2) <- c("hh_id", "8", "14", "20", "24", "26")
-
-muc7_2 <- muc7_2 %>%
-  gather(key = "item_code", value = "expenditures", "8":"26", na.rm = TRUE)%>%
-  mutate(expenditures_selfproduced = 0)
-
-# Consumption 
-
-muc5a1.1 <- muc5a1%>%
-  unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  rename(item_code = m5a1ma, expenditures = m5a1c2b, expenditures_selfproduced = m5a1c3b)
-
-muc5a1.1$m5a1ma1[is.na(muc5a1.1$m5a1ma1)] <- 0
-muc5a1.1 <- muc5a1.1%>%
-  mutate(item_code = item_code*10+m5a1ma1)%>%
-  select(hh_id, item_code, expenditures, expenditures_selfproduced)%>%
-  remove_all_labels()%>%
-  mutate(item_code = item_code *10)
-
-
-
-muc5a2.1 <- muc5a2 %>%
-  unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  rename(item_code = m5a2ma)
-
-muc5a2.1$m5a2ma1[is.na(muc5a2.1$m5a2ma1)] <- 0
-
-muc5a2.1 <- muc5a2.1 %>%
-  mutate(item_code = ifelse((m5a2ma1 == 1 | m5a2ma1 == 2 | m5a2ma1 == 3), (item_code*10+m5a2ma1), item_code))%>%
-  select(-m5a2ma1)
-
-muc5a2.1$m5a2c3b[is.na(muc5a2.1$m5a2c3b)] <- 0
-muc5a2.1$m5a2c4b[is.na(muc5a2.1$m5a2c4b)] <- 0
-muc5a2.1$m5a2c5b[is.na(muc5a2.1$m5a2c5b)] <- 0
-
-test <- muc5a2.1 %>%
-  mutate(test = m5a2c3b + m5a2c4b + m5a2c5b)%>%
-  mutate(dif = test - m5a2c2b)
-
-# IMPORTANT! We hence should use m5a2c3b and m5a2c4b
-
-muc5a2.1 <- muc5a2.1 %>%
-  rename(expenditures = m5a2c3b, expenditures_selfproduced = m5a2c4b)%>%
-  select(hh_id, item_code, expenditures, expenditures_selfproduced)%>%
-  remove_all_labels()%>%
-  mutate(expenditures = expenditures*12)%>%
-  mutate(expenditures_selfproduced = expenditures_selfproduced*12)
-
-# Regular Consumption on a monthly basis
-
-muc5b1.1 <- muc5b1 %>%
-  unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  rename(item_code = m5b1ma, expenditures = m5b1c3, expenditures_selfproduced = m5b1c4)%>%
-  remove_all_labels()%>%
-  mutate(expenditures = expenditures*12)%>%
-  mutate(expenditures_selfproduced = expenditures_selfproduced*12)%>%
-  select(hh_id, item_code, expenditures, expenditures_selfproduced)
-
-muc5b2.1 <- muc5b2 %>%
-  unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  remove_all_labels()%>%
-  rename(item_code = m5b2ma, expenditures = m5b2c2, expenditures_selfproduced = m5b2c3)
-
-muc5b3.1 <- muc5b3 %>%
-  unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  remove_all_labels()
-colnames(muc5b3.1) <- c("hh_id", c(seq(400, 408, by = 1)))
-
-muc5b3.1 <- muc5b3.1%>%
-  gather(key = "item_code", value = "expenditures", '400':'408')%>%
-  mutate(expenditures_selfproduced = 0)
-
-muc5 <- muc5a1.1 %>%
-  rbind(muc5a2.1)%>%
-  rbind(muc5b1.1)%>%
-  rbind(muc5b2.1)%>%
-  rbind(muc5b3.1)%>%
-  rbind(muc7_2)%>%
-  arrange(hh_id, item_code)
-
-# write_csv(muc5, "expenditures_items_Vietnam_long.csv")
-
+write_csv(data_6b.1, "../0_Data/1_Household Data/1_Vietnam/1_Data_Clean/appliances_0_1_Vietnam.csv")
 
 # Codierungen ####
 
@@ -429,32 +375,3 @@ Lighting.Code <- stack(attr(data_7$m7c22, 'labels'))%>%
   select(-ind)%>%
   write_csv(., "../0_Data/1_Household Data/1_Vietnam/2_Codes/Lighting.Code.csv")
 
-# Appliances ####
-
-data_6b.1 <- data_6b %>%
-  unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
-  select(hh_id, m6c2, m6c3)%>%
-  mutate(m6c3 = ifelse(m6c3 > 0,1,m6c3))%>%
-  distinct()%>%
-  pivot_wider(names_from = m6c2, values_from = m6c3, values_fill = 0)%>%
-  select(hh_id, sort(names(.)))%>%
-  rename(car.01 = '1', 
-         motorcycle.01 = '2',   
-         mobile.01 = '12', 
-         TV.01a = '15', TV.01b = '16', 
-         computer.01 = '20', 
-         refrigerator.01 = '22', 
-         ac.01 = '23', 
-         washing_machine.01 = '24', 
-         fan.01 = '25', 
-         gas.cookers.01 = '27', electric.cookers.01 = '28', 
-         vacuum.01 = '33', microwave.01 = '34')%>%
-  select(hh_id, ends_with(".01"), TV.01a, TV.01b)%>%
-  right_join(distinct(household_information, hh_id))%>%
-  mutate_at(vars(-hh_id), list(~ ifelse(is.na(.),0,.)))%>%
-  arrange(hh_id)%>%
-  mutate(tv.01     = ifelse(TV.01a > 0 | TV.01b > 0,1,0),
-         stove.01  = ifelse(gas.cookers.01 > 0 | electric.cookers.01 > 0,1,0))%>%
-  select(-gas.cookers.01, -electric.cookers.01, -TV.01a, -TV.01b)
-
-write_csv(data_6b.1, "../0_Data/1_Household Data/1_Vietnam/1_Data_Clean/appliances_0_1_Vietnam.csv")
