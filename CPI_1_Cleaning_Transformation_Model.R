@@ -18,7 +18,7 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 
 for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Iraq","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey","Vietnam",
                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
-                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Niger","Nigeria","Rwanda","Senegal",
+                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Mozambique","Niger","Nigeria","Rwanda","Senegal",
                       "South Africa", "Togo", "Uganda",
                       "Armenia","Europe","Norway","Egypt","Jordan","USA","Canada", "United Kingdom", "Georgia", "Austria", "Taiwan", "Russia", "Serbia", "Switzerland")) {
 
@@ -148,7 +148,7 @@ hh_negative_expenditures_4 <- expenditure_information_4 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel", "South Africa", "Pakistan", "Georgia", "Vietnam")){
+if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel", "Mozambique","South Africa", "Pakistan", "Georgia", "Vietnam")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)
   
@@ -158,7 +158,7 @@ if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israe
 
 clean_1 <- nrow(household_information)
 
-if(Country.Name %in% c("India", "Indonesia", "Iraq","Philippines","Ethiopia", "Kenya","Suriname", "Uganda")){
+if(Country.Name %in% c("India", "Indonesia", "Iraq","Philippines","Ethiopia", "Kenya","Mozambique","Suriname", "Uganda")){
 
   household_information <- household_information %>%
    filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)
@@ -392,7 +392,7 @@ if(Country.Name == "Colombia"){
            X42 = as.character(X42),
            X43 = as.character(X43))}
 
-if(Country.Name == "Bolivia" | Country.Name == "Armenia" | Country.Name == "Bangladesh"){
+if(Country.Name == "Bolivia" | Country.Name == "Armenia" | Country.Name == "Bangladesh" | Country.Name == "Mozambique"){
   matching <- matching %>%
     mutate_at(.vars = vars(-GTAP), .funs = list(~ as.character(.)))
 }
@@ -426,12 +426,12 @@ rm(matching.check, item_codes)
 
 categories <- read.xlsx(sprintf("../0_Data/1_Household Data/%s/3_Matching_Tables/Item_Categories_Concordance_%s.xlsx", path_0, Country.Name), colNames = FALSE)
 
-if(Country.Name == "Thailand" | Country.Name == "Maldives" | Country.Name == "Iraq" | Country.Name == "Taiwan"){
+if(Country.Name %in% c("Thailand", "Maldives", "Iraq", "Taiwan")){
   categories <- categories %>%
     mutate_at(vars(-X1),~ as.numeric(.))
 }
 
-if(Country.Name == "Bolivia" | Country.Name == "Armenia" | Country.Name == "Bangladesh"){
+if(Country.Name %in% c("Bolivia", "Armenia", "Bangladesh", "Mozambique")){
   categories <- categories %>%
     mutate_at(.vars = vars(-X1), .funs = list(~ as.character(.)))
 }
@@ -476,7 +476,7 @@ fuels <- fuels %>%
   rename(fuel = X1)%>%
   select(fuel, item_code)
 
-if(Country.Name == "Paraguay" | Country.Name == "Bangladesh"){fuels$item_code <- as.character(fuels$item_code)}
+if(Country.Name %in% c("Paraguay", "Mozambique", "Bangladesh")){fuels$item_code <- as.character(fuels$item_code)}
 
 energy <- filter(categories, category == "energy")%>%
   full_join(fuels, by = "item_code")%>%
