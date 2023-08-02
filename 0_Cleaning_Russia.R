@@ -78,6 +78,13 @@ data_1.1.2 <- data_1.1 %>%
   distinct(hh_id, .keep_all = TRUE)%>%
   select(-HHH, -personx)
 
+data_1.2 <- data_1 %>%
+  select(tid_h)%>%
+  rename(hh_id = tid_h)%>%
+  group_by(hh_id)%>%
+  summarise(adults = n())%>%
+  ungroup()
+
 household_information <- left_join(data_3.1, data_1.1.2)%>%
   select(-hxrnum)%>%
   left_join(data_1.1.1)%>%
@@ -88,9 +95,11 @@ household_information <- left_join(data_3.1, data_1.1.2)%>%
          water = ifelse(is.na(water),7,water),
          toilet = ifelse(is.na(toilet),7,toilet),
          religion = ifelse(religion == 99999996 | is.na(religion),96, religion),
-         ind_hhh = ifelse(is.na(ind_hhh),33,ind_hhh))
+         ind_hhh = ifelse(is.na(ind_hhh),33,ind_hhh))%>%
+  left_join(data_1.2)%>%
+  mutate(children = hh_size - adults)
 
-write_csv(household_information, "../0_Data/1_Household Data/4_Russia/1_Data_Clean/household_information_Russia.csv")
+#write_csv(household_information, "../0_Data/1_Household Data/4_Russia/1_Data_Clean/household_information_Russia.csv")
 
 # Codes Intermezzo
 
@@ -130,8 +139,8 @@ Toilet.Code <- distinct(data_3, hxhcsewr)%>%
   arrange(hxhcsewr)%>%
   rename(toilet = hxhcsewr)%>%
   mutate(toilet = ifelse(is.na(toilet),7,toilet))%>%
-  mutate(Water = c("Has central sewerage", "Has no central sewerage", "Does not know"))%>%
-  mutate(WTR = c("Basic", "Limited", "Unknown"))%>%
+  mutate(Toilet = c("Has central sewerage", "Has no central sewerage", "Does not know"))%>%
+  mutate(TLT = c("Basic", "Limited", "Unknown"))%>%
   write_csv(., "../0_Data/1_Household Data/4_Russia/2_Codes/Toilet.Code.csv")
 
 Water.Code <- distinct(data_3, hxhcwatr)%>%
@@ -215,7 +224,7 @@ appliances_0_1 <- data_3 %>%
   rename(hh_id = tid, 
          refrigerator.01a   = hxorefnf, 
          refrigerator.01b   = hxofrez, 
-         washing_mashine.01 = hxowshra, 
+         washing_machine.01 = hxowshra, 
          microwave.01       = hxomicov,
          dishwasher.01      = hxodishw, 
          tv.01a             = hxocoltv, 

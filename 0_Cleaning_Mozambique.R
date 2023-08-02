@@ -75,7 +75,31 @@ hi_2 <- data_households_moz_1.2 %>%
   select(-edu_hhh_1, -edu_hhh_2)%>%
   filter(!hh_id %in% hi_1$hh_id)
 
+hi_1.1 <- data_households_moz_1.1 %>%
+  select(`IOF_ ID & AF`, AF05)%>%
+  mutate(adults   = ifelse(AF05 > 15,1,0),
+         children = ifelse(AF05 < 16,1,0))%>%
+  rename(hh_id = `IOF_ ID & AF`)%>%
+  group_by(hh_id)%>%
+  summarise(adults = sum(adults),
+            children = sum(children))%>%
+  ungroup()
+
+hi_2.1 <- data_households_moz_1.2 %>%
+  select(`IOF_ ID & AF`, AF05)%>%
+  mutate(adults   = ifelse(AF05 > 15,1,0),
+         children = ifelse(AF05 < 16,1,0))%>%
+  rename(hh_id = `IOF_ ID & AF`)%>%
+  group_by(hh_id)%>%
+  summarise(adults = sum(adults),
+            children = sum(children))%>%
+  ungroup()%>%
+  filter(!hh_id %in% hi_1.1$hh_id)
+
 hi_1 <- bind_rows(hi_1, hi_2)%>%
+  arrange(hh_id)
+
+hi_1.1 <- bind_rows(hi_1.1, hi_2.1)%>%
   arrange(hh_id)
 
 housing_1 <- housing %>%
@@ -86,7 +110,8 @@ housing_1 <- housing %>%
   mutate(hh_id = paste0(id_1,id_0))%>%
   select(hh_id, AF25, AF28, AF29, AF30)%>%
   rename(water = AF25, toilet = AF28, cooking_fuel = AF29, lighting_fuel = AF30)%>%
-  mutate(electricity.access = ifelse(cooking_fuel == 1 | lighting_fuel == 1,1,0))
+  mutate(electricity.access = ifelse(cooking_fuel == 1 | lighting_fuel == 1,1,0))%>%
+  mutate(cooking_fuel = ifelse(cooking_fuel == 9,96, cooking_fuel))
 
 # Transfers #
 
@@ -165,6 +190,7 @@ household_information <- left_join(hi_1, housing_1)%>%
   # deleting 22 households with missing information
   filter(!is.na(water))%>%
   left_join(transfers_1.3)%>%
+  left_join(hi_1.1)%>%
   mutate(inc_gov_cash = ifelse(is.na(inc_gov_cash),0,inc_gov_cash),
          inc_gov_monetary = ifelse(is.na(inc_gov_monetary),0,inc_gov_monetary))%>%
   left_join(Province.Code)%>%

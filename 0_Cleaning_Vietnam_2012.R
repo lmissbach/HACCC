@@ -120,7 +120,7 @@ data_48 <- bind_rows(data_4d.1, data_8.1)%>%
 data_7.1 <- data_7 %>%
   unite("hh_id", tinh:hoso, sep = "", remove = TRUE)%>%
   select(hh_id, m7c18, m7c21, m7c22, m7c23, m7c24)%>%
-  mutate(electricity.access = ifelse(m7c22 == 1 | m7c23 > 0 | m7c24 > 0,1,0))%>%
+  mutate(electricity.access = ifelse(m7c22 == 1 | m7c24 > 0,1,0))%>%
   rename(water = m7c18, toilet = m7c21, lighting_fuel = m7c22)%>%
   select(hh_id, water, toilet, lighting_fuel, electricity.access)
 
