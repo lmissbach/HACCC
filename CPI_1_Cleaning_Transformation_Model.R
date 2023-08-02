@@ -148,7 +148,7 @@ hh_negative_expenditures_4 <- expenditure_information_4 %>%
 # If you have identified duplicates and want to delete them, do the following:
 # select the corresponding line with hh_ids
 
-if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel", "Mozambique","South Africa", "Pakistan", "Georgia", "Vietnam")){
+if(Country.Name %in% c("Mexico", "Dominican Republic", "Bolivia", "Peru", "Israel", "Mozambique","South Africa", "Pakistan", "Georgia", "Russia","Vietnam")){
   household_information <- household_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)
   

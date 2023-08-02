@@ -47,10 +47,10 @@ Village.Code <- distinct(g_1.1, Village)%>%
   mutate(village = 1:n())%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Village.Code.csv")
 
-# Province.Code <- distinct(g_1.1, Province)%>%
-#   arrange(Province)%>%
-#   mutate(province = 1:n())%>%
-#   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Province.Code.csv")
+Province.Code <- distinct(g_1.1, Province)%>%
+  arrange(Province)%>%
+  mutate(province = 1:n())%>%
+  write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Province.Code.csv")
 
 # weights <- g_1.1 %>%
 #   select(village, hh_weights)%>%
@@ -127,7 +127,7 @@ household_information <- g_1.1 %>%
   left_join(g_4.1)%>%
   left_join(g_1La.1)%>%
   left_join(Village.Code)%>%
-  #left_join(Province.Code)%>%
+  left_join(Province.Code)%>%
   select(-Village, - Province)%>%
   left_join(g_9.1)%>%
   left_join(g711)%>%
