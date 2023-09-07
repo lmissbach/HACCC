@@ -1517,4 +1517,70 @@ names <- full_join(names_11, names_10, by = c("GTAP11" = "GTAP10"))
 
 # 4 Evaluating GTAP11 ####
 
+Countries_new <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Countries_Overview.xlsx")%>%
+  mutate(Name = tolower(Code),
+         Country_Name = Description,
+         Country = Number)%>%
+  select(Name, Country_Name, Country)%>%
+  mutate(Country_Name = ifelse(Country_Name == "Hong Kong, Special Administrative Region of China", "Hong Kong", 
+                               ifelse(Country_Name == "Venezuela (Bolivarian Republic of)", "Venezuela", 
+                                      ifelse(Country_Name == "Rest of European Free Trade Association", "Rest of European FTA", 
+                                             ifelse(Country_Name == "Palestineian Territory, Occupied", "Palestina", 
+                                                    ifelse(Country_Name == "Democratic Republic of the Congo", "DR Congo", 
+                                                           ifelse(Country_Name == "Rest of South and Central Africa", "Rest of SC Africa", 
+                                                                  ifelse(Country_Name == "Rest of South African Customs Union", "Reso of SA CU", 
+                                                                         ifelse(Country_Name == "Viet Nam", "Vietnam",
+                                                                                ifelse(Country_Name == "United States of America", "USA",
+                                                                                       ifelse(Country_Name == "Rest of Caribbean", "Rest of the Caribbean",
+                                                                                              ifelse(Country_Name == "Slovakia", "Slovak Republic",
+                                                                                                     ifelse(Country_Name == "Côte d'Ivoire", "Cote dIvoire", 
+                                                                                                            ifelse(Country_Name == "Russian Federation", "Russia", Country_Name))))))))))))))
+carbon_intensities_0 <- data.frame()
 
+for (i in Countries_new$Country_Name){
+
+  if(i %in% excel_sheets("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx")){
+    carbon_intensities_11 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = i)%>%
+      mutate(GTAP_type = "11",
+             Country = i)
+  }else {
+    carbon_intensities_11 <- data.frame()
+    print("FAIL", i)
+  }
+  
+  
+  carbon_intensities <- carbon_intensities_11%>%
+    select(Country, GTAP_type, GTAP:CO2_Mt_Transport, CO2_direct, Total_HH_Consumption_MUSD)
+  
+  carbon_intensities_0 <- bind_rows(carbon_intensities_0, carbon_intensities)
+  
+}
+
+GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+
+carbon_intensities_1 <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+  select(-Explanation, -Number)%>%
+  mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+  group_by(GTAP, Country, GTAP_type)%>%
+  summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+  ungroup()%>%
+  mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD)%>%
+  group_by(GTAP)%>%
+  mutate(intensity_sd   = sd(CO2_t_per_dollar_national),
+         intensity_mean = mean(CO2_t_per_dollar_national))%>%
+  ungroup()%>%
+  mutate(z_score_intensity = (CO2_t_per_dollar_national - intensity_mean)/intensity_sd)
+
+outlier <- carbon_intensities_1 %>%
+  filter(z_score_intensity > 3)%>%
+  arrange(desc(z_score_intensity))%>%
+  select(GTAP, Country, CO2_t_per_dollar_national, intensity_mean, z_score_intensity)%>%
+  filter(Country %in% c("Argentina", "Austria", "Bangladesh", "Brazil", "Canada", "Chile",
+                        "Colombia", "Estonia", "Ethiopia", "Germany", "India", "Indonesia",
+                        "Kenya", "Morocco", "Pakistan", "Rest of the Caribbean", "Rest of Western Africa",
+                        "Russia", "South Africa", "Thailand", "Turkey", "USA"))
+
+rm(carbon_intensities, carbon_intensities_0, carbon_intensities_1, carbon_intensities_11, Countries_new, GTAP_code, outlier)
