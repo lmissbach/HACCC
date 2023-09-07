@@ -70,9 +70,9 @@ data_0.5.1 <- data_0.5 %>%
 data_1.1.1 <- data_1.1 %>%
   unite(hh_id, c("grappe", "menage"), remove = FALSE, sep = "00")%>%
   filter(s01q02 == 1)%>%
-  rename(sex_hhh = s01q01, religion = s01q14, nationality = s01q15, ethnicity = s01q16, id_code = s01q00a)%>%
+  rename(sex_hhh = s01q01, religion = s01q14, nationality = s01q15, id_code = s01q00a)%>%
   mutate(age_hhh = ifelse(!is.na(s01q04a), s01q04a, 2019-s01q03c))%>%
-  select(hh_id, id_code, age_hhh, sex_hhh, ethnicity, nationality, religion)
+  select(hh_id, id_code, age_hhh, sex_hhh, nationality, religion)
 
 data_1.1.2 <- data_1.1 %>%
   unite(hh_id, c("grappe", "menage"), remove = FALSE, sep = "00")%>%

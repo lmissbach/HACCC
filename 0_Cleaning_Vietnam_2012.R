@@ -285,6 +285,14 @@ expenditures_items_1 <- expenditures_items %>%
 
 write_csv(expenditures_items_1, "../0_Data/1_Household Data/1_Vietnam/1_Data_Clean/expenditures_items_Vietnam.csv")
 
+expenditures_items_2 <- read_csv("../0_Data/1_Household Data/1_Vietnam/1_Data_Clean/expenditures_items_Vietnam.csv")%>%
+  mutate(hh_id = ifelse(hh_id == 3131111506813, 3131111506613,
+                        ifelse(hh_id == 3131111506814, 3131111506614,
+                               ifelse(hh_id == 3131111506815, 3131111506615,hh_id))))
+
+write_csv(expenditures_items_2, "../0_Data/1_Household Data/1_Vietnam/1_Data_Clean/expenditures_items_Vietnam.csv")
+
+
 # Appliances ####
 
 data_6b.1 <- data_6b %>%

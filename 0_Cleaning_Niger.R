@@ -70,9 +70,9 @@ data_0.5.1 <- data_0.5 %>%
 data_1.1.1 <- data_1.1 %>%
   unite(hh_id, c("grappe", "menage"), remove = FALSE, sep = "00")%>%
   filter(s01q02 == 1)%>%
-  rename(sex_hhh = s01q01, religion = s01q14, nationality = s01q15, ethnicity = s01q16, id_code = s01q00a)%>%
+  rename(sex_hhh = s01q01, religion = s01q14, nationality = s01q15, id_code = s01q00a)%>%
   mutate(age_hhh = ifelse(!is.na(s01q04a), s01q04a, 2019-s01q03c))%>%
-  select(hh_id, id_code, age_hhh, sex_hhh, ethnicity, nationality, religion)
+  select(hh_id, id_code, age_hhh, sex_hhh, nationality, religion)
 
 data_1.1.2 <- data_1.1 %>%
   unite(hh_id, c("grappe", "menage"), remove = FALSE, sep = "00")%>%
@@ -419,9 +419,9 @@ District.Code <- stack(attr(data_0.5$s00q02, 'labels'))%>%
 Gender.Code <- stack(attr(data_1.1$s01q01, 'labels'))%>%
   rename(sex_hhh = values, Gender = ind)%>%
   write_csv(., "../0_Data/1_Household Data/2_Niger/2_Codes/Gender.Code.csv")
-Ethnicity.Code <- stack(attr(data_1.1$s01q16, 'labels'))%>%
-  rename(ethnicity = values, Ethnicity = ind)%>%
-  write_csv(., "../0_Data/1_Household Data/2_Niger/2_Codes/Ethnicity.Code.csv")
+# Ethnicity.Code <- stack(attr(data_1.1$s01q16, 'labels'))%>%
+#   rename(ethnicity = values, Ethnicity = ind)%>%
+#   write_csv(., "../0_Data/1_Household Data/2_Niger/2_Codes/Ethnicity.Code.csv")
 Nationality.Code <- stack(attr(data_1.1$s01q15, 'labels'))%>%
   rename(nationality = values, Nationality = ind)%>%
   write_csv(., "../0_Data/1_Household Data/2_Niger/2_Codes/Nationality.Code.csv")

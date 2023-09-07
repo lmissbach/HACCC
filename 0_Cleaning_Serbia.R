@@ -46,7 +46,7 @@ data_4.1 <- data_4 %>%
 
 data_2.1 <- data_2 %>%
   rename(hh_id = rbdom, heating_fuel = p2S_10)%>%
-  mutate(electricity.access = p2S_7_3)%>%
+  mutate(electricity.access = ifelse(p2S_7_3 == "1",1,0))%>%
   select(hh_id, heating_fuel, electricity.access)
 
 household_information <- data_4.1 %>%

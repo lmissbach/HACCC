@@ -291,9 +291,24 @@ expenditures_items <- bind_rows(expenditures_items, expenditures_items_health)%>
 
 # Potentially needs to be updated 
 
+household_information <- household_information %>%
+  filter(hh_id %in% expenditures_items$hh_id)%>%
+  filter(hh_weights != 0)
+
+expenditures_items <- expenditures_items %>%
+  filter(hh_id %in% household_information$hh_id)
+
 write_csv(expenditures_items, "../0_Data/1_Household Data/4_Russia/1_Data_Clean/expenditures_items_Russia.csv")
 
-household_information <- household_information %>%
-  filter(hh_id %in% expenditures_items$hh_id)
+appliances_0_1 <- appliances_0_1 %>%
+  filter(hh_id %in% household_information$hh_id)
+
+write_csv(appliances_0_1, "../0_Data/1_Household Data/4_Russia/1_Data_Clean/appliances_0_1_Russia.csv")
+
+household_information_1 <- household_information %>%
+  mutate(pop = hh_size*hh_weights)%>%
+  # Actual population = 144.000.000 (2015)
+  # 144.000.000/12618 = 11.421
+  mutate(hh_weights = hh_weights*11412.27)
 
 write_csv(household_information, "../0_Data/1_Household Data/4_Russia/1_Data_Clean/household_information_Russia.csv")
