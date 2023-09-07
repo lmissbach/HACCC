@@ -3,6 +3,8 @@
 # Author: L. Missbach, missbach@mcc-berlin.net
 
 carbon.price <- 40 # in USD/tCO2
+GTAP_version <- 11 # Choose between 10 and 11
+GTAP_year    <- 2017 # Choose between 2014 and 2017
 
 # 1       Packages ####
 
@@ -17,10 +19,12 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 # 1.1     Setup ####
 
 for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Iraq","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey","Vietnam",
-                      "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
-                      "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Mozambique","Niger","Nigeria","Rwanda","Senegal",
-                      "South Africa", "Togo", "Uganda",
-                      "Armenia","Europe","Norway","Egypt","Jordan","USA","Canada", "United Kingdom", "Georgia", "Austria", "Taiwan", "Russia", "Serbia", "Switzerland")) {
+                       "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
+                       "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Egypt","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Mozambique","Niger","Nigeria","Rwanda","Senegal",
+                       "South Africa", "Togo", "Uganda",
+                       "Europe",
+                       "Armenia","Norway","USA", "Jordan", "Canada", "United Kingdom", "Georgia", "Austria", "Taiwan","Russia", "Serbia", "Switzerland"
+                      )) {
 
 # uncomment for transforming/cleaning single country dataset
 #Country.Name <- "Mongolia"
@@ -38,15 +42,21 @@ if(Country.Name != "Europe"){
   
   expenditure_information <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/expenditures_items_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
   
+  household_information <- filter(household_information, hh_id %in% expenditure_information$hh_id)
+  clean_0.1 <- nrow(household_information)
+  
+  print(paste0("Deleted ", (clean_0 - clean_0.1), " households from household_information."))
+  
   if(!Country.Name %in% c("Chile","Morocco","Kenya", "Pakistan", "USA"))  {
     appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
   }
 }
 
 if(Country.Name == "Europe"){
-  household_information   <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv", show_col_types = FALSE)
+  household_information   <- read_csv("K:/2021_EUROSTAT_HBS_2010_2015/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Household_Data_Clean.csv", show_col_types = FALSE)
   clean_0 <- nrow(household_information)
-  expenditure_information <- read_csv("K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean_Corrected.csv", show_col_types = FALSE)
+  clean_0.1 <- nrow(household_information)
+  expenditure_information <- read_csv("K:/2021_EUROSTAT_HBS_2010_2015/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Expenditure_Data_Clean_Corrected.csv", show_col_types = FALSE)
 }
 
 if(ncol(expenditure_information)>4){
@@ -213,7 +223,7 @@ if(Country.Name == "Europe"){
     filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
     filter(!hh_id %in% hh_duplicates_expenditures_1$hh_id)%>%
     filter(!hh_id %in% hh_negative_expenditures_4$hh_id)%>%
-    select(-income_year, -hh_type, -main_source_income, -working_people, -non_working_people, -hhh_activity)
+    select(-income_year, -hh_type)
   
   expenditure_information <- expenditure_information %>%
     filter(!hh_id %in% hh_duplicates_information$hh_id)%>%
@@ -302,9 +312,17 @@ CNTRY  <- Country_Year$Country_Code[Country_Year$Country == Country.Name]
 # 5.1.1   Supplementary Data ####
 # Exchange Rates
 
-information.ex <- read.xlsx("../0_Data/9_Supplementary Data/Exchange_Rates_2014.xlsx") # from World Bank
+# information.ex <- read.xlsx("../0_Data/9_Supplementary Data/Exchange_Rates_2014.xlsx") # from World Bank
 
-exchange.rate  <- as.numeric(information.ex$exchange_rate[information.ex$Country == Country.Name]) # not ppp-adjusted
+information.ex <- read.xlsx("../0_Data/9_Supplementary Data/Exchange_Rates_2014_2017.xlsx") # from World Bank
+
+if(GTAP_year == 2014){
+  exchange.rate  <- as.numeric(information.ex$exchange_rate_2014[information.ex$Country == Country.Name]) # not ppp-adjusted
+}
+
+if(GTAP_year == 2017){
+  exchange.rate  <- as.numeric(information.ex$exchange_rate_2017[information.ex$Country == Country.Name]) # not ppp-adjusted
+}
 
 # CPI-Adjustment (Inflation/Deflation)
 
@@ -314,22 +332,41 @@ cpis_0 <- cpis %>%
   select(ISO, Country, starts_with("2"))%>%
   filter(Country == Country.Name | ISO == CNTRY)
 
-cpis_1 <- cpis_0 %>%
-  mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
-  mutate_at(vars('2010':'2019'), function(x) x = 1 + x/100)%>%
-  rename_at(vars(starts_with("2")), list(~ str_replace(., "^", "Year_")))%>%
-  mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014,
-                                   ifelse(Year_0 == 2011, Year_2012*Year_2013*Year_2014,
-                                          ifelse(Year_0 == 2012, Year_2013*Year_2014,
-                                                 ifelse(Year_0 == 2013, Year_2014,
-                                                        ifelse(Year_0 == 2014, 1,
-                                                               ifelse(Year_0 == 2015, 1/Year_2015,
-                                                                      ifelse(Year_0 == 2016, 1/(Year_2015*Year_2016),
-                                                                             ifelse(Year_0 == 2017, 1/(Year_2015*Year_2016*Year_2017),
-                                                                                    ifelse(Year_0 == 2018, 1/(Year_2015*Year_2016*Year_2017*Year_2018),
-                                                                                           ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),
-                                                                                                  ifelse(Year_0 == 2020, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0))))))))))))
+if(GTAP_year == 2014){
+  cpis_1 <- cpis_0 %>%
+    mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
+    mutate_at(vars('2010':'2019'), function(x) x = 1 + x/100)%>%
+    rename_at(vars(starts_with("2")), list(~ str_replace(., "^", "Year_")))%>%
+    mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014,
+                                     ifelse(Year_0 == 2011, Year_2012*Year_2013*Year_2014,
+                                            ifelse(Year_0 == 2012, Year_2013*Year_2014,
+                                                   ifelse(Year_0 == 2013, Year_2014,
+                                                          ifelse(Year_0 == 2014, 1,
+                                                                 ifelse(Year_0 == 2015, 1/Year_2015,
+                                                                        ifelse(Year_0 == 2016, 1/(Year_2015*Year_2016),
+                                                                               ifelse(Year_0 == 2017, 1/(Year_2015*Year_2016*Year_2017),
+                                                                                      ifelse(Year_0 == 2018, 1/(Year_2015*Year_2016*Year_2017*Year_2018),
+                                                                                             ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),
+                                                                                                    ifelse(Year_0 == 2020, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0))))))))))))
+}
 
+if(GTAP_year == 2017){
+  cpis_1 <- cpis_0 %>%
+    mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
+    mutate_at(vars('2010':'2019'), function(x) x = 1 + x/100)%>%
+    rename_at(vars(starts_with("2")), list(~ str_replace(., "^", "Year_")))%>%
+    mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014*Year_2015*Year_2016*Year_2017,
+                                     ifelse(Year_0 == 2011, Year_2012*Year_2013*Year_2014*Year_2015*Year_2016*Year_2017,
+                                            ifelse(Year_0 == 2012, Year_2013*Year_2014*Year_2015*Year_2016*Year_2017,
+                                                   ifelse(Year_0 == 2013, Year_2014*Year_2015*Year_2016*Year_2017,
+                                                          ifelse(Year_0 == 2014, Year_2015*Year_2016*Year_2016,
+                                                                 ifelse(Year_0 == 2015, Year_2016*Year_2017,
+                                                                        ifelse(Year_0 == 2016, Year_2017,
+                                                                               ifelse(Year_0 == 2017, 1,
+                                                                                      ifelse(Year_0 == 2018, 1/(Year_2018),
+                                                                                             ifelse(Year_0 == 2019, 1/(Year_2018*Year_2019),
+                                                                                                    ifelse(Year_0 == 2020, 1/(Year_2018*Year_2019*Year_2020),0))))))))))))
+}
 
 inflation_factor <- cpis_1$inflation_factor[cpis_1$Country == Country.Name | cpis_1$ISO == CNTRY]
 
@@ -346,23 +383,49 @@ if(Country.Name == "Europe"){
     select(Country, starts_with("2"))%>%
     filter(Country %in% countries$Country_long)
   
-  cpis_1 <- cpis_0 %>%
-    mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
-    mutate_at(vars('2010':'2019'), function(x) x = 1 + x/100)%>%
-    rename_at(vars(starts_with("2")), list(~ str_replace(., "^", "Year_")))%>%
-    group_by(Country)%>%
-    mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014, 
-                                     ifelse(Year_0 == 2012, Year_2013*Year_2014,
-                                            ifelse(Year_0 == 2013, Year_2014,
-                                                   ifelse(Year_0 == 2014, 1,
-                                                          ifelse(Year_0 == 2015, 1/Year_2015,
-                                                                 ifelse(Year_0 == 2016, 1/(Year_2015*Year_2016),
-                                                                        ifelse(Year_0 == 2017, 1/(Year_2015*Year_2016*Year_2017),
-                                                                               ifelse(Year_0 == 2018, 1/(Year_2015*Year_2016*Year_2017*Year_2018), 
-                                                                                      ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0))))))))))%>%
-    ungroup()%>%
-    select(Country, inflation_factor)%>%
-    left_join(countries)
+  if(GTAP_year == 2014){
+    cpis_1 <- cpis_0 %>%
+      mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
+      mutate_at(vars('2010':'2019'), function(x) x = 1 + x/100)%>%
+      rename_at(vars(starts_with("2")), list(~ str_replace(., "^", "Year_")))%>%
+      group_by(Country)%>%
+      mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014,
+                                       ifelse(Year_0 == 2011, Year_2012*Year_2013*Year_2014,
+                                              ifelse(Year_0 == 2012, Year_2013*Year_2014,
+                                                     ifelse(Year_0 == 2013, Year_2014,
+                                                            ifelse(Year_0 == 2014, 1,
+                                                                   ifelse(Year_0 == 2015, 1/Year_2015,
+                                                                          ifelse(Year_0 == 2016, 1/(Year_2015*Year_2016),
+                                                                                 ifelse(Year_0 == 2017, 1/(Year_2015*Year_2016*Year_2017),
+                                                                                        ifelse(Year_0 == 2018, 1/(Year_2015*Year_2016*Year_2017*Year_2018),
+                                                                                               ifelse(Year_0 == 2019, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),
+                                                                                                      ifelse(Year_0 == 2020, 1/(Year_2015*Year_2016*Year_2017*Year_2018*Year_2019),0))))))))))))%>%
+      ungroup()%>%
+      select(Country, inflation_factor)%>%
+      left_join(countries)
+  }
+  
+  if(GTAP_year == 2017){
+    cpis_1 <- cpis_0 %>%
+      mutate_at(vars('2010':'2019'), function(x) x = as.numeric(x))%>%
+      mutate_at(vars('2010':'2019'), function(x) x = 1 + x/100)%>%
+      rename_at(vars(starts_with("2")), list(~ str_replace(., "^", "Year_")))%>%
+      group_by(Country)%>%
+      mutate(inflation_factor = ifelse(Year_0 == 2010, Year_2011*Year_2012*Year_2013*Year_2014*Year_2015*Year_2016*Year_2017,
+                                       ifelse(Year_0 == 2011, Year_2012*Year_2013*Year_2014*Year_2015*Year_2016*Year_2017,
+                                              ifelse(Year_0 == 2012, Year_2013*Year_2014*Year_2015*Year_2016*Year_2017,
+                                                     ifelse(Year_0 == 2013, Year_2014*Year_2015*Year_2016*Year_2017,
+                                                            ifelse(Year_0 == 2014, Year_2015*Year_2016*Year_2016,
+                                                                   ifelse(Year_0 == 2015, Year_2016*Year_2017,
+                                                                          ifelse(Year_0 == 2016, Year_2017,
+                                                                                 ifelse(Year_0 == 2017, 1,
+                                                                                        ifelse(Year_0 == 2018, 1/(Year_2018),
+                                                                                               ifelse(Year_0 == 2019, 1/(Year_2018*Year_2019),
+                                                                                                      ifelse(Year_0 == 2020, 1/(Year_2018*Year_2019*Year_2020),0))))))))))))%>%
+      ungroup()%>%
+      select(Country, inflation_factor)%>%
+      left_join(countries)
+  }
   
   inflation_factor_EU <- cpis_1 %>%
     select(-Country_long, -COUNTRY)
@@ -392,7 +455,7 @@ if(Country.Name == "Colombia"){
            X42 = as.character(X42),
            X43 = as.character(X43))}
 
-if(Country.Name == "Bolivia" | Country.Name == "Armenia" | Country.Name == "Bangladesh" | Country.Name == "Mozambique"){
+if(Country.Name == "Bolivia" | Country.Name == "Armenia" | Country.Name == "Bangladesh" | Country.Name == "Mozambique" | Country.Name == "Chile"){
   matching <- matching %>%
     mutate_at(.vars = vars(-GTAP), .funs = list(~ as.character(.)))
 }
@@ -488,46 +551,22 @@ rm(energy)
 
 # 5.1.6   Vector with Carbon Intensities ####
 
-if(Country.Name != "Europe"){
-  if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives", "Iraq", "Serbia")){
-    carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = Country.Name)
-  }
-  if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of the Caribbean")}
-  if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of South America")}
-  if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Western Africa")}
-  if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Southeast Asia")}
-  if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of South Asia")}
-  if(Country.Name == "Iraq"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Western Asia")
-  if(Country.Name == "Serbia"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Eastern Europe")}
-}
+if(GTAP_year == 2014){
   
-  GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
-  
-  carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
-    select(-Explanation, - Number)%>%
-    mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
-    group_by(GTAP)%>%
-    summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
-    ungroup()%>%
-    mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
-           CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
-           CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
-           CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
-           CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
-           N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
-           FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD)%>%
-    select(GTAP, starts_with("CO2_t"), ends_with("national"))
-  
-  rm(carbon_intensities_0, GTAP_code)
-}
-
-if(Country.Name == "Europe"){
-  GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
-  
-  carbon_intensities_EU <- data.frame()
-  
-  for(i in countries_b){
-    carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = i)
+  if(Country.Name != "Europe"){
+    if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Mali", "Niger", "Myanmar", "Maldives", "Iraq", "Serbia")){
+      carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = Country.Name)
+    }
+    if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of the Caribbean")}
+    if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of South America")}
+    if(Country.Name %in% c("Liberia","Mali", "Niger")){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Western Africa")}
+    if(Country.Name == "Myanmar"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Southeast Asia")}
+    if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of South Asia")}
+    if(Country.Name == "Iraq"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Western Asia")}
+    if(Country.Name == "Serbia"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = "Rest of Eastern Europe")}
+    
+    GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+    
     carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
       select(-Explanation, - Number)%>%
       mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
@@ -541,15 +580,110 @@ if(Country.Name == "Europe"){
              CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
              N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
              FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD)%>%
-      select(GTAP, starts_with("CO2_t"), ends_with("national"))%>%
-      mutate(Country = i)
+      select(GTAP, starts_with("CO2_t"), ends_with("national"))
     
-    carbon_intensities_EU <- carbon_intensities_EU %>%
-      bind_rows(carbon_intensities)
+    rm(carbon_intensities_0, GTAP_code)
   }
   
-  rm(carbon_intensities_0, GTAP_code)
+  if(Country.Name == "Europe"){
+    GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+    
+    carbon_intensities_EU <- data.frame()
+    
+    for(i in countries_b){
+      carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = i)
+      carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+        select(-Explanation, - Number)%>%
+        mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+        group_by(GTAP)%>%
+        summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+        ungroup()%>%
+        mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+               CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
+               N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
+               FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD)%>%
+        select(GTAP, starts_with("CO2_t"), ends_with("national"))%>%
+        mutate(Country = i)
+      
+      carbon_intensities_EU <- carbon_intensities_EU %>%
+        bind_rows(carbon_intensities)
+    }
+    
+    rm(carbon_intensities_0, GTAP_code)
+  }
+  
 }
+
+if(GTAP_year == 2017){
+  
+  if(Country.Name != "Europe"){
+    if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Myanmar", "Maldives", "Guinea-Bissau")){
+      carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = Country.Name)
+    }
+    if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of the Caribbean")}
+    if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of South America")}
+    if(Country.Name == "Liberia"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Western Africa")}
+    if(Country.Name == "Myanmar"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Southeast Asia")}
+    if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of South Asia")}
+    if(Country.Name == "Guinea-Bissau"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Western Africa")}
+    
+    GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+    
+    carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+      select(-Explanation, - Number)%>%
+      mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+      group_by(GTAP)%>%
+      summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+      ungroup()%>%
+      mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+             CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+             CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+             CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+             # CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
+             # N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
+             # FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD
+             )%>%
+      select(GTAP, starts_with("CO2_t"), ends_with("national"))
+    
+    rm(carbon_intensities_0, GTAP_code)
+  }
+  
+  if(Country.Name == "Europe"){
+    GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+    
+    carbon_intensities_EU <- data.frame()
+    
+    for(i in countries_b){
+      carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = i)
+      carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+        select(-Explanation, - Number)%>%
+        mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+        group_by(GTAP)%>%
+        summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+        ungroup()%>%
+        mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+               # CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
+               # N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
+               # FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD
+               )%>%
+        select(GTAP, starts_with("CO2_t"), ends_with("national"))%>%
+        mutate(Country = i)
+      
+      carbon_intensities_EU <- carbon_intensities_EU %>%
+        bind_rows(carbon_intensities)
+    }
+    
+    rm(carbon_intensities_0, GTAP_code)
+  }
+  
+}
+
 
 # ____    ####
 # 6       Transformation of Data ####
@@ -717,19 +851,23 @@ household_carbon_footprint <- left_join(expenditure_information_1, carbon_intens
          CO2_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national,
          CO2_t_electricity = expenditures_USD_2014*CO2_t_per_dollar_electricity,
          CO2_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport,
-         CH4_t_national    = expenditures_USD_2014*CH4_t_per_dollar_national,
-         N2O_t_national    = expenditures_USD_2014*N2O_t_per_dollar_national,
-         FGAS_t_national   = expenditures_USD_2014*FGAS_t_per_dollar_national)%>%
-  select(-starts_with("CO2_t_per"), -CH4_t_per_dollar_national, -N2O_t_per_dollar_national, -FGAS_t_per_dollar_national)%>%
+         # CH4_t_national    = expenditures_USD_2014*CH4_t_per_dollar_national,
+         # N2O_t_national    = expenditures_USD_2014*N2O_t_per_dollar_national,
+         # FGAS_t_national   = expenditures_USD_2014*FGAS_t_per_dollar_national
+         )%>%
+  select(-starts_with("CO2_t_per"), 
+         # -CH4_t_per_dollar_national, -N2O_t_per_dollar_national, -FGAS_t_per_dollar_national
+         )%>%
   group_by(hh_id)%>%
   summarise(hh_expenditures_USD_2014 = first(hh_expenditures_USD_2014),
             CO2_t_global      = sum(CO2_t_global),    
             CO2_t_national    = sum(CO2_t_national),  
             CO2_t_electricity = sum(CO2_t_electricity),
             CO2_t_transport   = sum(CO2_t_transport),
-            CH4_t_national    = sum(CH4_t_national),
-            N2O_t_national    = sum(N2O_t_national),
-            FGAS_t_national   = sum(FGAS_t_national))%>%
+            # CH4_t_national    = sum(CH4_t_national),
+            # N2O_t_national    = sum(N2O_t_national),
+            # FGAS_t_national   = sum(FGAS_t_national)
+            )%>%
   ungroup()
 }
 
@@ -740,19 +878,23 @@ if(Country.Name == "Europe"){
            CO2_t_national    = expenditures_USD_2014*CO2_t_per_dollar_national,
            CO2_t_electricity = expenditures_USD_2014*CO2_t_per_dollar_electricity,
            CO2_t_transport   = expenditures_USD_2014*CO2_t_per_dollar_transport,
-           CH4_t_national    = expenditures_USD_2014*CH4_t_per_dollar_national,
-           N2O_t_national    = expenditures_USD_2014*N2O_t_per_dollar_national,
-           FGAS_t_national   = expenditures_USD_2014*FGAS_t_per_dollar_national)%>%
-    select(-starts_with("CO2_t_per"), -CH4_t_per_dollar_national, -N2O_t_per_dollar_national, -FGAS_t_per_dollar_national)%>%
+           # CH4_t_national    = expenditures_USD_2014*CH4_t_per_dollar_national,
+           # N2O_t_national    = expenditures_USD_2014*N2O_t_per_dollar_national,
+           # FGAS_t_national   = expenditures_USD_2014*FGAS_t_per_dollar_national
+           )%>%
+    select(-starts_with("CO2_t_per"), 
+           #-CH4_t_per_dollar_national, -N2O_t_per_dollar_national, -FGAS_t_per_dollar_national
+           )%>%
     group_by(hh_id)%>%
     summarise(hh_expenditures_USD_2014 = first(hh_expenditures_USD_2014),
               CO2_t_global      = sum(CO2_t_global),    
               CO2_t_national    = sum(CO2_t_national),  
               CO2_t_electricity = sum(CO2_t_electricity),
               CO2_t_transport   = sum(CO2_t_transport),
-              CH4_t_national    = sum(CH4_t_national),
-              N2O_t_national    = sum(N2O_t_national),
-              FGAS_t_national   = sum(FGAS_t_national))%>%
+              # CH4_t_national    = sum(CH4_t_national),
+              # N2O_t_national    = sum(N2O_t_national),
+              # FGAS_t_national   = sum(FGAS_t_national)
+              )%>%
     ungroup()
 }
 
@@ -787,7 +929,7 @@ if(Country.Name != "Europe"){
   dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled", showWarnings = FALSE)
   
   write_csv(household_sectoral_carbon_footprint, 
-            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Sectoral_Burden_%s.csv",  Country.Name))
+            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/Sectoral_Burden_%s.csv",  GTAP_year, Country.Name))
   
   rm(basic_household_information, expenditure_information, matching, exchange.rate, inflation_factor, fuels, categories, household_sectoral_carbon_footprint, carbon_intensities)
   
@@ -823,7 +965,7 @@ if(Country.Name == "Europe"){
   dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled", showWarnings = FALSE)
   
   write_csv(household_sectoral_carbon_footprint, 
-            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Sectoral_Burden_%s.csv",  Country.Name))
+            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/Sectoral_Burden_%s.csv",  GTAP_year, Country.Name))
   
   rm(basic_household_information, expenditure_information, matching, exchange.rate, inflation_factor_EU, fuels, categories, household_sectoral_carbon_footprint, carbon_intensities)
 }
@@ -852,13 +994,17 @@ if(max(final_incidence_information$CO2_t_global) == "Inf") "Warning! Check Inten
 if(max(final_incidence_information$CO2_t_global) == "Inf") break
 
 if(Country.Name != "Europe"){
-  household_information <- household_information %>%
-    mutate(Country = CNTRY)
+  NA_ids <- household_information %>%
+    filter(!hh_id %in% final_incidence_information$hh_id)
   
-  write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/Carbon_Pricing_Incidence_%s.csv",  Country.Name))
-  write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/household_information_%s_new.csv", Country.Name))
-  dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data", showWarnings = FALSE)
-  write_csv(left_join(expenditures_fuels, expenditure_information_2), sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/fuel_expenditures_%s.csv", Country.Name))
+  household_information <- household_information %>%
+    mutate(Country = CNTRY)%>%
+    filter(!hh_id %in% NA_ids$hh_id)
+  
+  write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/Carbon_Pricing_Incidence_%s.csv",  GTAP_year, Country.Name))
+  write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/household_information_%s_new.csv", GTAP_year, Country.Name))
+  dir.create(sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/%s", GTAP_year), showWarnings = FALSE)
+  write_csv(left_join(expenditures_fuels, expenditure_information_2), sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/%s/fuel_expenditures_%s.csv", GTAP_year, Country.Name))
 }
 
 if(Country.Name == "Europe"){
@@ -870,8 +1016,10 @@ if(Country.Name == "Europe"){
     filter(!hh_id %in% NA_ids$hh_id)%>%
     select(-COUNTRY, - Country_long)
   
-  write_csv(household_information,       "K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/household_information_Europe_new.csv")
-  write_csv(final_incidence_information, "K:/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/Carbon_Pricing_Incidence_Europe.csv")
+  # write_csv(sprinft(household_information,       "K:/2021_EUROSTAT_HBS_2010_2015/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/%s/household_information_Europe_new.csv", GTAP_year))
+  # write_csv(sprinft(final_incidence_information, "K:/2021_EUROSTAT_HBS_2010_2015/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/%s/Carbon_Pricing_Incidence_Europe.csv", GTAP_year))
+  write_csv(household_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_transformed_and_Modeled/%s/household_information_Europe_new.csv", GTAP_year))
+  write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_transformed_and_Modeled/%s/Carbon_Pricing_Incidence_Europe.csv", GTAP_year))
   
   rm(carbon_intensities_EU, countries, NA_ids)
 }
@@ -880,8 +1028,8 @@ clean_7 <- nrow(household_information)
 
 rm(final_incidence_information, household_carbon_incidence, household_carbon_footprint, binning_0, expenditures_categories_0, household_information, expenditure_information_2, expenditures_fuels)
 
-tracking_removals <- data.frame("Category" = c("Raw file", "Duplicates (HH)", "Duplicates (Exp)", "Duplicates (Ind)", "Duplicates (Agg)", "Expenditures (Agg)", "GTAP (Agg)", "Final"), 
-                                "Number_households" = c(clean_0, clean_1, clean_2, clean_3, clean_4, clean_5, clean_6, clean_7))%>%
+tracking_removals <- data.frame("Category" = c("Raw file", "Missings (HH)","Duplicates (HH)", "Duplicates (Exp)", "Duplicates (Ind)", "Duplicates (Agg)", "Expenditures (Agg)", "GTAP (Agg)", "Final"), 
+                                "Number_households" = c(clean_0, clean_0.1, clean_1, clean_2, clean_3, clean_4, clean_5, clean_6, clean_7))%>%
   mutate(deleted = lag(Number_households) - Number_households)%>%
   mutate(deleted = ifelse(Category == "Final", clean_0 - clean_7, deleted))
 
