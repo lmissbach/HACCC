@@ -185,8 +185,8 @@ oil_intensities_pure                    <- read_csv("OIL_Intensities_Pure_L.csv"
 cons_dom <- read_delim("VDPM.csv", ",", escape_double = FALSE, trim_ws = TRUE)
 cons_int <- read_delim("VIPM.csv", ",", escape_double = FALSE, trim_ws = TRUE)
 
-CO2_dir_imp <- read_delim("MIP_all.csv", ";", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
-CO2_dir_dom <- read_delim("MDP_all.csv", ";", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
+CO2_dir_imp <- read_delim("T:/MSA/papers_internal/work_in_progress/Mi_Homogenized_Datainfrastructure/0_Data/2_IO Data/GTAP_10_MRIO/MIP_all.csv", ";", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
+CO2_dir_dom <- read_delim("T:/MSA/papers_internal/work_in_progress/Mi_Homogenized_Datainfrastructure/0_Data/2_IO Data/GTAP_10_MRIO/MDP_all.csv", ";", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
 
 NONCO2 <- read_csv("Non-CO2/Output_2014_NonCO2_MtCO2.csv")%>%
   select(-Sector_Name, - Country_Name)%>%
