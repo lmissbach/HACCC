@@ -42,7 +42,8 @@ data_6.1 <- data_6 %>%
          cooking_fuel = hh_ckfuel_typ, hh_weights = wgt)%>%
   mutate(toilet = ifelse(is.na(toilet)& hh_toilet_fac == 2, 6,
                          ifelse(is.na(toilet),5, toilet)))%>%
-  select(hh_id, hh_weights, province, toilet, water, cooking_fuel)
+  select(hh_id, hh_weights, province, toilet, water, cooking_fuel)%>%
+  mutate(cooking_fuel = ifelse(is.na(cooking_fuel),5,cooking_fuel))
 
 data_17.1 <- data_17 %>%
   rename(hh_id = uqhh__id)%>%
@@ -173,6 +174,7 @@ Water.Code <- stack(attr(data_6$hh_drkwater, 'labels'))%>%
   write_csv(., "../0_Data/1_Household Data/1_Maldives/2_Codes/Water.Code.csv")
 Cooking.Code <- stack(attr(data_6$hh_ckfuel_typ, 'labels'))%>%
   rename(cooking_fuel = values, Cooking_Fuel = ind)%>%
+  bind_rows(data.frame(cooking_fuel = 5, Cooking_Fuel = "Unknown"))%>%
   write_csv(., "../0_Data/1_Household Data/1_Maldives/2_Codes/Cooking.Code.csv")
 Gender.Code <- stack(attr(data_17$Sex, 'labels'))%>%
   rename(sex_hhh = values, Gender = ind)%>%

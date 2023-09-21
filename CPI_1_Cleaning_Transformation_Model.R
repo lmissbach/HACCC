@@ -623,12 +623,12 @@ if(GTAP_year == 2017){
     if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Myanmar", "Maldives", "Guinea-Bissau")){
       carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = Country.Name)
     }
-    if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of the Caribbean")}
-    if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of South America")}
-    if(Country.Name == "Liberia"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Western Africa")}
-    if(Country.Name == "Myanmar"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Southeast Asia")}
-    if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of South Asia")}
-    if(Country.Name == "Guinea-Bissau"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Western Africa")}
+    if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of the Caribbean")}
+    if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of South America")}
+    if(Country.Name == "Liberia"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Western Africa")}
+    if(Country.Name == "Myanmar"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Southeast Asia")}
+    if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of South Asia")}
+    if(Country.Name == "Guinea-Bissau"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", sheet = "Rest of Western Africa")}
     
     GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
     
