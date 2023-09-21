@@ -27,7 +27,7 @@ Countries <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Countries_Overview.xlsx
 # Insert here v
 # uncomment the following lines if you want to loop over many countries --> uncomment code at section 1.4.2
 
-Country_Number <- 13
+Country_Number <- 158 # South Africa
 
 Country.Name <- Countries$Country_Name[Countries$Country == Country_Number]
 
@@ -129,7 +129,7 @@ rm(Y_R1, Z_R1)
 # 1.1 Sectoral Output ####
 
 Y_R2.1 <-Y_R2 %>%
-  mutate(Y_total = select(., Country_1:Country_141) %>% rowSums(na.rm = TRUE))%>%
+  mutate(Y_total = select(., Country_1:Country_160) %>% rowSums(na.rm = TRUE))%>%
   select(Country_A, Sector, Y_total)
 
 Z_R2.1 <- Z_R2 %>%
@@ -209,7 +209,7 @@ library(openxlsx)
 
 # uncomment the following lines (and last lines of script) if you would like to loop over all countries
 
-L_2 <- read_csv("L_2.csv")%>%
+L_2 <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/L_2.csv")%>%
   arrange(Country_B, Sector_B)
 
 # L_2_NON <- read_csv("L_2_NON.csv")%>%
@@ -220,7 +220,7 @@ transport_national_carbon_intensities   <- read_csv("../0_Data/2_IO Data/GTAP_11
 electricity_national_carbon_intensities <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/Electricity_National_Carbon_Intensities_L.csv")
 
 # national_non_carbon_intensities         <- read_csv("National_NON_Carbon_Intensities_L.csv")
-# gas_national_carbon_intensities         <- read_csv("Gas_National_Carbon_Intensities_L.csv")
+gas_national_carbon_intensities         <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/Gas_National_Carbon_Intensities_L.csv")
 # gas_intensities_pure                    <- read_csv("Gas_Intensities_Pure_L.csv")
 # coal_intensities_pure                   <- read_csv("Coal_Intensities_Pure_L.csv")
 # p_c_intensities_pure                    <- read_csv("P_C_Intensities_Pure_L.csv")
@@ -309,7 +309,7 @@ CO2_OUT <-   left_join(CO2_R1, OUT, by = c("Country_A", "Sector_A"))%>%
  #   mutate(Sector_B  = as.numeric(Sector_B),
  #          Country_B = as.numeric(Country_B))
  # 
- # write_csv(L_2, "L_2.csv")
+ # write_csv(L_2, "../0_Data/2_IO Data/GTAP_11_MRIO/L_2.csv")
 
 # L_2 <- read_csv("L_2.csv")%>%
 #   arrange(Country_B, Sector_B)
@@ -359,7 +359,7 @@ rm(CO2_OUT, CO2_R1)
 #  
 #  }
 #  
-#  write_csv(national_carbon_intensities, "National_Carbon_Intensities_L.csv")
+#  write_csv(national_carbon_intensities, "../0_Data/2_IO Data/GTAP_11_MRIO/National_Carbon_Intensities_L.csv")
 
 # national_carbon_intensities <- read_csv("National_Carbon_Intensities_L.csv")
 
@@ -411,7 +411,7 @@ national_carbon_intensities_2 <- national_carbon_intensities %>%
 # 
 # }
 # 
-#  write_csv(transport_national_carbon_intensities, "Transport_National_Carbon_Intensities_L.csv")
+#  write_csv(transport_national_carbon_intensities, "../0_Data/2_IO Data/GTAP_11_MRIO/Transport_National_Carbon_Intensities_L.csv")
 
 transport_national_carbon_intensities_2 <- transport_national_carbon_intensities%>%
   filter(Country_Host == Country_Number)
@@ -461,7 +461,7 @@ transport_national_carbon_intensities_2 <- transport_national_carbon_intensities
 #   
 # }
 # 
-# write_csv(electricity_national_carbon_intensities, "Electricity_National_Carbon_Intensities_L.csv")
+# write_csv(electricity_national_carbon_intensities, "../0_Data/2_IO Data/GTAP_11_MRIO/Electricity_National_Carbon_Intensities_L.csv")
 
 electricity_national_carbon_intensities_2 <- electricity_national_carbon_intensities %>%
   filter(Country_Host == Country_Number)
@@ -556,27 +556,31 @@ electricity_national_carbon_intensities_2 <- electricity_national_carbon_intensi
 # 1.4.6 Carbon Intensity Gas Sector Only ####
 
 # uncomment the following lines if running code for the first time
-
 #  CO2_R6 <- CO2_R %>%
 #    pivot_longer(starts_with("Sector_"), names_to = "Sector_A", values_to = "CO2", names_prefix = "Sector_")%>%
 #    rename(Country_A = Country)%>%
 #    mutate(Sector_A = as.numeric(Sector_A))%>%
+#    # mutate(Country_A = as.numeric(Country_A))%>%
 #    mutate(CO2 = ifelse(Sector_A != 17 & Sector_A != 47, 0, CO2))
 #  
 #  L_2_6 <- L_1 %>%
 #   filter(Sector_A == 17 | Sector_A == 47)%>%
-#   pivot_longer(c(1:9165), names_to = c("Country_B", "Sector_B"), names_sep = "_", values_to = 'L')
+#   pivot_longer(c(1:10400), names_to = c("Country_B", "Sector_B"), names_sep = "_", values_to = 'L')
 # 
+#  OUT_1 <- OUT %>%
+#    mutate(Country_A = as.numeric(Country_A),
+#           Sector_A  = as.numeric(Sector_A))
+#  
 # gas_national_carbon_intensities <- data.frame()
-
-# for(i in c(1:141)){
+# 
+# for(i in c(1:160)){
 # 
 # ## uncomment ONLY for national gas intensity
 #     
-# ## CO2_R6.1 <- CO2_R6 %>%
-# ##   mutate(CO2 = ifelse(Country_A == i, CO2, 0))
+# CO2_R6.1 <- CO2_R6 %>%
+#   mutate(CO2 = ifelse(Country_A == i, CO2, 0))
 # 
-# CO2_OUT_6 <-   left_join(CO2_R6, OUT)%>%
+# CO2_OUT_6 <-   left_join(CO2_R6.1, OUT_1)%>%
 #   mutate(CO2_OUT = ifelse(OUT != 0, CO2/OUT, 0))%>%
 #   select(-CO2, - OUT)
 # 
@@ -595,10 +599,10 @@ electricity_national_carbon_intensities_2 <- electricity_national_carbon_intensi
 # 
 # }
 # 
-# write_csv(gas_national_carbon_intensities, "Gas_National_Carbon_Intensities_L.csv")
+# write_csv(gas_national_carbon_intensities, "../0_Data/2_IO Data/GTAP_11_MRIO/Gas_National_Carbon_Intensities_L.csv")
 
-# gas_national_carbon_intensities_2 <- gas_national_carbon_intensities %>%
-#   filter(Country_Host == Country_Number)
+gas_national_carbon_intensities_2 <- gas_national_carbon_intensities %>%
+ filter(Country_Host == Country_Number)
 
 # 1.4.7 Gas Price Intensity ####
 
@@ -950,33 +954,33 @@ rm(electricity_national_carbon_intensities_2, Y_R2.4)
 # 
 # rm(national_non_carbon_intensities_2, Y_R2.6)
 
-# 1.5.7 Global Gas Emissions ####
+# 1.5.7 National Gas Emissions ####
 
-# EE_7 <- data.frame()
-# 
-# for(i in c(1:141)){
-#   Y_R2.7 <- Y_R2 %>%
-#     select(Country_A, Sector, paste0("Country_", i))%>%
-#     rename(Country = paste0("Country_", i))%>%
-#     left_join(gas_national_carbon_intensities_2, by = c("Sector" = "Sector_B", "Country_A" = "Country_B"))%>%
-#     mutate(Cons_Em = Country*L)%>%
-#     group_by(Sector)%>%
-#     summarise(Y_Cons  = sum(Country),
-#               Cons_Em = sum(Cons_Em))%>%
-#     ungroup()%>%
-#     mutate(Country = i)
-#   
-#   EE_7 <- bind_rows(EE_7, Y_R2.7)
-#   
-# }
-# 
-# # EE_7.1 <- EE_7 %>%
-# #   group_by(Country)%>%
-# #   summarise(Y_Cons_total_national = sum(Y_Cons),
-# #             Cons_Em_national      = sum(Cons_Em))%>%
-# #   ungroup()
-# 
-# rm(gas_national_carbon_intensities_2, Y_R2.7)
+EE_7 <- data.frame()
+
+for(i in c(1:160)){
+ Y_R2.7 <- Y_R2 %>%
+   select(Country_A, Sector, paste0("Country_", i))%>%
+   rename(Country = paste0("Country_", i))%>%
+   left_join(gas_national_carbon_intensities_2, by = c("Sector" = "Sector_B", "Country_A" = "Country_B"))%>%
+   mutate(Cons_Em = Country*L)%>%
+   group_by(Sector)%>%
+   summarise(Y_Cons  = sum(Country),
+             Cons_Em = sum(Cons_Em))%>%
+   ungroup()%>%
+   mutate(Country = i)
+ 
+ EE_7 <- bind_rows(EE_7, Y_R2.7)
+ 
+}
+
+# EE_7.1 <- EE_7 %>%
+#   group_by(Country)%>%
+#   summarise(Y_Cons_total_national = sum(Y_Cons),
+#             Cons_Em_national      = sum(Cons_Em))%>%
+#   ungroup()
+
+rm(gas_national_carbon_intensities_2, Y_R2.7)
 
 # 1.5.8 Global Gas Input or Expenditures ####
 
@@ -1278,10 +1282,10 @@ EE_4.0 <- EE_4 %>%
 #          Indir_National_Cons_Em_FGAS = Cons_Em_FGAS,
 #          Indir_National_Cons_Em_N2O  = Cons_Em_N2O)
 # 
-# EE_7.0 <- EE_7 %>%
-#   filter(Country == Country_Number)%>%
-#   select(Sector, Cons_Em)%>%
-#   rename(Indir_Emissions_Consumed_Gas = Cons_Em)
+EE_7.0 <- EE_7 %>%
+ filter(Country == Country_Number)%>%
+ select(Sector, Cons_Em)%>%
+ rename(Indir_Emissions_Consumed_Gas = Cons_Em)
 # 
 # EE_8.0 <- EE_8 %>%
 #   filter(Country == Country_Number)%>%
@@ -1303,8 +1307,10 @@ EE_4.0 <- EE_4 %>%
 #   select(Sector, Cons_Em)%>%
 #   rename(Indir_Oil_Consumed = Cons_Em)
 
-rm(EE_1, EE_2, EE_3, EE_4 
-   # EE_5, EE_6, EE_7, EE_8, EE_9, EE_10, EE_11
+rm(EE_1, EE_2, EE_3, EE_4, 
+   # EE_5, EE_6, 
+   EE_7
+   # EE_8, EE_9, EE_10, EE_11
    )
 
 df_final <- expand.grid(GTAP = c(1:65))%>%
@@ -1314,7 +1320,7 @@ df_final <- expand.grid(GTAP = c(1:65))%>%
   left_join(EE_4.0, by = c("GTAP" = "Sector"))%>%
   #left_join(EE_5.0, by = c("GTAP" = "Sector"))%>%
   #left_join(EE_6.0, by = c("GTAP" = "Sector"))%>%
-  #left_join(EE_7.0, by = c("GTAP" = "Sector"))%>%
+  left_join(EE_7.0, by = c("GTAP" = "Sector"))%>%
   #left_join(EE_8.0, by = c("GTAP" = "Sector"))%>%
   #left_join(EE_9.0, by = c("GTAP" = "Sector"))%>%
   #left_join(EE_10.0, by = c("GTAP" = "Sector"))%>%
@@ -1336,7 +1342,7 @@ df_final <- expand.grid(GTAP = c(1:65))%>%
          CO2_Mt_within        = Indir_Emissions_Consumed_National + CO2_direct,
          CO2_Mt_Electricity   = Indir_Emissions_Consumed_National_Electricity,
          CO2_Mt_Transport     = ifelse(GTAP == 32, Indir_Emissions_Consumed_National_Transport + CO2_direct, Indir_Emissions_Consumed_National_Transport),
-         # CO2_Mt_Gas           = ifelse(GTAP == 17 | GTAP == 47, Indir_Emissions_Consumed_Gas + CO2_direct, Indir_Emissions_Consumed_Gas),
+         CO2_Mt_Gas           = ifelse(GTAP == 17 | GTAP == 47, Indir_Emissions_Consumed_Gas + CO2_direct, Indir_Emissions_Consumed_Gas),
          # CO2_Mt_Gas_indir     = Indir_Emissions_Consumed_Gas,
          # CO2_Mt_Gas_direct    = ifelse(GTAP == 17 | GTAP == 47, CO2_direct, 0),
          # GAS_USD_Gas          = ifelse(GTAP == 17 | GTAP == 47, Indir_Gas_Consumed + Gas_pure_direct, Indir_Gas_Consumed),
@@ -1367,7 +1373,7 @@ df_final <- expand.grid(GTAP = c(1:65))%>%
          )
 
 df_final_out <- df_final %>%
-  select(GTAP, CO2_Mt, CO2_Mt_within, CO2_Mt_Electricity, CO2_Mt_Transport, 
+  select(GTAP, CO2_Mt, CO2_Mt_within, CO2_Mt_Electricity, CO2_Mt_Transport, CO2_Mt_Gas,
          CO2_direct,
          #Electricity_MUSD, Electricity_GWh,
          #CH4_MtCO2, FGAS_MtCO2, N2O_MtCO2, CH4_MtCO2_within, FGAS_MtCO2_within, N2O_MtCO2_within, 
@@ -1405,7 +1411,7 @@ Countries_new <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Countries_Overview.
 
 names(list_0) <- Countries_new$Country_Name[1:length(list_0)]
 
-write.xlsx(list_0, "../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All.xlsx", append = TRUE, colNames = TRUE)
+write.xlsx(list_0, "../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All_Gas.xlsx", append = TRUE, colNames = TRUE)
 
 # write_csv(df_final_out, sprintf("Carbon_Intensities_%s.csv", Country.Name))
 
@@ -1436,9 +1442,29 @@ write.xlsx(list_0, "../0_Data/2_IO Data/GTAP_11_MRIO/Carbon_Intensities_Full_All
 
 # 3 Compare GTAP 10 and GTAP 11 ####
 
+Countries_new <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Countries_Overview.xlsx")%>%
+  mutate(Name = tolower(Code),
+         Country_Name = Description,
+         Country = Number)%>%
+  select(Name, Country_Name, Country)%>%
+  mutate(Country_Name = ifelse(Country_Name == "Hong Kong, Special Administrative Region of China", "Hong Kong", 
+                               ifelse(Country_Name == "Venezuela (Bolivarian Republic of)", "Venezuela", 
+                                      ifelse(Country_Name == "Rest of European Free Trade Association", "Rest of European FTA", 
+                                             ifelse(Country_Name == "Palestineian Territory, Occupied", "Palestina", 
+                                                    ifelse(Country_Name == "Democratic Republic of the Congo", "DR Congo", 
+                                                           ifelse(Country_Name == "Rest of South and Central Africa", "Rest of SC Africa", 
+                                                                  ifelse(Country_Name == "Rest of South African Customs Union", "Reso of SA CU", 
+                                                                         ifelse(Country_Name == "Viet Nam", "Vietnam",
+                                                                                ifelse(Country_Name == "United States of America", "USA",
+                                                                                       ifelse(Country_Name == "Rest of Caribbean", "Rest of the Caribbean",
+                                                                                              ifelse(Country_Name == "Slovakia", "Slovak Republic",
+                                                                                                     ifelse(Country_Name == "Côte d'Ivoire", "Cote dIvoire", 
+                                                                                                            ifelse(Country_Name == "Russian Federation", "Russia", Country_Name))))))))))))))
+
+
 carbon_intensities_0 <- data.frame()
 
-for (i in Countries$Country_Name){
+for (i in Countries_new$Country_Name){
   
   if(i %in% excel_sheets("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx")){
     carbon_intensities_10 <- read.xlsx("../0_Data/2_IO Data/GTAP_10_MRIO/Carbon_Intensities_Full_All_incl_Gas_Coal_PC_direct.xlsx", sheet = i)%>%
@@ -1579,8 +1605,117 @@ outlier <- carbon_intensities_1 %>%
   arrange(desc(z_score_intensity))%>%
   select(GTAP, Country, CO2_t_per_dollar_national, intensity_mean, z_score_intensity)%>%
   filter(Country %in% c("Argentina", "Austria", "Bangladesh", "Brazil", "Canada", "Chile",
-                        "Colombia", "Estonia", "Ethiopia", "Germany", "India", "Indonesia",
-                        "Kenya", "Morocco", "Pakistan", "Rest of the Caribbean", "Rest of Western Africa",
-                        "Russia", "South Africa", "Thailand", "Turkey", "USA"))
+                        "Colombia", "Costa Rica", "Czech Republic", "Estonia", "Finland", "Germany", "India", "Indonesia", "Ireland",
+                        "Kenya", "Mexico", "Morocco", "Pakistan", "Rest of the Caribbean", "Rest of Western Africa",
+                        "Russia", "South Africa", "Thailand", "Turkey", "USA", "Vietnam"))%>%
+  arrange(Country, desc(z_score_intensity))
+
+
+# 4.1 Direct emissions in GTAP11 ####
+
+GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+
+carbon_intensities_1 <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+  select(-Explanation, -Number)%>%
+  mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+  group_by(GTAP, Country, GTAP_type)%>%
+  summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+  ungroup()%>%
+  mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_direct      = CO2_direct/Total_HH_Consumption_MUSD)%>%
+  group_by(GTAP)%>%
+  mutate(intensity_sd   = sd(CO2_t_per_dollar_direct),
+         intensity_mean = mean(CO2_t_per_dollar_direct))%>%
+  ungroup()%>%
+  filter(CO2_direct != 0)%>%
+  mutate(z_score_direct_intensity = (CO2_t_per_dollar_direct - intensity_mean)/intensity_sd)%>%
+  mutate(GTAP_type = ifelse(Country %in% c("South Africa", "Rwanda", "Togo", "Uganda"), "African", GTAP_type))
+
+for (sector in c("gasgdt", "p_c", "coa", "oil")){
+  print(sector)
+  
+  carbon_intensities_1.1 <- carbon_intensities_1 %>%
+    filter(GTAP == sector)%>%
+    # mutate(CO2_t_per_dollar_national = ifelse(Total_HH_Consumption_MUSD == 0,0,CO2_t_per_dollar_national))%>%
+    arrange(CO2_t_per_dollar_direct)%>%
+    mutate(number = 1:n())%>%
+    group_by(Country)%>%
+    mutate(order = min(number))%>%
+    ungroup()
+  
+  P_1 <- ggplot(carbon_intensities_1.1)+
+    # geom_line(aes(x = reorder(Country,order), y = CO2_t_per_dollar_national), size = 0.1)+
+    geom_point(aes(x = reorder(Country, order), y = CO2_t_per_dollar_direct, fill = GTAP_type), shape = 21)+
+    scale_fill_viridis_d()+
+    #scale_y_log10()+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
+          panel.grid = element_blank())+
+    coord_cartesian(ylim = c(0,min(max(carbon_intensities_1.1$CO2_t_per_dollar_national*1.05),1)))+
+    ylab("Country")+
+    xlab("Carbon intensity")+
+    ggtitle(paste0("Sector: ", sector))
+  
+  jpeg(sprintf("../0_Data/2_IO Data/GTAP_11_MRIO/Comparing GTAP 11 and GTAP10/Comparison_%s_direct_scale.jpg", sector), width = 30, height = 20, unit = "cm", res = 200)
+  print(P_1)
+  dev.off()
+  
+}
+
+# 4.2 Indirect emissions in GTAP 11 ####
+
+carbon_intensities_1 <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+  select(-Explanation, -Number)%>%
+  mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+  group_by(GTAP, Country, GTAP_type)%>%
+  summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+  ungroup()%>%
+  mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+         CO2_t_per_dollar_direct      = CO2_direct/Total_HH_Consumption_MUSD)%>%
+  mutate(CO2_t_per_dollar_indirect    = CO2_t_per_dollar_national - CO2_t_per_dollar_direct)%>%
+  group_by(GTAP)%>%
+  mutate(intensity_sd   = sd(CO2_t_per_dollar_indirect),
+         intensity_mean = mean(CO2_t_per_dollar_indirect))%>%
+  ungroup()%>%
+  filter(CO2_direct != 0)%>%
+  mutate(z_score_indirect_intensity = (CO2_t_per_dollar_indirect - intensity_mean)/intensity_sd)%>%
+  mutate(GTAP_type = ifelse(Country %in% c("South Africa", "Rwanda", "Togo", "Uganda"), "African", GTAP_type))
+
+for (sector in c("gasgdt", "p_c", "coa", "oil")){
+  print(sector)
+  
+  carbon_intensities_1.1 <- carbon_intensities_1 %>%
+    filter(GTAP == sector)%>%
+    # mutate(CO2_t_per_dollar_national = ifelse(Total_HH_Consumption_MUSD == 0,0,CO2_t_per_dollar_national))%>%
+    arrange(CO2_t_per_dollar_indirect)%>%
+    mutate(number = 1:n())%>%
+    group_by(Country)%>%
+    mutate(order = min(number))%>%
+    ungroup()
+  
+  P_1 <- ggplot(carbon_intensities_1.1)+
+    # geom_line(aes(x = reorder(Country,order), y = CO2_t_per_dollar_national), size = 0.1)+
+    geom_point(aes(x = reorder(Country, order), y = CO2_t_per_dollar_indirect, fill = GTAP_type), shape = 21)+
+    scale_fill_viridis_d()+
+    #scale_y_log10()+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
+          panel.grid = element_blank())+
+    coord_cartesian(ylim = c(0,min(max(carbon_intensities_1.1$CO2_t_per_dollar_indirect*1.05),1)))+
+    ylab("Country")+
+    xlab("Carbon intensity")+
+    ggtitle(paste0("Sector: ", sector))
+  
+  jpeg(sprintf("../0_Data/2_IO Data/GTAP_11_MRIO/Comparing GTAP 11 and GTAP10/Comparison_%s_indirect_scale.jpg", sector), width = 30, height = 20, unit = "cm", res = 200)
+  print(P_1)
+  dev.off()
+  
+}
 
 rm(carbon_intensities, carbon_intensities_0, carbon_intensities_1, carbon_intensities_11, Countries_new, GTAP_code, outlier)
