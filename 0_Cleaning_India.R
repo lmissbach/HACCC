@@ -157,8 +157,17 @@ Religion.Code <- data.frame("religion" = c(1,2,3,4,5,6,7,9),
 Ethnicity.Code <- data.frame("ethnicity" = c(1,2,3,9),
                              "Ethnicity" = c("Scheduled Tribes", "Scheduled Castes", "Other Backward Castes", "Others"))%>%
   write_csv(., "../0_Data/1_Household Data/1_India/2_Codes/Ethnicity.Code.csv")
+Provinces <- read.xlsx("T:/MSA/papers_internal/work_in_progress/Mi_Homogenized_Datainfrastructure/0_Data/1_Household Data/1_India/2_Codes/Province.xlsx", colNames = FALSE)%>%
+  mutate(Province = substr(X1,1,2))%>%
+  mutate(Province_India = str_sub(X1,4,-1))%>%
+  mutate(Province_India = str_to_title(Province_India))%>%
+  select(-X1)
 Province.Code <- distinct(level_1, province)%>%
+  arrange(province)%>%
   mutate(Province = province)%>%
+  left_join(Provinces)%>%
+  select(-Province)%>%
+  rename(Province = Province_India)%>%
   write_csv(., "../0_Data/1_Household Data/1_India/2_Codes/Province.Code.csv")
 Distrct.Code  <- distinct(level_1, district)%>%
   mutate(District = district)%>%

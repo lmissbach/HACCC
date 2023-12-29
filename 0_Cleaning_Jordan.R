@@ -19,7 +19,7 @@ individual_0 <- read_dta("../0_Data/1_Household Data/2_Jordan/1_Data_Raw/Jordan1
 # Transform data
 
 household_1 <- household_0 %>%
-  rename(hh_id = caseser, hh_weights = hweight, province = area, district = reg,
+  rename(hh_id = caseser, hh_weights = hweight, province = reg, district = area,
          cooking_fuel = scook, water = wat, toilet = toif, inc_gov_monetary = transf, ethnicity = nathd_d)%>%
   mutate(urban_01           = ifelse(rururb == 0,0,1),
          inc_gov_cash       = 0,
@@ -139,11 +139,11 @@ Water.Code <- stack(attr(household_0$wat, 'labels'))%>%
   bind_cols(WTR = c("Basic", "Basic", "Limited", "Limited", "Limited"))%>%
   write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/Water.Code.csv")
 
-District.Code <- stack(attr(household_0$reg, 'labels'))%>%
+District.Code <- stack(attr(household_0$area, 'labels'))%>%
   rename(district = values, District = ind)%>%
   write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/District.Code.csv")
 
-Province.Code <- stack(attr(household_0$area, 'labels'))%>%
+Province.Code <- stack(attr(household_0$reg, 'labels'))%>%
   rename(province = values, Province = ind)%>%
   write_csv(., "../0_Data/1_Household Data/2_Jordan/2_Codes/Province.Code.csv")
 

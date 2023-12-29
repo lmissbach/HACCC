@@ -14,7 +14,7 @@ hogares      <- read_delim(sprintf("%s/engho2018_hogares/engho2018_hogares.txt",
 # Data Transformation ####
 
 hogares_1 <- hogares %>%
-  rename(hh_id = id, province = provincia, district = subregion, hh_weights = pondera)%>%
+  rename(hh_id = id, district = provincia, province = subregion, hh_weights = pondera)%>%
   select(hh_id, province, district, hh_weights, ch07, ch09, ch11, ch15, ch20, jniveled,  jsexo, jocupengh, cantmiem, menor18, ingtoth)%>%
   rename(income_year = ingtoth, children = menor18, hh_size = cantmiem, sex_hhh = jsexo, ind_hhh = jocupengh, edu_hhh = jniveled, heating_fuel = ch20, 
          cooking_fuel = ch15, toilet = ch11, water = ch09, electricity = ch07)%>%
@@ -124,12 +124,12 @@ toilet.code <- distinct(hogares_1, toilet)%>%
 electricity.code <- distinct(hogares_1, electricity)%>%
   arrange(electricity)%>%
   mutate(Electricity = c("Grid", "Generator Motor", "Other Generator", "No Electricity"))
-province.code <- distinct(hogares_1, province)%>%
-  arrange(province)%>%
-  mutate(Province = c("Ciudad Autónoma de Buenos Aires", "Buenos Aires", "Catamarca", "Córdoba", "Corrientes", "Chaco", "Chubut", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tucumán", "Tierra del Fuego"))
 district.code <- distinct(hogares_1, district)%>%
   arrange(district)%>%
-  mutate(District = c("Ciudad Autónoma de Buenos Aires","Partidos del Gran Buenos Aires","Córdoba y La Pampa","Santa Fe y Entre Ríos","Buenos Aires", "Jujuy, Salta y Tucumán","La Rioja, Catamarca y Santiago del Estero", "Misiones y Corrientes", "Chaco y Formosa", "San Juan, Mendoza y San Luis", "Neuquén y Río Negro", "Chubut, Santa Cruz y Tierra del Fuego"))
+  mutate(District = c("Ciudad Autónoma de Buenos Aires", "Buenos Aires", "Catamarca", "Córdoba", "Corrientes", "Chaco", "Chubut", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tucumán", "Tierra del Fuego"))
+province.code <- distinct(hogares_1, province)%>%
+  arrange(province)%>%
+  mutate(Province = c("Ciudad Autónoma de Buenos Aires","Partidos del Gran Buenos Aires","Córdoba y La Pampa","Santa Fe y Entre Ríos","Buenos Aires", "Jujuy, Salta y Tucumán","La Rioja, Catamarca y Santiago del Estero", "Misiones y Corrientes", "Chaco y Formosa", "San Juan, Mendoza y San Luis", "Neuquén y Río Negro", "Chubut, Santa Cruz y Tierra del Fuego"))
 
 write_csv(water.code,"../0_Data/1_Household Data/3_Argentina/2_Codes/Water.Code.csv")
 write_csv(cooking.code,"../0_Data/1_Household Data/3_Argentina/2_Codes/Cooking.Code.csv")

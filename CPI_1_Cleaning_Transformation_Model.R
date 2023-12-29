@@ -18,7 +18,7 @@ tracking_removals_0 <- data.frame("Category" = c("Raw file", "Duplicates (HH)", 
 
 # 1.1     Setup ####
 
-for(Country.Name in c("Bangladesh","Cambodia","India","Indonesia","Iraq","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey","Vietnam",
+for(Country.Name in c("Australia","Bangladesh","Cambodia","India","Indonesia","Iraq","Israel","Maldives","Mongolia","Myanmar","Pakistan", "Philippines","Thailand","Turkey","Vietnam",
                        "Argentina","Barbados","Bolivia","Brazil","Chile","Colombia","Costa Rica","Dominican Republic","Ecuador","El Salvador","Guatemala","Mexico","Nicaragua","Paraguay","Peru","Suriname","Uruguay",
                        "Benin","Burkina Faso","Cote dIvoire","Ethiopia","Egypt","Ghana","Guinea-Bissau","Kenya","Liberia","Malawi","Mali","Morocco","Mozambique","Niger","Nigeria","Rwanda","Senegal",
                        "South Africa", "Togo", "Uganda",
@@ -47,7 +47,7 @@ if(Country.Name != "Europe"){
   
   print(paste0("Deleted ", (clean_0 - clean_0.1), " households from household_information."))
   
-  if(!Country.Name %in% c("Chile","Morocco","Kenya", "Pakistan", "USA"))  {
+  if(!Country.Name %in% c("Australia","Chile","Morocco","Kenya", "Pakistan", "USA"))  {
     appliances_0            <- read_csv(sprintf("../0_Data/1_Household Data/%s/1_Data_Clean/appliances_0_1_%s.csv", path_0, Country.Name), col_types = cols(hh_id = col_character()))
   }
 }
@@ -279,7 +279,7 @@ expenditure_outlier <- expenditure_information_4.1 %>%
 
 # Deleting outliers for some countries
 
-if(Country.Name %in% c("Ghana", "Colombia", "Cambodia", "Nicaragua", "Liberia", "Malawi", "Iraq", "Pakistan", "Vietnam","United Kingdom","USA",
+if(Country.Name %in% c("Australia","Ghana", "Colombia", "Cambodia", "Nicaragua", "Liberia", "Malawi", "Iraq", "Pakistan", "Vietnam","United Kingdom","USA",
                        "Georgia", "Russia")){
 
 household_information <- household_information %>%
@@ -702,7 +702,7 @@ expenditure_information <- left_join(expenditure_information, household_ids, by 
   select(hh_id_new, everything(), -hh_id)%>%
   rename(hh_id = hh_id_new)
 
-if(!Country.Name %in% c("Europe", "Chile", "Morocco", "Kenya", "Pakistan", "USA")){
+if(!Country.Name %in% c("Australia","Europe", "Chile", "Morocco", "Kenya", "Pakistan", "USA")){
 appliances_1 <- left_join(appliances_0, household_ids)%>%
   select(hh_id_new, everything(), - hh_id)%>%
   rename(hh_id = hh_id_new)

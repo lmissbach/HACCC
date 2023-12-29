@@ -238,6 +238,7 @@ Province.Code <- distinct(g_1, s1aq1a, s1aq1b)%>%
   summarise(s1aq1b = first(s1aq1b))%>%
   ungroup()%>%
   rename(province = s1aq1b, Province = s1aq1a)%>%
+  arrange(province)%>%
   write_csv(., "../0_Data/1_Household Data/2_Uganda/2_Codes/Province.Code.csv")
 Education.Code <- stack(attr(g_4$E05, 'labels'))%>%
   rename(edu_hhh = values, Education = ind)%>%
