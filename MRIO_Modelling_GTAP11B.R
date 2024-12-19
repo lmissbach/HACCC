@@ -216,12 +216,17 @@ if(year_0 == "2017"){
   L_2 <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/L_2.csv")%>%
     arrange(Country_B, Sector_B)
   
+  L2_EU <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/EU_ETS_Carbon_Intensities_L.csv")%>%
+    arrange(Country_B, Sector_B)
+  
   # L_2_NON <- read_csv("L_2_NON.csv")%>%
   #   arrange(Country_B, Sector_B)
   
   national_carbon_intensities             <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/National_Carbon_Intensities_L.csv")
   transport_national_carbon_intensities   <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Transport_National_Carbon_Intensities_L.csv")
   electricity_national_carbon_intensities <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Electricity_National_Carbon_Intensities_L.csv")
+  
+  EU_transport_carbon_intensities <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/EU_ETS_Transport_Carbon_Intensities_L.csv")
   
   # national_non_carbon_intensities         <- read_csv("National_NON_Carbon_Intensities_L.csv")
   gas_national_carbon_intensities         <- read_csv("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Gas_National_Carbon_Intensities_L.csv")
@@ -505,6 +510,28 @@ rm(CO2_OUT, CO2_R1)
 national_carbon_intensities_2 <- national_carbon_intensities %>%
   filter(Country_Host == Country_Number)
 
+# 1.4.2.1 Carbon Intensity EU Member States + Norway ####
+
+# uncomment the following lines if running code for the first time
+
+# L_2_EU <- L_1 %>%
+#   pivot_longer(c(1:10400), names_to = c("Country_B", "Sector_B"), names_sep = "_", values_to = 'L')%>%
+#   #group_by(Country_A, Sector_A)%>%
+#   #summarise(L = sum(L))%>%
+#   #ungroup()%>%
+#   left_join(CO2_OUT, by = c("Country_A" = "Country_A", "Sector_A" = "Sector_A"))%>%
+#   # Include only emissions from EU ETS states
+#   mutate(CO2_OUT = ifelse(Country_A %in% c(56:82,85), CO2_OUT,0))%>%
+#   mutate(L = L*CO2_OUT)%>%
+#   group_by(Country_B, Sector_B)%>%
+#   summarise(L = sum(L))%>%
+#   ungroup()%>%
+#   mutate(Sector_B  = as.numeric(Sector_B),
+#          Country_B = as.numeric(Country_B))
+# 
+# if(year_0 != "2017"){write_csv(L_2_EU, sprintf("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11A_%s/EU_ETS_Carbon_Intensities_L.csv", year_0))}
+# if(year_0 == "2017"){write_csv(L_2_EU, "../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/EU_ETS_Carbon_Intensities_L.csv")}
+ 
 # 1.4.3 Carbon Intensity Transport Sector Only ####
 
 # uncomment the following lines if running code for the first time
@@ -554,6 +581,30 @@ national_carbon_intensities_2 <- national_carbon_intensities %>%
 
 transport_national_carbon_intensities_2 <- transport_national_carbon_intensities%>%
   filter(Country_Host == Country_Number)
+
+# 1.4.3.1 Carbon Intensity EU Member States + Norway + Iceland and Transport Sector Only ####
+
+# uncomment the following lines if running code for the first time
+
+# L_3_EU <- L_1 %>%
+#   pivot_longer(c(1:10400), names_to = c("Country_B", "Sector_B"), names_sep = "_", values_to = 'L')%>%
+#   #group_by(Country_A, Sector_A)%>%
+#   #summarise(L = sum(L))%>%
+#   #ungroup()%>%
+#   left_join(CO2_OUT, by = c("Country_A" = "Country_A", "Sector_A" = "Sector_A"))%>%
+#   # Include only emissions from EU ETS states
+#   mutate(CO2_OUT = ifelse(Country_A %in% c(56:82,85), CO2_OUT,0))%>%
+#   # Include only emissions from transport sectors
+#   mutate(CO2_OUT = ifelse(Sector_A %in% c(32,52,53,54), CO2_OUT,0))%>%
+#   mutate(L = L*CO2_OUT)%>%
+#   group_by(Country_B, Sector_B)%>%
+#   summarise(L = sum(L))%>%
+#   ungroup()%>%
+#   mutate(Sector_B  = as.numeric(Sector_B),
+#          Country_B = as.numeric(Country_B))
+# 
+# if(year_0 != "2017"){write_csv(L_3_EU, sprintf("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11A_%s/EU_ETS_Transport_Carbon_Intensities_L.csv", year_0))}
+# if(year_0 == "2017"){write_csv(L_3_EU, "../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/EU_ETS_Transport_Carbon_Intensities_L.csv")}
 
 # 1.4.4 Carbon Intensity Electricity Sector Only ####
 
@@ -986,6 +1037,34 @@ for(i in c(1:160)){
 
 rm(national_carbon_intensities_2, Y_R2.2)
 
+# 1.5.2.1 EU ETS Embedded Emissions ####
+
+EE_2.1 <- data.frame()
+
+for(i in c(1:160)){
+  Y_R2.2.1 <- Y_R2 %>%
+    select(Country_A, Sector, paste0("Country_", i))%>%
+    rename(Country = paste0("Country_", i))%>%
+    left_join(L2_EU, by = c("Sector" = "Sector_B", "Country_A" = "Country_B"))%>%
+    mutate(Cons_Em = Country*L)%>%
+    group_by(Sector)%>%
+    summarise(Y_Cons  = sum(Country),
+              Cons_Em = sum(Cons_Em))%>%
+    ungroup()%>%
+    mutate(Country = i)
+  
+  EE_2.1 <- bind_rows(EE_2.1, Y_R2.2.1)
+  
+}
+
+# EE_2.1 <- EE_2 %>%
+#   group_by(Country)%>%
+#   summarise(Y_Cons_total_national = sum(Y_Cons),
+#             Cons_Em_national      = sum(Cons_Em))%>%
+#   ungroup()
+
+rm(Y_R2.2.1)
+
 # 1.5.3 National Transport Only Emissions ####
 
 EE_3 <- data.frame()
@@ -1013,6 +1092,28 @@ for(i in c(1:160)){
 #   ungroup()
 
 rm(transport_national_carbon_intensities_2, Y_R2.3)
+
+# 1.5.3.1 European Transport Emissions Only ####
+
+EE_3.1 <- data.frame()
+
+for(i in c(1:160)){
+  Y_R2.3.1 <- Y_R2 %>%
+    select(Country_A, Sector, paste0("Country_", i))%>%
+    rename(Country = paste0("Country_", i))%>%
+    left_join(EU_transport_carbon_intensities, by = c("Sector" = "Sector_B", "Country_A" = "Country_B"))%>%
+    mutate(Cons_Em = Country*L)%>%
+    group_by(Sector)%>%
+    summarise(Y_Cons  = sum(Country),
+              Cons_Em = sum(Cons_Em))%>%
+    ungroup()%>%
+    mutate(Country = i)
+  
+  EE_3.1 <- bind_rows(EE_3.1, Y_R2.3.1)
+  
+}
+
+rm(Y_R2.3.1)
 
 # 1.5.4 National Electricity Only Emissions ####
 
@@ -1398,10 +1499,20 @@ EE_2.0 <- EE_2 %>%
   select(Sector, Cons_Em)%>%
   rename(Indir_Emissions_Consumed_National = Cons_Em)
 
+EE_2.1.0 <- EE_2.1 %>%
+  filter(Country == Country_Number)%>%
+  select(Sector, Cons_Em)%>%
+  rename(Indir_Emissions_Consumed_EU = Cons_Em)
+
 EE_3.0 <- EE_3 %>%
   filter(Country == Country_Number)%>%
   select(Sector, Cons_Em)%>%
   rename(Indir_Emissions_Consumed_National_Transport = Cons_Em)
+
+EE_3.1.0 <- EE_3.1 %>%
+  filter(Country == Country_Number)%>%
+  select(Sector, Cons_Em)%>%
+  rename(Indir_Emissions_Consumed_EU_Transport = Cons_Em)
 
 EE_4.0 <- EE_4 %>%
   filter(Country == Country_Number)%>%
@@ -1447,7 +1558,7 @@ EE_7.0 <- EE_7 %>%
 #   select(Sector, Cons_Em)%>%
 #   rename(Indir_Oil_Consumed = Cons_Em)
 
-rm(EE_1, EE_2, EE_3, EE_4, 
+rm(EE_1, EE_2, EE_3, EE_4, EE_2.1, EE_3.1,
    # EE_5, EE_6, 
    EE_7
    # EE_8, EE_9, EE_10, EE_11
@@ -1456,7 +1567,9 @@ rm(EE_1, EE_2, EE_3, EE_4,
 df_final <- expand.grid(GTAP = c(1:65))%>%
   left_join(EE_1.0, by = c("GTAP" = "Sector"))%>%
   left_join(EE_2.0, by = c("GTAP" = "Sector"))%>%
+  left_join(EE_2.1.0, by = c("GTAP" = "Sector"))%>%
   left_join(EE_3.0, by = c("GTAP" = "Sector"))%>%
+  left_join(EE_3.1.0, by = c("GTAP" = "Sector"))%>%
   left_join(EE_4.0, by = c("GTAP" = "Sector"))%>%
   #left_join(EE_5.0, by = c("GTAP" = "Sector"))%>%
   #left_join(EE_6.0, by = c("GTAP" = "Sector"))%>%
@@ -1480,9 +1593,11 @@ df_final <- expand.grid(GTAP = c(1:65))%>%
          )%>%
   mutate(CO2_Mt               = Indir_Emissions_Consumed + CO2_direct,
          CO2_Mt_within        = Indir_Emissions_Consumed_National + CO2_direct,
+         CO2_Mt_EU            = Indir_Emissions_Consumed_EU + CO2_direct,
          CO2_Mt_Electricity   = Indir_Emissions_Consumed_National_Electricity,
          CO2_Mt_Transport     = ifelse(GTAP == 32, Indir_Emissions_Consumed_National_Transport + CO2_direct, Indir_Emissions_Consumed_National_Transport),
-         CO2_Mt_Gas           = ifelse(GTAP == 17 | GTAP == 47, Indir_Emissions_Consumed_Gas + CO2_direct, Indir_Emissions_Consumed_Gas),
+         CO2_Mt_Transport_EU  = ifelse(GTAP == 32, Indir_Emissions_Consumed_EU_Transport + CO2_direct,       Indir_Emissions_Consumed_EU_Transport),
+         CO2_Mt_Gas           = ifelse(GTAP == 17 | GTAP == 47, Indir_Emissions_Consumed_Gas + CO2_direct,   Indir_Emissions_Consumed_Gas),
          # CO2_Mt_Gas_indir     = Indir_Emissions_Consumed_Gas,
          # CO2_Mt_Gas_direct    = ifelse(GTAP == 17 | GTAP == 47, CO2_direct, 0),
          # GAS_USD_Gas          = ifelse(GTAP == 17 | GTAP == 47, Indir_Gas_Consumed + Gas_pure_direct, Indir_Gas_Consumed),
@@ -1513,7 +1628,7 @@ df_final <- expand.grid(GTAP = c(1:65))%>%
          )
 
 df_final_out <- df_final %>%
-  select(GTAP, CO2_Mt, CO2_Mt_within, CO2_Mt_Electricity, CO2_Mt_Transport, CO2_Mt_Gas,
+  select(GTAP, CO2_Mt, CO2_Mt_within, CO2_Mt_EU, CO2_Mt_Electricity, CO2_Mt_Transport, CO2_Mt_Transport_EU, CO2_Mt_Gas,
          CO2_direct,
          #Electricity_MUSD, Electricity_GWh,
          #CH4_MtCO2, FGAS_MtCO2, N2O_MtCO2, CH4_MtCO2_within, FGAS_MtCO2_within, N2O_MtCO2_within, 
@@ -1551,8 +1666,8 @@ Countries_new <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/Countries_Overview.
 
 names(list_0) <- Countries_new$Country_Name[1:length(list_0)]
 
-if(year_0 != "2017"){write.xlsx(list_0, sprintf("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11A_%s/Carbon_Intensities_Full_All_Gas_%s.xlsx", year_0, year_0), append = TRUE, colNames = TRUE)}
-if(year_0 == "2017"){write.xlsx(list_0, "../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", append = TRUE, colNames = TRUE)}
+if(year_0 != "2017"){write.xlsx(list_0, sprintf("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11A_%s/Carbon_Intensities_Full_All_Gas_EU_%s.xlsx", year_0, year_0), append = TRUE, colNames = TRUE)}
+if(year_0 == "2017"){write.xlsx(list_0, "../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas_EU.xlsx", append = TRUE, colNames = TRUE)}
 
 # write_csv(df_final_out, sprintf("Carbon_Intensities_%s.csv", Country.Name))
 
