@@ -3,7 +3,7 @@
 # Author: L. Missbach, missbach@mcc-berlin.net
 
 carbon.price <- 40 # in USD/tCO2
-GTAP_version <- 11 # Choose between 10 and 11
+GTAP_version <- "11B" # Choose between 10 and 11A and 11B
 GTAP_year    <- 2017 # Choose between 2014 and 2017
 
 # 1       Packages ####
@@ -617,7 +617,7 @@ if(GTAP_year == 2014){
   
 }
 
-if(GTAP_year == 2017){
+if(GTAP_year == 2017 & GTAP_version == "11A"){
   
   if(Country.Name != "Europe"){
     if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Myanmar", "Maldives", "Guinea-Bissau")){
@@ -684,6 +684,72 @@ if(GTAP_year == 2017){
   
 }
 
+if(GTAP_year == 2017 & GTAP_version == "11B"){
+  
+  if(Country.Name != "Europe"){
+    if(!Country.Name %in% c("Barbados", "Liberia", "Suriname", "Myanmar", "Maldives", "Guinea-Bissau")){
+      carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = Country.Name)
+    }
+    if(Country.Name == "Barbados"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = "Rest of the Caribbean")}
+    if(Country.Name == "Suriname"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = "Rest of South America")}
+    if(Country.Name == "Liberia"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = "Rest of Western Africa")}
+    if(Country.Name == "Myanmar"){carbon_intensities_0  <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = "Rest of Southeast Asia")}
+    if(Country.Name == "Maldives"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = "Rest of South Asia")}
+    if(Country.Name == "Guinea-Bissau"){carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = "Rest of Western Africa")}
+    
+    GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+    
+    carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+      select(-Explanation, - Number)%>%
+      mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+      group_by(GTAP)%>%
+      summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+      ungroup()%>%
+      mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+             CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+             CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+             CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+             # CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
+             # N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
+             # FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD
+      )%>%
+      select(GTAP, starts_with("CO2_t"), ends_with("national"))
+    
+    rm(carbon_intensities_0, GTAP_code)
+  }
+  
+  if(Country.Name == "Europe"){
+    GTAP_code            <- read_delim("../0_Data/2_IO Data/GTAP_10_MRIO/GTAP10.csv", ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
+    
+    carbon_intensities_EU <- data.frame()
+    
+    for(i in countries_b){
+      carbon_intensities_0 <- read.xlsx("../0_Data/2_IO Data/GTAP_11_MRIO/GTAP11B_2017/Carbon_Intensities_Full_All_Gas.xlsx", sheet = i)
+      carbon_intensities   <- left_join(GTAP_code, carbon_intensities_0, by = c("Number"="GTAP"))%>%
+        select(-Explanation, - Number)%>%
+        mutate(GTAP = ifelse(GTAP == "gas" | GTAP == "gdt", "gasgdt", GTAP))%>%
+        group_by(GTAP)%>%
+        summarise(across(CO2_Mt:Total_HH_Consumption_MUSD, ~ sum(.)))%>%
+        ungroup()%>%
+        mutate(CO2_t_per_dollar_global      = CO2_Mt/            Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_national    = CO2_Mt_within/     Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_electricity = CO2_Mt_Electricity/Total_HH_Consumption_MUSD,
+               CO2_t_per_dollar_transport   = CO2_Mt_Transport/  Total_HH_Consumption_MUSD,
+               # CH4_t_per_dollar_national    = CH4_MtCO2_within/  Total_HH_Consumption_MUSD,
+               # N2O_t_per_dollar_national    = N2O_MtCO2_within/  Total_HH_Consumption_MUSD,
+               # FGAS_t_per_dollar_national   = FGAS_MtCO2_within/ Total_HH_Consumption_MUSD
+        )%>%
+        select(GTAP, starts_with("CO2_t"), ends_with("national"))%>%
+        mutate(Country = i)
+      
+      carbon_intensities_EU <- carbon_intensities_EU %>%
+        bind_rows(carbon_intensities)
+    }
+    
+    rm(carbon_intensities_0, GTAP_code)
+  }
+  
+}
 
 # ____    ####
 # 6       Transformation of Data ####
@@ -929,7 +995,7 @@ if(Country.Name != "Europe"){
   dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled", showWarnings = FALSE)
   
   write_csv(household_sectoral_carbon_footprint, 
-            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/Sectoral_Burden_%s.csv",  GTAP_year, Country.Name))
+            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s_%s/Sectoral_Burden_%s.csv",  GTAP_year, GTAP_version, Country.Name))
   
   rm(basic_household_information, expenditure_information, matching, exchange.rate, inflation_factor, fuels, categories, household_sectoral_carbon_footprint, carbon_intensities)
   
@@ -965,7 +1031,7 @@ if(Country.Name == "Europe"){
   dir.create("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled", showWarnings = FALSE)
   
   write_csv(household_sectoral_carbon_footprint, 
-            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/Sectoral_Burden_%s.csv",  GTAP_year, Country.Name))
+            sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s_%s/Sectoral_Burden_%s.csv",  GTAP_year, GTAP_version, Country.Name))
   
   rm(basic_household_information, expenditure_information, matching, exchange.rate, inflation_factor_EU, fuels, categories, household_sectoral_carbon_footprint, carbon_intensities)
 }
@@ -1001,10 +1067,10 @@ if(Country.Name != "Europe"){
     mutate(Country = CNTRY)%>%
     filter(!hh_id %in% NA_ids$hh_id)
   
-  write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/Carbon_Pricing_Incidence_%s.csv",  GTAP_year, Country.Name))
-  write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s/household_information_%s_new.csv", GTAP_year, Country.Name))
-  dir.create(sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/%s", GTAP_year), showWarnings = FALSE)
-  write_csv(left_join(expenditures_fuels, expenditure_information_2), sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/%s/fuel_expenditures_%s.csv", GTAP_year, Country.Name))
+  write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s_%s/Carbon_Pricing_Incidence_%s.csv",  GTAP_year, GTAP_version, Country.Name))
+  write_csv(household_information,       sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_Transformed_and_Modeled/%s_%s/household_information_%s_new.csv", GTAP_year, GTAP_version, Country.Name))
+  dir.create(sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/%s_%s", GTAP_year, GTAP_version), showWarnings = FALSE)
+  write_csv(left_join(expenditures_fuels, expenditure_information_2), sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/2_Fuel_Expenditure_Data/%s_%s/fuel_expenditures_%s.csv", GTAP_year, GTAP_version, Country.Name))
 }
 
 if(Country.Name == "Europe"){
@@ -1018,8 +1084,8 @@ if(Country.Name == "Europe"){
   
   # write_csv(sprinft(household_information,       "K:/2021_EUROSTAT_HBS_2010_2015/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/%s/household_information_Europe_new.csv", GTAP_year))
   # write_csv(sprinft(final_incidence_information, "K:/2021_EUROSTAT_HBS_2010_2015/WorkInProgress/2021_Carbon_Footprint_Analysis/Data_Transformed/%s/Carbon_Pricing_Incidence_Europe.csv", GTAP_year))
-  write_csv(household_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_transformed_and_Modeled/%s/household_information_Europe_new.csv", GTAP_year))
-  write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_transformed_and_Modeled/%s/Carbon_Pricing_Incidence_Europe.csv", GTAP_year))
+  write_csv(household_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_transformed_and_Modeled/%s_%s/household_information_Europe_new.csv", GTAP_year, GTAP_version))
+  write_csv(final_incidence_information, sprintf("../1_Carbon_Pricing_Incidence/1_Data_Incidence_Analysis/1_transformed_and_Modeled/%s_%s/Carbon_Pricing_Incidence_Europe.csv", GTAP_year, GTAP_version))
   
   rm(carbon_intensities_EU, countries, NA_ids)
 }
