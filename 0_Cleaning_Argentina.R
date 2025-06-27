@@ -18,7 +18,9 @@ hogares_1 <- hogares %>%
   select(hh_id, province, district, hh_weights, ch07, ch09, ch11, ch15, ch20, jniveled,  jsexo, jocupengh, cantmiem, menor18, ingtoth)%>%
   rename(income_year = ingtoth, children = menor18, hh_size = cantmiem, sex_hhh = jsexo, ind_hhh = jocupengh, edu_hhh = jniveled, heating_fuel = ch20, 
          cooking_fuel = ch15, toilet = ch11, water = ch09, electricity = ch07)%>%
-  mutate(adults = hh_size - children)
+  mutate(adults = hh_size - children)%>%
+  mutate(electricity.access = ifelse(electricity == 1,1,0))%>%
+  select(-electricity)
 
 write_csv(hogares_1, "../0_Data/1_Household Data/3_Argentina/1_Data_Clean/household_information_Argentina.csv")
 
